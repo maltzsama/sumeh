@@ -4,35 +4,25 @@ import warnings
 
 from cuallee import Check, CheckLevel
 
-from .services.config_parser import get_config
+from .services.config import *
 from .services.utils import __convert_value
+
 
 
 def quality(
     df,
-    source_type,
-    file_path=None,
-    name="Data Quality Checks",
-    connection=None,
-    database_config: dict = None,
-    delimiter=";",
+    rules:list[dict],
+    name:str="Quality Check"
 ):
-
-    dq_rules = get_config(
-        source_type=source_type,
-        source=file_path,
-        delimiter=delimiter,
-        connection=connection,
-        database_config=database_config,
-    )
 
     check = Check(CheckLevel.WARNING, name)
 
-    for rule in dq_rules:
+    for rule in rules:
         rule_name = rule["check_type"]
         field = rule["field"]
         threshold = rule.get("threshold", 1.0)
         threshold = 1.0 if threshold is None else threshold
+        print(field)
 
         match rule_name:
 
@@ -189,7 +179,7 @@ def quality(
                 check = check.satisfies(field, predicate, pct=threshold)
 
             case _:
-                warnings.warn(f"Unknown rule name: {rule_name}")
+                warnings.warn(f"Unknown rule name: {rule_name}, {field}")
 
     quality_check = check.validate(df)
     return quality_check

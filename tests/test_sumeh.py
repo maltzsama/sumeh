@@ -5,6 +5,8 @@ import pandas as pd
 import os
 from unittest.mock import patch
 from sumeh.sumeh import quality
+from sumeh.sumeh import get_config_from_csv
+
 
 
 class TestQualityFunction(unittest.TestCase):
@@ -19,21 +21,22 @@ class TestQualityFunction(unittest.TestCase):
             os.path.dirname(__file__), "mock", "config.csv"
         )
 
-        # Read the mock data into a pandas DataFrame
         cls.mock_data = pd.read_csv(cls.mock_data_file, sep=",", header=0)
-        cls.mock_data['performance'] = pd.to_numeric(cls.mock_data['performance'], errors='coerce')
-        cls.mock_data['performance'] = cls.mock_data['performance'].fillna(0)
-        cls.mock_data['last_updated'] = pd.to_datetime(cls.mock_data['last_updated'], errors='coerce')
-        cls.mock_data['id'] = cls.mock_data['id'].astype(str)
-
-
+        cls.mock_data["performance"] = pd.to_numeric(
+            cls.mock_data["performance"], errors="coerce"
+        )
+        cls.mock_data["performance"] = cls.mock_data["performance"].fillna(0)
+        cls.mock_data["last_updated"] = pd.to_datetime(
+            cls.mock_data["last_updated"], errors="coerce"
+        )
+        cls.mock_data["id"] = cls.mock_data["id"].astype(str)
 
     def test_quality_with_mock_data(self):
-        print(self.mock_data)
+        rules = get_config_from_csv(file_path=self.mock_config_file, delimiter=";")
+        print(rules)
         result = quality(
             df=self.mock_data,
-            source_type="csv",
-            file_path=self.mock_config_file,
+            rules=rules,
         )
 
         print(result)
@@ -41,4 +44,3 @@ class TestQualityFunction(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

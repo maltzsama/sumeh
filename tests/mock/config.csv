@@ -24,7 +24,6 @@ salary;has_std;100000;0.30;true;21/09/2024
 salary;has_mean;100000;0.31;true;21/09/2024
 salary;has_sum;100000;0.32;true;21/09/2024
 salary;has_cardinality;10;0.34;true;21/09/2024
-salary;has_infogain;NULL;0.35;true;21/09/2024
 salary;is_in_millions;NULL;0.41;true;21/09/2024
 salary;is_in_billions;NULL;0.42;true;21/09/2024
 join_date;is_t_minus_1;NULL;0.43;true;21/09/2024
