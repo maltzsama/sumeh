@@ -219,7 +219,14 @@ h2 = ["h2 (>=4,<5)"]
 socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
 
+[extras]
+aws = []
+bigquery = []
+dev = []
+mysql = []
+postgresql = []
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "07ae69575d9dc59a58bfa7428fd9029c03d32bc0dacd8789b1c4aedf96f9da1b"
+content-hash = "4582ea9c804b9e661177c99ea06fc05ceea239f3e90f9d70f9f5439de4e158ca"

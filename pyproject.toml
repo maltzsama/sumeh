@@ -8,7 +8,34 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 cuallee = "^0.15.0"
+python-dateutil = "2.9.0.post0"
 
+
+[tool.poetry.extras]
+dev = [
+    "coverage",
+    "mypy",
+    "pytest",
+    "ruff"
+]
+
+aws = [
+    "boto3"
+]
+
+mysql = [
+    "mysql-connector-python",
+    "pandas"
+]
+
+postgresql = [
+    "psycopg2-binary",
+    "pandas"
+]
+
+bigquery = [
+    "google-cloud-bigquery"
+]
 
 [build-system]
 requires = ["poetry-core"]
