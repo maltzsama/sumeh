@@ -8,15 +8,12 @@ from sumeh.sumeh import quality
 from sumeh.sumeh import get_config_from_csv
 
 
-
 class TestQualityFunction(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         # Load the mock data from the CSV file
-        cls.mock_data_file = os.path.join(
-            os.path.dirname(__file__), "mock", "data_sample.csv"
-        )
+        cls.mock_data_file = os.path.join(os.path.dirname(__file__), "mock", "data.csv")
         cls.mock_config_file = os.path.join(
             os.path.dirname(__file__), "mock", "config.csv"
         )

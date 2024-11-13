@@ -1,15 +1,14 @@
 [tool.poetry]
 name = "sumeh"
-version = "0.1.0"
+version = "0.1.3"
 description = ""
 authors = ["Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-cuallee = "^0.15.0"
-python-dateutil = "^2.9.0.post0"
-
+cuallee = "0.15.0"
+python-dateutil = "2.9.0.post0"
 
 [tool.poetry.extras]
 dev = [
@@ -20,7 +19,7 @@ dev = [
 ]
 
 aws = [
-    "boto3"
+    "pandas"
 ]
 
 mysql = [
@@ -34,7 +33,8 @@ postgresql = [
 ]
 
 bigquery = [
-    "google-cloud-bigquery"
+    "google-cloud-bigquery",
+    "pandas"
 ]
 
 [build-system]

@@ -8,12 +8,7 @@ from .services.config import *
 from .services.utils import __convert_value
 
 
-
-def quality(
-    df,
-    rules:list[dict],
-    name:str="Quality Check"
-):
+def quality(df, rules: list[dict], name: str = "Quality Check"):
 
     check = Check(CheckLevel.WARNING, name)
 
