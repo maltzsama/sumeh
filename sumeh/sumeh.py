@@ -3,8 +3,6 @@
 import warnings
 
 from cuallee import Check, CheckLevel
-
-from .services.config import *
 from .services.utils import __convert_value
 
 
