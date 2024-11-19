@@ -23,34 +23,21 @@ The project structure is organized as follows:
 ├── pyproject.toml
 ├── sumeh
 │   ├── __init__.py
-│   ├── __pycache__
-│   │   ├── __init__.cpython-310.pyc
-│   │   ├── __init__.cpython-312.pyc
-│   │   ├── cli.cpython-312.pyc
-│   │   └── sumeh.cpython-310.pyc
 │   ├── cli.py
-│   ├── services
-│   │   ├── __init__.py
-│   │   ├── __pycache__
-│   │   │   ├── __init__.cpython-310.pyc
-│   │   │   ├── config.cpython-310.pyc
-│   │   │   ├── config_parser.cpython-310.pyc
-│   │   │   ├── quality.cpython-310.pyc
-│   │   │   └── utils.cpython-310.pyc
-│   │   ├── config.py
-│   │   ├── index.html
-│   │   └── utils.py
-│   └── sumeh.py
+│   ├── core.py
+│   └── services
+│       ├── __init__.py
+│       ├── config.py
+│       ├── index.html
+│       └── utils.py
 ├── tags
 └── tests
     ├── __init__.py
-    ├── __pycache__
-    │   ├── __init__.cpython-310.pyc
-    │   └── test_sumeh.cpython-310-pytest-6.2.4.pyc
     ├── mock
     │   ├── config.csv
     │   └── data.csv
     └── test_sumeh.py
+
 ```
 
 
