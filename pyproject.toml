@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "sumeh"
+version = "0.1.0"
+description = "Quality Check and Config Management Tool"
+authors = ["Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+cuallee = "0.15.0"
+python-dateutil = "2.9.0.post0"
+
+[tool.poetry.extras]
+dev = [
+    "coverage",
+    "mypy",
+    "pytest",
+    "ruff"
+]
+
+aws = [
+    "pandas"
+]
+
+mysql = [
+    "mysql-connector-python",
+    "pandas"
+]
+
+postgresql = [
+    "psycopg2-binary",
+    "pandas"
+]
+
+bigquery = [
+    "google-cloud-bigquery",
+    "pandas"
+]
+
+[tool.poetry.scripts]
+sumeh-config = "sumeh.cli:serve_index"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rules Configurator</title>
+    <link href="https://cdn.jsdelivr.net/npm/foundation-sites@6.6.3/dist/css/foundation.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>body {font-family: 'Roboto', sans-serif;}</style>
+</head>
+
+<body class="grid-container my-5">
+    <div id="errorMessage" style="display: none; background-color: #f8d7da; color: #721c24; padding: 10px; margin: 10px 0; border: 1px solid #f5c6cb; border-radius: 5px;">
+        The "field" is required!
+    </div>
+    <h1 class="text-center mb-4">Rules Configurator</h1>
+    <div class="table-scroll">
+        <table class="table table-bordered" id="rulesTable">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Check Type</th>
+                    <th>Value</th>
+                    <th>Threshold</th>
+                    <th>Execute</th>
+                    <th>Updated At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" class="input-group-field" name="field" required></td>
+                    <td>
+                        <select class="input-group-field" name="check_type" onchange="toggleValueInput(this)" required>
+                            <option value="is_complete">is_complete</option>
+                            <option value="is_unique">is_unique</option>
+                            <option value="is_primary_key">is_primary_key</option>
+                            <option value="are_complete">are_complete</option>
+                            <option value="are_unique">are_unique</option>
+                            <option value="is_composite_key">is_composite_key</option>
+                            <option value="is_greater_than">is_greater_than</option>
+                            <option value="is_positive">is_positive</option>
+                            <option value="is_negative">is_negative</option>
+                            <option value="is_greater_or_equal_than">is_greater_or_equal_than</option>
+                            <option value="is_less_than">is_less_than</option>
+                            <option value="is_less_or_equal_than">is_less_or_equal_than</option>
+                            <option value="is_equal_than">is_equal_than</option>
+                            <option value="is_contained_in">is_contained_in</option>
+                            <option value="is_in">is_in</option>
+                            <option value="not_contained_in">not_contained_in</option>
+                            <option value="not_in">not_in</option>
+                            <option value="is_between">is_between</option>
+                            <option value="has_pattern">has_pattern</option>
+                            <option value="is_legit">is_legit</option>
+                            <option value="has_min">has_min</option>
+                            <option value="has_max">has_max</option>
+                            <option value="has_std">has_std</option>
+                            <option value="has_mean">has_mean</option>
+                            <option value="has_sum">has_sum</option>
+                            <option value="has_cardinality">has_cardinality</option>
+                            <option value="has_infogain">has_infogain</option>
+                            <option value="has_entropy">has_entropy</option>
+                            <option value="is_in_millions">is_in_millions</option>
+                            <option value="is_in_billions">is_in_billions</option>
+                            <option value="is_t_minus_1">is_t_minus_1</option>
+                            <option value="is_t_minus_2">is_t_minus_2</option>
+                            <option value="is_t_minus_3">is_t_minus_3</option>
+                            <option value="is_today">is_today</option>
+                            <option value="is_yesterday">is_yesterday</option>
+                            <option value="is_on_weekday">is_on_weekday</option>
+                            <option value="is_on_weekend">is_on_weekend</option>
+                            <option value="is_on_monday">is_on_monday</option>
+                            <option value="is_on_tuesday">is_on_tuesday</option>
+                            <option value="is_on_wednesday">is_on_wednesday</option>
+                            <option value="is_on_thursday">is_on_thursday</option>
+                            <option value="is_on_friday">is_on_friday</option>
+                            <option value="is_on_saturday">is_on_saturday</option>
+                            <option value="is_on_sunday">is_on_sunday</option>
+                            <option value="satisfies">satisfies</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="input-group-field" name="value"></td>
+                    <td><input type="number" class="input-group-field" name="threshold" step="0.01" min="0" max="1" value="1"
+                            inputmode="numeric" required></td>
+                    <td style="text-align: center; vertical-align: middle;"><input type="checkbox" class="form-check-input" name="execute" checked></td>
+                    <td><input type="datetime-local" class="input-group-field" name="updated_at" required></td>
+                    <td style="text-align: center; vertical-align: middle;"><button type="button" class="button small alert" onclick="deleteRow(this)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="grid-x grid-padding-x align-middle text-center my-3" style="justify-content: flex-end; display: flex;">
+        <button type="button" class="button success small" onclick="addRow()">Add Rule</button>
+        <button type="button" class="button primary small" onclick="saveCSV()">Save CSV</button>
+    </div>
+
+    <script>
+        // Function to add a new row
+        function addRow() {
+            const table = document.getElementById('rulesTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td><input type="text" class="input-group-field" name="field" required></td>
+                    <td>
+                        <select class="input-group-field" name="check_type" onchange="toggleValueInput(this)" required>
+                            <option value="is_complete">is_complete</option>
+                            <option value="is_unique">is_unique</option>
+                            <option value="is_primary_key">is_primary_key</option>
+                            <option value="are_complete">are_complete</option>
+                            <option value="are_unique">are_unique</option>
+                            <option value="is_composite_key">is_composite_key</option>
+                            <option value="is_greater_than">is_greater_than</option>
+                            <option value="is_positive">is_positive</option>
+                            <option value="is_negative">is_negative</option>
+                            <option value="is_greater_or_equal_than">is_greater_or_equal_than</option>
+                            <option value="is_less_than">is_less_than</option>
+                            <option value="is_less_or_equal_than">is_less_or_equal_than</option>
+                            <option value="is_equal_than">is_equal_than</option>
+                            <option value="is_contained_in">is_contained_in</option>
+                            <option value="is_in">is_in</option>
+                            <option value="not_contained_in">not_contained_in</option>
+                            <option value="not_in">not_in</option>
+                            <option value="is_between">is_between</option>
+                            <option value="has_pattern">has_pattern</option>
+                            <option value="is_legit">is_legit</option>
+                            <option value="has_min">has_min</option>
+                            <option value="has_max">has_max</option>
+                            <option value="has_std">has_std</option>
+                            <option value="has_mean">has_mean</option>
+                            <option value="has_sum">has_sum</option>
+                            <option value="has_cardinality">has_cardinality</option>
+                            <option value="has_infogain">has_infogain</option>
+                            <option value="has_entropy">has_entropy</option>
+                            <option value="is_in_millions">is_in_millions</option>
+                            <option value="is_in_billions">is_in_billions</option>
+                            <option value="is_t_minus_1">is_t_minus_1</option>
+                            <option value="is_t_minus_2">is_t_minus_2</option>
+                            <option value="is_t_minus_3">is_t_minus_3</option>
+                            <option value="is_today">is_today</option>
+                            <option value="is_yesterday">is_yesterday</option>
+                            <option value="is_on_weekday">is_on_weekday</option>
+                            <option value="is_on_weekend">is_on_weekend</option>
+                            <option value="is_on_monday">is_on_monday</option>
+                            <option value="is_on_tuesday">is_on_tuesday</option>
+                            <option value="is_on_wednesday">is_on_wednesday</option>
+                            <option value="is_on_thursday">is_on_thursday</option>
+                            <option value="is_on_friday">is_on_friday</option>
+                            <option value="is_on_saturday">is_on_saturday</option>
+                            <option value="is_on_sunday">is_on_sunday</option>
+                            <option value="satisfies">satisfies</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="input-group-field" name="value"></td>
+                    <td><input type="number" class="input-group-field" name="threshold" step="0.01" min="0" max="1" value="1"
+                            inputmode="numeric" required></td>
+                    <td style="text-align: center; vertical-align: middle;"><input type="checkbox" class="form-check-input" name="execute" checked></td>
+                    <td><input type="datetime-local" class="input-group-field" name="updated_at" required></td>
+                    <td style="text-align: center; vertical-align: middle;"><button type="button" class="button small alert" onclick="deleteRow(this)">Delete</button></td>
+            `;
+            const newSelect = newRow.querySelector('select[name="check_type"]');
+            toggleValueInput(newSelect);  // Chama imediatamente para garantir que o campo 'value' seja desabilitado
+        }
+
+        // Function to delete a row
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        // Function to save the table data as CSV
+        function saveCSV() {
+            const table = document.getElementById('rulesTable');
+            const rows = table.rows;
+            const data = [];
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const rowData = [];
+                for (let j = 0; j < row.cells.length - 1; j++) {
+                    const cell = row.cells[j];
+                    if (cell.querySelector('input') && cell.querySelector('input').value !== "") {
+                        rowData.push(cell.querySelector('input').value);
+                    } else if (cell.querySelector('select') && cell.querySelector('select').value !== "") {
+                        rowData.push(cell.querySelector('select').value);
+                    }
+                }
+                if (rowData.length === 6) {
+                    data.push(rowData);
+                } else {
+                    document.getElementById('errorMessage').style.display = 'block';
+                    return;
+                }
+            }
+            const csvContent = "data:text/csv;charset=utf-8,"
+                + "Field,Check Type,Value,Threshold,Execute,Updated At\n"
+                + data.map(e => e.join(",")).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "rules.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        // Function to toggle the Value input based on Check Type
+        function toggleValueInput(select) {
+            const valueInput = select.closest('td').nextElementSibling.querySelector('input');
+            if (["is_complete", "is_unique", "is_primary_key", "are_complete", "are_unique", "is_composite_key", "is_positive", "is_negative", "is_today", "is_yesterday", "is_on_weekday", "is_on_weekend"].includes(select.value)) {
+                valueInput.disabled = true;
+            } else {
+                valueInput.disabled = false;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            const firstSelect = document.querySelector('select[name="check_type"]');
+            toggleValueInput(firstSelect);  // Desabilita o 'value' se o primeiro check_type for is_complete
+        });
+    </script>
+</body>
+
+</html>
