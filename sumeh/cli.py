@@ -3,6 +3,7 @@ import webbrowser
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 
+
 def serve_index():
     """Serve the index.html file for initial configuration and open it in a browser."""
     # Determine the directory of the index.html file
