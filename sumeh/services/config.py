@@ -7,7 +7,19 @@ from typing import List, Dict, Any, Tuple, Optional
 
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
+    """
+        Retrieves configuration data from a CSV file stored in an S3 bucket.
 
+        Args:
+            s3_path (str): The S3 path to the CSV file.
+            delimiter (Optional[str]): The delimiter used in the CSV file (default is ",").
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries representing the parsed configuration data.
+
+        Raises:
+            RuntimeError: If there is an error reading or processing the S3 file.
+    """
     try:
         file_content = __read_s3_file(s3_path)
         data = __read_csv_file(file_content, delimiter)
@@ -28,6 +40,28 @@ def get_config_from_mysql(
     table: Optional[str] = None,
     query: Optional[str] = None,
 ):
+    """
+        Retrieves configuration data from a MySQL database.
+
+        Args:
+            connection (Optional): An existing MySQL connection object.
+            host (Optional[str]): Host of the MySQL server.
+            user (Optional[str]): Username to connect to MySQL.
+            password (Optional[str]): Password for the MySQL user.
+            database (Optional[str]): Database name to query.
+            port (Optional[int]): The port for the MySQL connection (default is 3306).
+            schema (Optional[str]): Schema name if query is not provided.
+            table (Optional[str]): Table name if query is not provided.
+            query (Optional[str]): Custom SQL query to fetch data (if not provided, `schema` and `table` must be given).
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries representing the parsed configuration data.
+
+        Raises:
+            ValueError: If neither `query` nor both `schema` and `table` are provided.
+            ConnectionError: If there is an error connecting to MySQL.
+            RuntimeError: If there is an error executing the query or processing the data.
+    """
     import mysql.connector
     import pandas as pd
 
@@ -69,6 +103,28 @@ def get_config_from_postgresql(
     table: Optional[str] = None,
     query: Optional[str] = None,
 ) -> list[dict]:
+    """
+        Retrieves configuration data from a PostgreSQL database.
+
+        Args:
+            connection (Optional): An existing PostgreSQL connection object.
+            host (Optional[str]): Host of the PostgreSQL server.
+            user (Optional[str]): Username to connect to PostgreSQL.
+            password (Optional[str]): Password for the PostgreSQL user.
+            database (Optional[str]): Database name to query.
+            port (Optional[int]): The port for the PostgreSQL connection (default is 5432).
+            schema (Optional[str]): Schema name if query is not provided.
+            table (Optional[str]): Table name if query is not provided.
+            query (Optional[str]): Custom SQL query to fetch data (if not provided, `schema` and `table` must be given).
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries representing the parsed configuration data.
+
+        Raises:
+            ValueError: If neither `query` nor both `schema` and `table` are provided.
+            ConnectionError: If there is an error connecting to PostgreSQL.
+            RuntimeError: If there is an error executing the query or processing the data.
+    """
     import psycopg2
     import pandas as pd
 
@@ -108,6 +164,22 @@ def get_config_from_bigquery(
     credentials_path: Optional[str] = None,
     query : Optional[str] = None
 ) -> List[Dict[str, str]]:
+    """
+        Retrieves configuration data from a Google BigQuery table.
+
+        Args:
+            project_id (str): Google Cloud project ID.
+            dataset_id (str): BigQuery dataset ID.
+            table_id (str): BigQuery table ID.
+            credentials_path (Optional[str]): Path to service account credentials file (if not provided, defaults to default credentials).
+            query (Optional[str]): Custom SQL query to fetch data (if not provided, defaults to SELECT *).
+
+        Returns:
+            List[Dict[str, str]]: A list of dictionaries representing the parsed configuration data.
+
+        Raises:
+            RuntimeError: If there is an error while querying BigQuery.
+    """
     from google.cloud import bigquery
     from google.auth.exceptions import DefaultCredentialsError
 
@@ -141,6 +213,19 @@ def get_config_from_bigquery(
 
 
 def get_config_from_csv(file_path: str, delimiter: Optional[str] = ",") -> List[Dict[str, str]]:
+    """
+        Retrieves configuration data from a CSV file.
+
+        Args:
+            file_path (str): The local file path to the CSV file.
+            delimiter (Optional[str]): The delimiter used in the CSV file (default is ",").
+
+        Returns:
+            List[Dict[str, str]]: A list of dictionaries representing the parsed configuration data.
+
+        Raises:
+            RuntimeError: If there is an error reading or processing the file.
+    """
     try:
         file_content = __read_local_file(file_path)
         result = __read_csv_file(file_content, delimiter)
@@ -167,6 +252,21 @@ def get_config_from_glue_data_catalog(
     table_name: str,
     query: Optional[str] = None
 ) -> List[Dict[str, str]]:
+    """
+        Retrieves configuration data from AWS Glue Data Catalog.
+
+        Args:
+            glue_context: An instance of `GlueContext`.
+            database_name (str): Glue database name.
+            table_name (str): Glue table name.
+            query (Optional[str]): Custom SQL query to fetch data (if provided).
+
+        Returns:
+            List[Dict[str, str]]: A list of dictionaries representing the parsed configuration data.
+
+        Raises:
+            RuntimeError: If there is an error querying Glue Data Catalog.
+    """
     from awsglue.context import GlueContext
 
     if not isinstance(glue_context, GlueContext):
@@ -196,6 +296,18 @@ def get_config_from_glue_data_catalog(
 
 
 def __read_s3_file(s3_path: str) -> Optional[str]:
+    """
+        Reads the content of a file stored in S3.
+
+        Args:
+            s3_path (str): The S3 path of the file.
+
+        Returns:
+            str: The content of the S3 file.
+
+        Raises:
+            RuntimeError: If there is an error retrieving the file from S3.
+    """
     import boto3
     from botocore.exceptions import BotoCoreError, ClientError
 
@@ -233,6 +345,18 @@ def __parse_s3_path(s3_path: str) -> Tuple[str, str]:
 
 
 def __read_local_file(file_path: str) -> str:
+    """
+        Reads the content of a local file.
+
+        Args:
+            file_path (str): The local file path to be read.
+
+        Returns:
+            str: The content of the file.
+
+        Raises:
+            FileNotFoundError: If the file is not found.
+    """
     try:
         with open(file_path, mode="r", encoding="utf-8") as file:
             return file.read()
@@ -245,6 +369,19 @@ def __read_local_file(file_path: str) -> str:
 
 
 def __read_csv_file(file_content: str, delimiter: Optional[str] = ",") -> List[Dict[str, str]]:
+    """
+        Parses the content of a CSV file.
+
+        Args:
+            content (str): The content of the CSV file as a string.
+            delimiter (str): The delimiter used in the CSV file.
+
+        Returns:
+            List[Dict[str, str]]: A list of dictionaries representing the parsed CSV data.
+
+        Raises:
+            ValueError: If there is an error parsing the CSV content.
+    """
     import csv
 
     try:
@@ -256,6 +393,15 @@ def __read_csv_file(file_content: str, delimiter: Optional[str] = ",") -> List[D
 
 
 def __parse_data(data: list[dict]) -> list[dict]:
+    """
+       Parse the configuration data.
+
+       Args:
+           data (List[Dict[str, str]]): The raw data to be parsed.
+
+       Returns:
+           List[Dict[str, str]]: A list of parsed configuration data.
+   """
     parsed_data = []
 
     for row in data:
@@ -283,6 +429,26 @@ def __parse_data(data: list[dict]) -> list[dict]:
 
 
 def __create_connection(connect_func, host, user, password, database, port) -> Any:
-    return connect_func(
-        host=host, user=user, password=password, database=database, port=port
-    )
+    """
+        Helper function to create a database connection.
+
+        Args:
+            connect_func: A connection function (e.g., `mysql.connector.connect` or `psycopg2.connect`).
+            host (str): The host of the database server.
+            user (str): The username for the database.
+            password (str): The password for the database.
+            database (str): The name of the database.
+            port (int): The port to connect to.
+
+        Returns:
+            Connection: A connection object for the database.
+
+        Raises:
+            ConnectionError: If there is an error establishing the connection.
+    """
+    try:
+        return connect_func(
+            host=host, user=user, password=password, database=database, port=port
+        )
+    except Exception as e:
+        raise ConnectionError(f"Error creating connection: {e}")
