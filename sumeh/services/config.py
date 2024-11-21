@@ -6,7 +6,8 @@ from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
 
 
-def get_config_from_s3(s3_path: str, delimiter: str = ","):
+def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
+
     try:
         file_content = __read_s3_file(s3_path)
         data = __read_csv_file(file_content, delimiter)
@@ -17,15 +18,15 @@ def get_config_from_s3(s3_path: str, delimiter: str = ","):
 
 
 def get_config_from_mysql(
-    connection=None,
-    host: str = None,
-    user: str = None,
-    password: str = None,
-    database: str = None,
-    port: int = 3306,
-    schema: str = None,
-    table: str = None,
-    query: str = None,
+    connection: Optional = None,
+    host: Optional[str] = None,
+    user: Optional[str] = None,
+    password: Optional[str] = None,
+    database: Optional[str] = None,
+    port: Optional[int] = 3306,
+    schema: Optional[str] = None,
+    table: Optional[str] = None,
+    query: Optional[str] = None,
 ):
     import mysql.connector
     import pandas as pd
@@ -58,15 +59,15 @@ def get_config_from_mysql(
 
 
 def get_config_from_postgresql(
-    connection=None,
-    host: str = None,
-    user: str = None,
-    password: str = None,
-    database: str = None,
-    port: int = 5432,
-    schema: str = None,
-    table: str = None,
-    query: str = None,
+    connection: Optional = None,
+    host: Optional[str] = None,
+    user: Optional[str] = None,
+    password: Optional[str] = None,
+    database: Optional[str] = None,
+    port: Optional[int] = 5432,
+    schema: Optional[str] = None,
+    table: Optional[str] = None,
+    query: Optional[str] = None,
 ) -> list[dict]:
     import psycopg2
     import pandas as pd
@@ -105,9 +106,13 @@ def get_config_from_bigquery(
     dataset_id: str,
     table_id: str,
     credentials_path: Optional[str] = None,
+    query : Optional[str] = None
 ) -> List[Dict[str, str]]:
     from google.cloud import bigquery
     from google.auth.exceptions import DefaultCredentialsError
+
+    if query is None:
+        query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}`"
 
     try:
         client = bigquery.Client(
@@ -118,9 +123,6 @@ def get_config_from_bigquery(
                 else bigquery.Credentials.from_service_account_file(credentials_path)
             ),
         )
-
-        # Construct the SQL query
-        query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}`"
 
         # Execute the query and convert the result to a pandas DataFrame
         data = client.query(query).to_dataframe()
@@ -138,7 +140,7 @@ def get_config_from_bigquery(
         raise RuntimeError(f"Error occurred while querying BigQuery: {e}") from e
 
 
-def get_config_from_csv(file_path: str, delimiter: str = ",") -> List[Dict[str, str]]:
+def get_config_from_csv(file_path: str, delimiter: Optional[str] = ",") -> List[Dict[str, str]]:
     try:
         file_content = __read_local_file(file_path)
         result = __read_csv_file(file_content, delimiter)
@@ -209,7 +211,7 @@ def __read_local_file(file_path: str) -> str:
         raise IOError(f"Error: Could not read file '{file_path}'. Details: {e}") from e
 
 
-def __read_csv_file(file_content: str, delimiter: str = ",") -> List[Dict[str, str]]:
+def __read_csv_file(file_content: str, delimiter: Optional[str] = ",") -> List[Dict[str, str]]:
     import csv
 
     try:

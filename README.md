@@ -174,9 +174,9 @@ rules = [
     {"check_type": "is_complete", "field": "column_name", "threshold": 0.9},
     {"check_type": "is_unique", "field": "id_column"}
 ]
-
-df = quality(df, rules)
-df.show()
+# any dataframe: pyspark | pandas | bigquery
+result = quality(df, rules)
+result.show()
 ```
 
 ### CLI Usage
