@@ -161,6 +161,39 @@ def get_config_from_csv(file_path: str, delimiter: Optional[str] = ",") -> List[
             f"Unexpected error while processing CSV file '{file_path}'. Error: {e}"
         ) from e
 
+def get_config_from_glue_data_catalog(
+    glue_context,
+    database_name: str,
+    table_name: str,
+    query: Optional[str] = None
+) -> List[Dict[str, str]]:
+    from awsglue.context import GlueContext
+
+    if not isinstance(glue_context, GlueContext):
+        raise ValueError("The provided context is not a valid GlueContext.")
+
+    spark = glue_context.spark_session
+
+    try:
+        dynamic_frame = glue_context.create_dynamic_frame.from_catalog(
+            database=database_name,
+            table_name=table_name
+        )
+
+        data_frame = dynamic_frame.toDF()
+
+        if query:
+            data_frame.createOrReplaceTempView("table_name")
+            data_frame = spark.sql(query)
+
+        data_dict = [row.asDict() for row in data_frame.collect()]
+
+        return __parse_data(data_dict)
+
+    except Exception as e:
+        raise RuntimeError(f"Error occurred while querying Glue Data Catalog: {e}") from e
+
+
 
 def __read_s3_file(s3_path: str) -> Optional[str]:
     import boto3
