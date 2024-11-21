@@ -30,7 +30,6 @@ The project structure is organized as follows:
 │       ├── config.py
 │       ├── index.html
 │       └── utils.py
-├── tags
 └── tests
     ├── __init__.py
     ├── mock
@@ -75,51 +74,51 @@ The main entry point is the sumeh.py script, which provides various utilities fo
 ## List of avaliable checks:
 
 
-| cover | check                          | description                                                                 |
-|-----|------------------------------------|---------------------------------------------------------------------------------|
-| [x] | **`is_complete`**                  | Checks if the field is complete with a specified threshold for completeness.    |
-| [x] | **`is_unique`**                    | Checks if the field has unique values with a threshold for uniqueness.          |
-| [x] | **`is_primary_key`**               | Ensures that the field is a primary key, with a threshold for the percentage of uniqueness. |
-| [x] | **`are_complete`**                 | Verifies that multiple fields are complete, with a threshold for completeness.  |
-| [x] | **`are_unique`**                   | Ensures that multiple fields have unique values, with a threshold for uniqueness. |
-| [x] | **`is_composite_key`**             | Checks if a combination of fields forms a composite key, with a threshold for uniqueness. |
-| [x] | **`is_greater_than`**              | Checks if the value of the field is greater than a specified value.             |
-| [x] | **`is_positive`**                  | Checks if the field has only positive values.                                   |
-| [x] | **`is_negative`**                  | Checks if the field has only negative values.                                   |
-| [x] | **`is_greater_or_equal_than`**     | Checks if the value of the field is greater than or equal to a specified value. |
-| [x] | **`is_less_than`**                 | Verifies if the value of the field is less than a specified value.              |
-| [x] | **`is_less_or_equal_than`**        | Checks if the value of the field is less than or equal to a specified value.    |
-| [x] | **`is_equal_than`**                | Verifies if the value of the field is equal to a specified value.               |
-| [x] | **`is_contained_in`** (also `is_in`)| Checks if the field’s value is contained in a specified set of values.          |
-| [x] | **`not_contained_in`** (also `not_in`) | Checks if the field’s value is not contained in a specified set of values.       |
-| [x] | **`is_between`**                   | Checks if the field’s value is between two specified values.                    |
-| [x] | **`has_pattern`**                  | Validates if the field’s value matches a specified pattern.                    |
-| [x] | **`is_legit`**                     | Verifies if the field contains legitimate values according to a specific check. |
-| [x] | **`has_min`**                      | Checks if the field’s value is greater than or equal to a specified minimum value. |
-| [x] | **`has_max`**                      | Ensures that the field’s value is less than or equal to a specified maximum value. |
-| [x] | **`has_std`**                      | Checks if the field has a specified standard deviation.                         |
-| [x] | **`has_mean`**                     | Verifies if the field has a specified mean value.                               |
-| [x] | **`has_sum`**                      | Ensures that the sum of the values in the field meets a specified value.        |
-| [x] | **`has_cardinality`**              | Checks if the cardinality (distinct values) of the field matches a specified value. |
-| [x] | **`has_infogain`**                 | Measures if the field has a certain information gain.                           |
-| [x] | **`has_entropy`**                  | Verifies if the field has a specified entropy value.                            |
-| [x] | **`is_in_millions`**               | Checks if the field’s values are within the millions range.                     |
-| [x] | **`is_in_billions`**               | Verifies if the field’s values are in the billions range.                       |
-| [x] | **`is_t_minus_1`**                 | Checks if the field’s value is equal to the date from one day ago.             |
-| [x] | **`is_t_minus_2`**                 | Verifies if the field’s value is equal to the date from two days ago.           |
-| [x] | **`is_t_minus_3`**                 | Checks if the field’s value is equal to the date from three days ago.          |
-| [x] | **`is_today`**                     | Verifies if the field’s value is equal to today’s date.                         |
-| [x] | **`is_yesterday`**                 | Checks if the field’s value is equal to yesterday’s date.                       |
-| [x] | **`is_on_weekday`**                | Verifies if the field’s value corresponds to a weekday (Monday to Friday).     |
-| [x] | **`is_on_weekend`**                | Checks if the field’s value corresponds to a weekend (Saturday or Sunday).     |
-| [x] | **`is_on_monday`**                 | Verifies if the field’s value corresponds to Monday.                            |
-| [x] | **`is_on_tuesday`**                | Checks if the field’s value corresponds to Tuesday.                            |
-| [x] | **`is_on_wednesday`**              | Verifies if the field’s value corresponds to Wednesday.                         |
-| [x] | **`is_on_thursday`**               | Checks if the field’s value corresponds to Thursday.                           |
-| [x] | **`is_on_friday`**                 | Verifies if the field’s value corresponds to Friday.                           |
-| [x] | **`is_on_saturday`**               | Checks if the field’s value corresponds to Saturday.                           |
-| [x] | **`is_on_sunday`**                 | Verifies if the field’s value corresponds to Sunday.                           |
-| [x] | **`satisfies`**                     | Ensures that the field satisfies a specified predicate (condition).            |
+| cover | check                                      | description                                                                                 |
+|-------|--------------------------------------------|---------------------------------------------------------------------------------------------|
+| [x]   | **`is_complete`**                          | Checks if the field is complete with a specified threshold for completeness.                |
+| [x]   | **`is_unique`**                            | Checks if the field has unique values with a threshold for uniqueness.                      |
+| [x]   | **`is_primary_key`**                       | Ensures that the field is a primary key, with a threshold for the percentage of uniqueness. |
+| [x]   | **`are_complete`**                         | Verifies that multiple fields are complete, with a threshold for completeness.              |
+| [x]   | **`are_unique`**                           | Ensures that multiple fields have unique values, with a threshold for uniqueness.           |
+| [x]   | **`is_composite_key`**                     | Checks if a combination of fields forms a composite key, with a threshold for uniqueness.   |
+| [x]   | **`is_greater_than`**                      | Checks if the value of the field is greater than a specified value.                         |
+| [x]   | **`is_positive`**                          | Checks if the field has only positive values.                                               |
+| [x]   | **`is_negative`**                          | Checks if the field has only negative values.                                               |
+| [x]   | **`is_greater_or_equal_than`**             | Checks if the value of the field is greater than or equal to a specified value.             |
+| [x]   | **`is_less_than`**                         | Verifies if the value of the field is less than a specified value.                          |
+| [x]   | **`is_less_or_equal_than`**                | Checks if the value of the field is less than or equal to a specified value.                |
+| [x]   | **`is_equal_than`**                        | Verifies if the value of the field is equal to a specified value.                           |
+| [x]   | **`is_contained_in`** (also **`is_in`**)   | Checks if the field’s value is contained in a specified set of values.                      |
+| [x]   | **`not_contained_in`** (also **`not_in`**) | Checks if the field’s value is not contained in a specified set of values.                  |
+| [x]   | **`is_between`**                           | Checks if the field’s value is between two specified values.                                |
+| [x]   | **`has_pattern`**                          | Validates if the field’s value matches a specified pattern.                                 |
+| [x]   | **`is_legit`**                             | Verifies if the field contains legitimate values according to a specific check.             |
+| [x]   | **`has_min`**                              | Checks if the field’s value is greater than or equal to a specified minimum value.          |
+| [x]   | **`has_max`**                              | Ensures that the field’s value is less than or equal to a specified maximum value.          |
+| [x]   | **`has_std`**                              | Checks if the field has a specified standard deviation.                                     |
+| [x]   | **`has_mean`**                             | Verifies if the field has a specified mean value.                                           |
+| [x]   | **`has_sum`**                              | Ensures that the sum of the values in the field meets a specified value.                    |
+| [x]   | **`has_cardinality`**                      | Checks if the cardinality (distinct values) of the field matches a specified value.         |
+| [x]   | **`has_infogain`**                         | Measures if the field has a certain information gain.                                       |
+| [x]   | **`has_entropy`**                          | Verifies if the field has a specified entropy value.                                        |
+| [x]   | **`is_in_millions`**                       | Checks if the field’s values are within the millions range.                                 |
+| [x]   | **`is_in_billions`**                       | Verifies if the field’s values are in the billions range.                                   |
+| [x]   | **`is_t_minus_1`**                         | Checks if the field’s value is equal to the date from one day ago.                          |
+| [x]   | **`is_t_minus_2`**                         | Verifies if the field’s value is equal to the date from two days ago.                       |
+| [x]   | **`is_t_minus_3`**                         | Checks if the field’s value is equal to the date from three days ago.                       |
+| [x]   | **`is_today`**                             | Verifies if the field’s value is equal to today’s date.                                     |
+| [x]   | **`is_yesterday`**                         | Checks if the field’s value is equal to yesterday’s date.                                   |
+| [x]   | **`is_on_weekday`**                        | Verifies if the field’s value corresponds to a weekday (Monday to Friday).                  |
+| [x]   | **`is_on_weekend`**                        | Checks if the field’s value corresponds to a weekend (Saturday or Sunday).                  |
+| [x]   | **`is_on_monday`**                         | Verifies if the field’s value corresponds to Monday.                                        |
+| [x]   | **`is_on_tuesday`**                        | Checks if the field’s value corresponds to Tuesday.                                         |
+| [x]   | **`is_on_wednesday`**                      | Verifies if the field’s value corresponds to Wednesday.                                     |
+| [x]   | **`is_on_thursday`**                       | Checks if the field’s value corresponds to Thursday.                                        |
+| [x]   | **`is_on_friday`**                         | Verifies if the field’s value corresponds to Friday.                                        |
+| [x]   | **`is_on_saturday`**                       | Checks if the field’s value corresponds to Saturday.                                        |
+| [x]   | **`is_on_sunday`**                         | Verifies if the field’s value corresponds to Sunday.                                        |
+| [x]   | **`satisfies`**                            | Ensures that the field satisfies a specified predicate (condition).                         |
 
 
 Each test corresponds to a specific check that can be applied to a dataset, using the rules defined in the code.
@@ -129,47 +128,47 @@ You can retrieve configuration data using the following methods:
 
 - #### From S3:
 ```python
-from sumeh.services.config import get_config_from_s3
-config = get_config_from_s3("s3://bucket/path/to/file.csv")
+from sumeh import get_config_from_s3
+rules = get_config_from_s3("s3://bucket/path/to/file.csv")
 ```
 
 - #### From MySQL:
 ```python
-from sumeh.services.config import get_config_from_mysql
+from sumeh import get_config_from_mysql
 
-config = get_config_from_mysql(
+rules = get_config_from_mysql(
     host="localhost", user="root", password="password", database="test_db", table="config_table"
 )
 ```
 - #### From PostgreSQL:
 ```python
-from sumeh.services.config import get_config_from_postgresql
+from sumeh import get_config_from_postgresql
 
-config = get_config_from_postgresql(
+rules = get_config_from_postgresql(
     host="localhost", user="user", password="password", database="test_db", table="config_table"
 )
 ```
 
 - #### From BigQuery:
 ```python
-from sumeh.services.config import get_config_from_bigquery
+from sumeh import get_config_from_bigquery
 
-config = get_config_from_bigquery(
+rules = get_config_from_bigquery(
     project_id="your_project_id", dataset_id="your_dataset", table_id="your_table"
 )
 ```
 - #### From CSV:
 ```python
-from sumeh.services.config import get_config_from_csv
+from sumeh import get_config_from_csv
 
-config = get_config_from_csv("path/to/config.csv")
+rules = get_config_from_csv("path/to/config.csv")
 ```
 
 ### Running Quality Checks
 Once you have the configuration data, you can apply quality checks using the quality() function:
 
 ```python
-from sumeh.sumeh import quality
+from sumeh import quality
 
 rules = [
     {"check_type": "is_complete", "field": "column_name", "threshold": 0.9},
