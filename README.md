@@ -164,6 +164,15 @@ from sumeh import get_config_from_csv
 rules = get_config_from_csv("path/to/config.csv")
 ```
 
+- #### From Glue Data Catalog:
+```python
+from sumeh import get_config_from_glue_data_catalog
+
+rules = get_config_from_glue_data_catalog(
+  glue_context="glue_context", database_name="your_database", table_name="your_table", query="your query"
+)
+```
+
 ### Running Quality Checks
 Once you have the configuration data, you can apply quality checks using the quality() function:
 
