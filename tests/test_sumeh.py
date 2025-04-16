@@ -4,7 +4,7 @@ import unittest
 import pandas as pd
 import os
 from unittest.mock import patch
-from sumeh.sumeh import quality
+from sumeh.sumeh import quality_resume
 from sumeh.sumeh import get_config_from_csv
 
 
@@ -31,7 +31,7 @@ class TestQualityFunction(unittest.TestCase):
     def test_quality_with_mock_data(self):
         rules = get_config_from_csv(file_path=self.mock_config_file, delimiter=";")
         print(rules)
-        result = quality(
+        result = quality_resume(
             df=self.mock_data,
             rules=rules,
         )

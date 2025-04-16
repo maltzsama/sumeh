@@ -177,14 +177,14 @@ rules = get_config_from_glue_data_catalog(
 Once you have the configuration data, you can apply quality checks using the quality() function:
 
 ```python
-from sumeh import quality
+from sumeh import quality_resume
 
 rules = [
-    {"check_type": "is_complete", "field": "column_name", "threshold": 0.9},
-    {"check_type": "is_unique", "field": "id_column"}
+  {"check_type": "is_complete", "field": "column_name", "threshold": 0.9},
+  {"check_type": "is_unique", "field": "id_column"}
 ]
 # any dataframe: pyspark | pandas | bigquery
-result = quality(df, rules)
+result = quality_resume(df, rules)
 result.show()
 ```
 

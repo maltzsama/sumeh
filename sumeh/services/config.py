@@ -386,7 +386,7 @@ def __read_csv_file(file_content: str, delimiter: Optional[str] = ",") -> List[D
 
     try:
         reader = csv.DictReader(StringIO(file_content), delimiter=delimiter)
-        next(reader, None)  # Skip the header row
+        # next(reader, None)  # Skip the header row
         return [dict(row) for row in reader]
     except csv.Error as e:
         raise ValueError(f"Error: Could not parse CSV content. Details: {e}") from e

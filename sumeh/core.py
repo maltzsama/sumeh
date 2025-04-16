@@ -6,7 +6,7 @@ from cuallee import Check, CheckLevel
 from .services.utils import __convert_value
 
 
-def quality(df, rules: list[dict], name: str = "Quality Check"):
+def quality_resume(df, rules: list[dict], name: str = "Quality Check"):
     """
         Performs a quality check on the given DataFrame based on the provided rules.
 
