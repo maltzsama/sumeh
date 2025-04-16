@@ -18,14 +18,20 @@ import operator
 from functools import reduce
 from pyspark.sql import Window
 
+def is_positive (df: DataFrame, field: str, _) -> DataFrame:
+    return (df.filter(col(field) < 0)
+            .withColumn('dq_status',concat(lit(field), lit(':is_positive'))))
 
-def is_complete(df: DataFrame, field: str) -> DataFrame:
+def is_negative(df: DataFrame, field: str, _) -> DataFrame:
+    return (df.filter(col(field) >= 0)
+            .withColumn('dq_status',concat(lit(field), lit(':is_negative'))))
+
+def is_complete(df: DataFrame, field: str, _) -> DataFrame:
     return df.filter(col(field).isNull()).withColumn(
         "dq_status", concat(lit(field), lit(":is_complete"))
     )
 
-
-def is_unique(df: DataFrame, field: str) -> DataFrame:
+def is_unique(df: DataFrame, field: str, _) -> DataFrame:
     window = Window.partitionBy(col(field))
     df_with_count = df.withColumn("count", count(col(field)).over(window))
     res = (
@@ -35,15 +41,14 @@ def is_unique(df: DataFrame, field: str) -> DataFrame:
     )
     return res
 
-
-def are_complete(df: DataFrame, fields: list[str]) -> DataFrame:
+def are_complete(df: DataFrame, fields: list[str], _) -> DataFrame:
     predicate = reduce(operator.and_, [col(field).isNotNull() for field in fields])
     return df.filter(~predicate).withColumn(
         "dq_status", concat(lit(str(fields)), lit(":are_complete"))
     )
 
 
-def are_unique(df: DataFrame, fields: list[str]) -> DataFrame:
+def are_unique(df: DataFrame, fields: list[str], _) -> DataFrame:
     combined_col = concat_ws("|", *[coalesce(col(f), lit("")) for f in fields])
     window = Window.partitionBy(combined_col)
     result = (
@@ -57,24 +62,55 @@ def are_unique(df: DataFrame, fields: list[str]) -> DataFrame:
     )
     return result
 
+def is_greater_than(df: DataFrame, field: str, value: str) -> DataFrame:
+    return (df.filter(col(field) > value)
+            .withColumn('dq_status',concat(lit(field), lit(':is_greater_than'))))
 
-def is_greater_than(df: DataFrame, field: str, value: float) -> DataFrame:
-    return df.filter(col(field) <= value).withColumn(
-        "dq_status", concat(lit(field), lit(":is_greater_than"))
-    )
+def is_greater_or_equal_than(df: DataFrame, field: str, value: str) -> DataFrame:
+    return (df.filter(col(field) < value)
+            .withColumn('dq_status',concat(lit(field), lit(':is_greater_or_equal_than'))))
 
+def is_less_than(df: DataFrame, field: str, value: str) -> DataFrame:
+    return (df.filter(col(field) >= value)
+            .withColumn('dq_status',concat(lit(field), lit(':is_less_than'))))
 
-def is_positive(df: DataFrame, field: str) -> DataFrame:
-    return df.filter(col(field) <= 0).withColumn(
-        "dq_status", concat(lit(field), lit(":is_positive"))
-    )
+def is_less_or_equal_than(df: DataFrame, field: str, value: str) -> DataFrame:
+    return (df.filter(col(field) > value)
+            .withColumn('dq_status', concat(lit(field), lit(':is_less_or_equal_than'))))
 
+def is_equal(df: DataFrame, field: str, value: str) -> DataFrame:
+    return (df.filter(~col(field).eqNullSafe(value))
+            .withColumn('dq_status', concat(lit(field), lit(':is_equal'))))
 
-def is_negative(df: DataFrame, field: str) -> DataFrame:
-    return df.filter(col(field) >= 0).withColumn(
-        "dq_status", concat(lit(field), lit(":is_negative"))
-    )
+def is_contained_in(df: DataFrame, field: str, positive_list_str: str) -> DataFrame:
+    positive_list = positive_list_str.replace('[', '').replace(']', '').split(',')
+    return (df.filter(~col(field).isin(positive_list))
+            .withColumn('dq_status', concat(lit(field), lit(':is_contained_in'))))
 
+def not_contained_in(df: DataFrame, field: str, negative_list_str: str) -> DataFrame:
+    negative_list = negative_list_str.replace('[', '').replace(']', '').split(',')
+    return (df.filter(col(field).isin(negative_list))
+            .withColumn('dq_status', concat(lit(field), lit(':not_contained_in'))))
+
+def is_between(df: DataFrame, field: str, limits_list: str) -> DataFrame:
+    min_value, max_value = limits_list.replace('[', '').replace(']', '').split(',')
+    return (df.filter(~col(field).between(min_value, max_value))
+            .withColumn('dq_status', concat(lit(field), lit(':is_between'))))
+
+def has_pattern(df: DataFrame, field: str, pattern: str) -> DataFrame:
+    return (df.filter(~col(field).rlike(pattern))
+            .withColumn('dq_status', concat(lit(field), lit(':has_pattern'))))
+
+def is_legit(df: DataFrame, field: str, _) -> DataFrame:
+    pattern_legit = '\S*'
+    return (df.filter(~(col(field).isNotNull() & col(field).rlike(pattern_legit)))
+            .withColumn('dq_status', concat(lit(field), lit(':is_legit'))))
+
+def is_primary_key(df: DataFrame, field: str, _):
+    return is_unique(df, field, _)
+
+def is_composite_key(df: DataFrame, fields: list[str], _):
+    return are_unique(df, fields, _)
 
 def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
     df = df.withColumn("dq_status", lit(""))
@@ -82,35 +118,16 @@ def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
     for rule in rules:
         rule_name = rule["check_type"]
         field = rule["field"]
-        match rule_name:
-            case "is_complete":
-                result = result.union(
-                    is_complete(df=df, field=field)
-                )
-            case "is_unique" | "is_primary_key":
-                result = result.union(
-                    is_unique(df=df, field=field)
-                )
-            case "are_complete":
-                result = result.union(
-                    are_complete(df=df, fields=field)
-                )
-            case "are_unique":
-                result = result.union(
-                    are_unique(df=df, fields=field)
-                )
-            case "is_greater_than":
-                result = result.union(
-                    is_greater_than(df=df, field=field, value=rule["value"])
-                )
-            case "is_positive":
-                result = result.union(is_positive(df=df, field=field))
-            case "is_negative":
-                result = result.union(is_negative(df=df, field=field))
-            case _:
-                warnings.warn(f"Unknown rule name: {rule_name}, {field}")
+        value = rule["value"]
+
+        try:
+            rule_func = globals()[rule_name]
+            result = result.union(rule_func(df, field, value))
+        except KeyError:
+            warnings.warn(f"Unknown rule name: {rule_name}, {field}")
+
     group_columns = [col for col in df.columns if col != "dq_status"]
-    result = result.groupBy(*group_columns).agg(
+    summary_df = result.groupBy(*group_columns).agg(
         concat_ws(";", collect_list("dq_status")).alias("dq_status")
     )
-    return result
+    return summary_df
