@@ -22,7 +22,6 @@ from pyspark.sql.functions import (
     when,
     trim,
     split,
-
 )
 import operator
 from functools import reduce
@@ -272,47 +271,114 @@ def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
     return summary_df
 
 
-def quality_summary(qc_df: DataFrame) -> DataFrame:
+from pyspark.sql import Row
+from pyspark.sql.functions import (
+    col, lit, split, explode, trim, count, when,
+    current_timestamp, monotonically_increasing_id
+)
+from typing import List, Dict
+
+
+def _rules_to_df(rules: List[Dict]) -> DataFrame:
+    from pyspark.sql import SparkSession
+    spark = SparkSession.builder.getOrCreate()
+    rows = []
+
+    for r in rules:
+        if not r.get("execute", True):
+            continue
+        col_name = (
+            str(r["field"]) if isinstance(r["field"], list) else r["field"]
+        )
+        rows.append(
+            Row(
+                column          = col_name.strip(),
+                rule            = r["check_type"],
+                pass_threshold  = float(r.get("threshold") or 1.0)
+            )
+        )
+
+    return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
+
+from pyspark.sql import Row, DataFrame
+from pyspark.sql.functions import (
+    col, lit, split, explode, trim, count, when, coalesce,
+    current_timestamp, monotonically_increasing_id
+)
+from typing import List, Dict
+
+
+def _rules_to_df(rules: List[Dict]) -> DataFrame:
+    """gera DF com column, rule, pass_threshold e value vindos do config"""
+    from pyspark.sql import SparkSession
+    spark = SparkSession.builder.getOrCreate()
+    rows = []
+    for r in rules:
+        if not r.get("execute", True):
+            continue
+        col_name = (
+            str(r["field"]) if isinstance(r["field"], list) else r["field"]
+        )
+        rows.append(
+            Row(
+                column         = col_name.strip(),
+                rule           = r["check_type"],
+                pass_threshold = float(r.get("threshold") or 1.0),
+                value          = r.get("value", "N/A") or "N/A",
+            )
+        )
+    return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
+
+def quality_summary(qc_df: DataFrame, rules: List[Dict]) -> DataFrame:
     total_rows  = qc_df.count()
     now_ts      = current_timestamp()
+
     exploded = (
         qc_df
-        .select(
-            explode(
-                split(col("dq_status"), ";")
-            ).alias("status")
-        )
+        .select(explode(split(col("dq_status"), ";")).alias("status"))
         .filter(trim("status") != "")
         .select(
             trim(split("status", ":")[0]).alias("column"),
             trim(split("status", ":")[1]).alias("rule")
         )
     )
+
     viol_df = (
         exploded.groupBy("column", "rule")
-        .agg(count("*").alias("violations"))
+                .agg(count("*").alias("violations"))
     )
+
+    rules_df = _rules_to_df(rules)
+
+    base = (
+        rules_df
+        .join(viol_df, ["column", "rule"], how="left")
+        .withColumn("violations", coalesce(col("violations"), lit(0)))
+    )
+
     summary = (
-        viol_df
-        .withColumn("rows",           lit(total_rows))
-        .withColumn("pass_rate",      (lit(total_rows) - col("violations")) / lit(total_rows))
-        .withColumn("pass_threshold", lit(1.0))
-        .withColumn("status",
-                    when(col("pass_rate") >= col("pass_threshold"), "PASS")
-                    .otherwise("FAIL"))
-        .withColumn("timestamp",  now_ts)
-        .withColumn("check",      lit("Quality Check"))
-        .withColumn("level",      lit("WARNING"))
-        .withColumn("value",      lit("N/A"))
+        base
+        .withColumn("rows", lit(total_rows))
+        .withColumn(
+            "pass_rate",
+            (lit(total_rows) - col("violations")) / lit(total_rows)
+        )
+        .withColumn(
+            "status",
+            when(col("pass_rate") >= col("pass_threshold"), "PASS")
+            .otherwise("FAIL")
+        )
+        .withColumn("timestamp", now_ts)
+        .withColumn("check", lit("Quality Check"))
+        .withColumn("level", lit("WARNING"))
     )
-    summary = summary.withColumn(
-        "id",
-        monotonically_increasing_id() + 1     # começa em 1
-    )
+
+    summary = summary.withColumn("id", monotonically_increasing_id() + 1)
     summary = summary.select(
         "id", "timestamp", "check", "level",
         "column", "rule", "value",
         "rows", "violations", "pass_rate",
         "pass_threshold", "status"
     )
+
     return summary
