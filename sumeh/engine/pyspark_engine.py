@@ -16,6 +16,13 @@ from pyspark.sql.functions import (
     sum,
     countDistinct,
     current_date,
+    monotonically_increasing_id,
+    current_timestamp,
+    explode,
+    when,
+    trim,
+    split,
+
 )
 import operator
 from functools import reduce
@@ -265,3 +272,47 @@ def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
     return summary_df
 
 
+def quality_summary(qc_df: DataFrame) -> DataFrame:
+    total_rows  = qc_df.count()
+    now_ts      = current_timestamp()
+    exploded = (
+        qc_df
+        .select(
+            explode(
+                split(col("dq_status"), ";")
+            ).alias("status")
+        )
+        .filter(trim("status") != "")
+        .select(
+            trim(split("status", ":")[0]).alias("column"),
+            trim(split("status", ":")[1]).alias("rule")
+        )
+    )
+    viol_df = (
+        exploded.groupBy("column", "rule")
+        .agg(count("*").alias("violations"))
+    )
+    summary = (
+        viol_df
+        .withColumn("rows",           lit(total_rows))
+        .withColumn("pass_rate",      (lit(total_rows) - col("violations")) / lit(total_rows))
+        .withColumn("pass_threshold", lit(1.0))
+        .withColumn("status",
+                    when(col("pass_rate") >= col("pass_threshold"), "PASS")
+                    .otherwise("FAIL"))
+        .withColumn("timestamp",  now_ts)
+        .withColumn("check",      lit("Quality Check"))
+        .withColumn("level",      lit("WARNING"))
+        .withColumn("value",      lit("N/A"))
+    )
+    summary = summary.withColumn(
+        "id",
+        monotonically_increasing_id() + 1     # começa em 1
+    )
+    summary = summary.select(
+        "id", "timestamp", "check", "level",
+        "column", "rule", "value",
+        "rows", "violations", "pass_rate",
+        "pass_threshold", "status"
+    )
+    return summary
