@@ -6,20 +6,20 @@ from socketserver import TCPServer
 
 def serve_index():
     """
-        Serves the index.html file for initial configuration and opens it in a browser.
+    Serves the index.html file for initial configuration and opens it in a browser.
 
-        This function determines the path to the 'index.html' file, changes the 
-        working directory to the appropriate location, and starts a simple HTTP server 
-        to serve the file. It also automatically opens the served page in the default 
-        web browser.
+    This function determines the path to the 'index.html' file, changes the
+    working directory to the appropriate location, and starts a simple HTTP server
+    to serve the file. It also automatically opens the served page in the default
+    web browser.
 
-        The server runs on localhost at port 8000. The process continues until 
-        interrupted by the user (via a KeyboardInterrupt), at which point the server 
-        shuts down.
+    The server runs on localhost at port 8000. The process continues until
+    interrupted by the user (via a KeyboardInterrupt), at which point the server
+    shuts down.
 
-        Raises:
-            KeyboardInterrupt: If the server is manually interrupted by the user.
-    """    # Determine the directory of the index.html file
+    Raises:
+        KeyboardInterrupt: If the server is manually interrupted by the user.
+    """  # Determine the directory of the index.html file
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "services")
 

@@ -1,6 +1,6 @@
 field;check_type;value;threshold;execute;updated_at
-name;is_complete;NULL;NULL;true;21/09/2024
 id;is_unique;NULL;0.9;true;21/09/2024
+name;is_complete;NULL;NULL;true;21/09/2024
 id;is_primary_key;NULL;0.10;true;21/09/2024
 [id,name];are_complete;NULL;0.11;true;21/09/2024
 [id,email];are_unique;NULL;0.12;true;21/09/2024

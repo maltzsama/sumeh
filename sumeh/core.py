@@ -6,32 +6,32 @@ from cuallee import Check, CheckLevel
 from .services.utils import __convert_value
 
 
-def quality(df, rules: list[dict], name: str = "Quality Check"):
+def quality_resume(df, rules: list[dict], name: str = "Quality Check"):
     """
-        Performs a quality check on the given DataFrame based on the provided rules.
+    Performs a quality check on the given DataFrame based on the provided rules.
 
-        The function iterates over a list of rules and applies different checks to the
-        specified fields of the DataFrame. The checks include validation of completeness,
-        uniqueness, specific values, patterns, and other conditions. Each rule corresponds
-        to a particular type of validation, such as 'is_complete', 'is_greater_than',
-        'has_mean', etc. After applying the checks, the function returns the result of
-        the validation.
+    The function iterates over a list of rules and applies different checks to the
+    specified fields of the DataFrame. The checks include validation of completeness,
+    uniqueness, specific values, patterns, and other conditions. Each rule corresponds
+    to a particular type of validation, such as 'is_complete', 'is_greater_than',
+    'has_mean', etc. After applying the checks, the function returns the result of
+    the validation.
 
-        Parameters:
-        - df (DataFrame): The DataFrame to be validated.
-        - rules (list of dict): A list of rules defining the checks to be performed.
-            Each rule is a dictionary with the following keys:
-            - "check_type": The type of check to apply.
-            - "field": The column of the DataFrame to check.
-            - "value" (optional): The value used for comparison in some checks (e.g., for 'is_greater_than').
-            - "threshold" (optional): A percentage threshold to be applied in some checks.
-        - name (str): The name of the quality check (default is "Quality Check").
+    Parameters:
+    - df (DataFrame): The DataFrame to be validated.
+    - rules (list of dict): A list of rules defining the checks to be performed.
+        Each rule is a dictionary with the following keys:
+        - "check_type": The type of check to apply.
+        - "field": The column of the DataFrame to check.
+        - "value" (optional): The value used for comparison in some checks (e.g., for 'is_greater_than').
+        - "threshold" (optional): A percentage threshold to be applied in some checks.
+    - name (str): The name of the quality check (default is "Quality Check").
 
-        Returns:
-        - quality_check (CheckResult): The result of the quality validation.
+    Returns:
+    - quality_check (CheckResult): The result of the quality validation.
 
-        Warnings:
-        - If an unknown rule name is encountered, a warning is generated.
+    Warnings:
+    - If an unknown rule name is encountered, a warning is generated.
     """
 
     check = Check(CheckLevel.WARNING, name)
