@@ -187,7 +187,7 @@ def has_entropy(df: dd.DataFrame, field: str, value: float) -> dd.DataFrame:
 #     return viol.assign(dq_status=f"{field}:satisfies")
 
 
-def quality_checker(df: dd.DataFrame, rules: list[dict]) -> dd.DataFrame:
+def validate(df: dd.DataFrame, rules: list[dict]) -> dd.DataFrame:
     """Retorna um Dask DataFrame com coluna 'dq_status' contendo as violações."""
     # início vazio
     empty = dd.from_pandas(
@@ -238,7 +238,7 @@ def _rules_to_df(rules: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(rows).drop_duplicates(["column", "rule"])
 
 
-def quality_summary(
+def summarize(
     qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int
 ) -> pd.DataFrame:
     df = qc_ddf.compute()

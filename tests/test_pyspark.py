@@ -3,7 +3,7 @@
 import unittest
 import os
 from pyspark.sql import SparkSession
-from sumeh.engine.pyspark_engine import quality_checker
+from sumeh.engine.pyspark_engine import validate
 from sumeh import get_config_from_csv
 from pyspark.sql.functions import col
 
@@ -31,7 +31,7 @@ class TestQualityFunction(unittest.TestCase):
         )
 
     def test_quality_with_mock_data(self):
-        result = quality_checker(df=self.mock_data, rules=self.mock_config_file)
+        result = validate(df=self.mock_data, rules=self.mock_config_file)
         result.show(truncate=False, n=100)
 
 

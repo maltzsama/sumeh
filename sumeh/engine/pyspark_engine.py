@@ -240,7 +240,7 @@ def satisfies(df: DataFrame, field: str, expression: str) -> DataFrame:
     )
 
 
-def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
+def validate(df: DataFrame, rules: list[dict]) -> DataFrame:
     df = df.withColumn("dq_status", lit(""))
     result = df.limit(0)
     for rule in rules:
@@ -267,27 +267,6 @@ def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
 
 
 def _rules_to_df(rules: List[Dict]) -> DataFrame:
-    from pyspark.sql import SparkSession
-
-    spark = SparkSession.builder.getOrCreate()
-    rows = []
-
-    for r in rules:
-        if not r.get("execute", True):
-            continue
-        col_name = str(r["field"]) if isinstance(r["field"], list) else r["field"]
-        rows.append(
-            Row(
-                column=col_name.strip(),
-                rule=r["check_type"],
-                pass_threshold=float(r.get("threshold") or 1.0),
-            )
-        )
-
-    return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
-
-
-def _rules_to_df(rules: List[Dict]) -> DataFrame:
     """gera DF com column, rule, pass_threshold e value vindos do config"""
     from pyspark.sql import SparkSession
 
@@ -308,7 +287,7 @@ def _rules_to_df(rules: List[Dict]) -> DataFrame:
     return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
 
 
-def quality_summary(qc_df: DataFrame, rules: List[Dict]) -> DataFrame:
+def summarize(qc_df: DataFrame, rules: List[Dict]) -> DataFrame:
     total_rows = qc_df.count()
     now_ts = current_timestamp()
 
