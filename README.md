@@ -1,222 +1,137 @@
-# Sumeh - Quality Check and Config Management Tool
-
-Sumeh is a tool designed to simplify the parameterization of the `cuallee` project. It provides an efficient way to retrieve configurations from various sources, such as `CSV files`, `S3`, `MySQL`, `PostgreSQL`, and `BigQuery`, and also offers features to validate these configurations based on defined rules.
-
-## Purpose
-
-The main goal of **Sumeh** is to streamline the collection of configurations for the **Cuallee** project, providing a configurator that can access and validate data from different sources, along with a series of quality checks to ensure the data meets the expected standards.
-
-## Features
-
-- **Configuration Collection**: Supports collecting configurations from multiple sources, including S3, MySQL, PostgreSQL, BigQuery, and CSV.
-- **Data Validation**: Allows applying a series of validation rules to the collected data, including checks for completeness, uniqueness, or whether values meet a specific threshold.
-- **Quality Check Facilitator**: Through integration with Cuallee, it is possible to perform checks like "is_complete," "is_unique," "is_greater_than," among others, to ensure data quality.
-
-## Project Structure
-
-The project structure is organized as follows:
-
-```shell
-.
-├── README.md
-├── poetry.lock
-├── pyproject.toml
-├── sumeh
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── core.py
-│   └── services
-│       ├── __init__.py
-│       ├── config.py
-│       ├── index.html
-│       └── utils.py
-└── tests
-    ├── __init__.py
-    ├── mock
-    │   ├── config.csv
-    │   └── data.csv
-    └── test_sumeh.py
-
-```
+![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)
 
 
-## Features
+# Sumeh — Unified Data Quality Framework
 
-- **Configuration Retrieval**: Fetch configuration data from various sources:
-  - Amazon S3
-  - MySQL
-  - PostgreSQL
-  - BigQuery
-  - CSV files
+Sumeh is a unified data‑quality validation framework supporting multiple backends (PySpark, Dask, BigQuery) with centralized rule configuration.
 
-- **Quality Check**: Run quality checks on data using customizable rules:
-  - Ensure completeness
-  - Check uniqueness
-  - Validate primary keys
-  - Verify value ranges (greater than, less than, equal to)
-  - And more!
-
-- **Configurable Rules**: Define checks such as `is_complete`, `is_unique`, `is_primary_key`, and more, with flexible parameters like threshold values and value ranges.
-
-## Installation
-
-To get started with the project
+## 🚀 Installation
 
 ```bash
+# Using pip
 pip install sumeh
+
+# Or with conda-forge
+conda install -c conda-forge sumeh
 ```
 
-## Usage
+**Prerequisites:**  
+- Python 3.10+  
+- One or more of: `pyspark`, `dask[dataframe]`, `google-cloud-bigquery`, `cuallee`
 
-The main entry point is the sumeh.py script, which provides various utilities for working with configuration data and performing quality checks. You can also use the CLI for interacting with the configurator.
+## 🔍 Core API
 
+- **`report(df, rules, name="Quality Check")`**  
+  Apply your validation rules over any DataFrame (Pandas, Spark, Dask, or SQL via BigQuery).  
+- **`validate(df, rules)`** *(per-engine)*  
+  Returns a DataFrame with a `dq_status` column listing violations.  
+- **`summarize(qc_df, rules, total_rows)`** *(per-engine)*  
+  Consolidates violations into a summary report.
 
-## List of avaliable checks:
+## ⚙️ Engines
 
+Each engine implements the `validate()` + `summarize()` pair:
 
-| cover | check                                      | description                                                                                 |
-|-------|--------------------------------------------|---------------------------------------------------------------------------------------------|
-| [x]   | **`is_complete`**                          | Checks if the field is complete with a specified threshold for completeness.                |
-| [x]   | **`is_unique`**                            | Checks if the field has unique values with a threshold for uniqueness.                      |
-| [x]   | **`is_primary_key`**                       | Ensures that the field is a primary key, with a threshold for the percentage of uniqueness. |
-| [x]   | **`are_complete`**                         | Verifies that multiple fields are complete, with a threshold for completeness.              |
-| [x]   | **`are_unique`**                           | Ensures that multiple fields have unique values, with a threshold for uniqueness.           |
-| [x]   | **`is_composite_key`**                     | Checks if a combination of fields forms a composite key, with a threshold for uniqueness.   |
-| [x]   | **`is_greater_than`**                      | Checks if the value of the field is greater than a specified value.                         |
-| [x]   | **`is_positive`**                          | Checks if the field has only positive values.                                               |
-| [x]   | **`is_negative`**                          | Checks if the field has only negative values.                                               |
-| [x]   | **`is_greater_or_equal_than`**             | Checks if the value of the field is greater than or equal to a specified value.             |
-| [x]   | **`is_less_than`**                         | Verifies if the value of the field is less than a specified value.                          |
-| [x]   | **`is_less_or_equal_than`**                | Checks if the value of the field is less than or equal to a specified value.                |
-| [x]   | **`is_equal_than`**                        | Verifies if the value of the field is equal to a specified value.                           |
-| [x]   | **`is_contained_in`** (also **`is_in`**)   | Checks if the field’s value is contained in a specified set of values.                      |
-| [x]   | **`not_contained_in`** (also **`not_in`**) | Checks if the field’s value is not contained in a specified set of values.                  |
-| [x]   | **`is_between`**                           | Checks if the field’s value is between two specified values.                                |
-| [x]   | **`has_pattern`**                          | Validates if the field’s value matches a specified pattern.                                 |
-| [x]   | **`is_legit`**                             | Verifies if the field contains legitimate values according to a specific check.             |
-| [x]   | **`has_min`**                              | Checks if the field’s value is greater than or equal to a specified minimum value.          |
-| [x]   | **`has_max`**                              | Ensures that the field’s value is less than or equal to a specified maximum value.          |
-| [x]   | **`has_std`**                              | Checks if the field has a specified standard deviation.                                     |
-| [x]   | **`has_mean`**                             | Verifies if the field has a specified mean value.                                           |
-| [x]   | **`has_sum`**                              | Ensures that the sum of the values in the field meets a specified value.                    |
-| [x]   | **`has_cardinality`**                      | Checks if the cardinality (distinct values) of the field matches a specified value.         |
-| [x]   | **`has_infogain`**                         | Measures if the field has a certain information gain.                                       |
-| [x]   | **`has_entropy`**                          | Verifies if the field has a specified entropy value.                                        |
-| [x]   | **`is_in_millions`**                       | Checks if the field’s values are within the millions range.                                 |
-| [x]   | **`is_in_billions`**                       | Verifies if the field’s values are in the billions range.                                   |
-| [x]   | **`is_t_minus_1`**                         | Checks if the field’s value is equal to the date from one day ago.                          |
-| [x]   | **`is_t_minus_2`**                         | Verifies if the field’s value is equal to the date from two days ago.                       |
-| [x]   | **`is_t_minus_3`**                         | Checks if the field’s value is equal to the date from three days ago.                       |
-| [x]   | **`is_today`**                             | Verifies if the field’s value is equal to today’s date.                                     |
-| [x]   | **`is_yesterday`**                         | Checks if the field’s value is equal to yesterday’s date.                                   |
-| [x]   | **`is_on_weekday`**                        | Verifies if the field’s value corresponds to a weekday (Monday to Friday).                  |
-| [x]   | **`is_on_weekend`**                        | Checks if the field’s value corresponds to a weekend (Saturday or Sunday).                  |
-| [x]   | **`is_on_monday`**                         | Verifies if the field’s value corresponds to Monday.                                        |
-| [x]   | **`is_on_tuesday`**                        | Checks if the field’s value corresponds to Tuesday.                                         |
-| [x]   | **`is_on_wednesday`**                      | Verifies if the field’s value corresponds to Wednesday.                                     |
-| [x]   | **`is_on_thursday`**                       | Checks if the field’s value corresponds to Thursday.                                        |
-| [x]   | **`is_on_friday`**                         | Verifies if the field’s value corresponds to Friday.                                        |
-| [x]   | **`is_on_saturday`**                       | Checks if the field’s value corresponds to Saturday.                                        |
-| [x]   | **`is_on_sunday`**                         | Verifies if the field’s value corresponds to Sunday.                                        |
-| [x]   | **`satisfies`**                            | Ensures that the field satisfies a specified predicate (condition).                         |
+| Engine                | Module                                  | Status          |
+|-----------------------|-----------------------------------------|-----------------|
+| PySpark               | `sumeh.engine.pyspark_engine`           | ✅ Fully tested |
+| Dask                  | `sumeh.engine.dask_engine`              | ✅ Fully tested |
+| BigQuery (SQL)        | `sumeh.engine.bigquery_engine` *(stub)* | 🔧 Work in progress |
 
+_Planned:_ native Pandas engine.
 
-Each test corresponds to a specific check that can be applied to a dataset, using the rules defined in the code.
+## 🏗 Configuration Sources
 
-## Configuration Retrieval
-You can retrieve configuration data using the following methods:
+Load rules from CSV, S3, MySQL, Postgres, BigQuery table, or AWS Glue:
 
-- #### From S3:
 ```python
-from sumeh import get_config_from_s3
-rules = get_config_from_s3("s3://bucket/path/to/file.csv")
-```
-
-- #### From MySQL:
-```python
-from sumeh import get_config_from_mysql
-
-rules = get_config_from_mysql(
-    host="localhost", user="root", password="password", database="test_db", table="config_table"
+from sumeh.services.config import (
+    get_config_from_csv,
+    get_config_from_s3,
+    get_config_from_mysql,
+    get_config_from_postgresql,
+    get_config_from_bigquery,
+    get_config_from_glue_data_catalog,
 )
-```
-- #### From PostgreSQL:
-```python
-from sumeh import get_config_from_postgresql
 
-rules = get_config_from_postgresql(
-    host="localhost", user="user", password="password", database="test_db", table="config_table"
-)
+rules = get_config_from_csv("rules.csv", delimiter=";")
 ```
 
-- #### From BigQuery:
-```python
-from sumeh import get_config_from_bigquery
-
-rules = get_config_from_bigquery(
-    project_id="your_project_id", dataset_id="your_dataset", table_id="your_table"
-)
-```
-- #### From CSV:
-```python
-from sumeh import get_config_from_csv
-
-rules = get_config_from_csv("path/to/config.csv")
-```
-
-- #### From Glue Data Catalog:
-```python
-from sumeh import get_config_from_glue_data_catalog
-
-rules = get_config_from_glue_data_catalog(
-  glue_context="glue_context", database_name="your_database", table_name="your_table", query="your query"
-)
-```
-
-### Running Quality Checks
-Once you have the configuration data, you can apply quality checks using the quality() function:
+## 🏃‍♂️ Typical Workflow
 
 ```python
-from sumeh import quality_resume
+from sumeh import report
+from sumeh.engine.dask_engine import validate, summarize
+import dask.dataframe as dd
 
-rules = [
-  {"check_type": "is_complete", "field": "column_name", "threshold": 0.9},
-  {"check_type": "is_unique", "field": "id_column"}
-]
-# any dataframe: pyspark | pandas | bigquery
-result = quality_resume(df, rules)
-result.show()
+# 1) Load data
+ddf = dd.read_csv("data.csv", assume_missing=True)
+
+# 2) Cast types
+ddf["join_date"] = dd.to_datetime(ddf["join_date"])
+
+# 3) Run per-engine validation
+qc_ddf = validate(ddf, rules)
+
+# 4) Generate summary
+total = ddf.shape[0].compute()
+report = summarize(qc_ddf, rules, total).compute()
+print(report)
 ```
 
-### CLI Usage
-You can also interact with the project through the command-line interface (CLI) provided by cli.py. To get started with the CLI, run:
-```bash
-sumeh-config
+Or simply:
+
+```python
+from sumeh import report
+
+report = report(df, rules, name="My Check")
 ```
 
-### Contributing
+## 📋 Rule Definition Example
 
-We welcome contributions to the Sumeh project! If you'd like to help improve the project, follow these steps:
+```json
+{
+  "field": "customer_id",
+  "check_type": "is_complete",
+  "threshold": 0.99,
+  "value": null,
+  "execute": true
+}
+```
 
-Fork the repository.
-Create a new branch for your changes.
-Make your changes and ensure the tests pass.
-Submit a pull request.
+## 📂 Project Layout
 
-### License
+```
+sumeh/
+├── __init__.py          # exposes report & version
+├── core.py              # report implementation
+├── engine/
+│   ├── pyspark_engine.py
+│   ├── dask_engine.py
+│   └── bigquery_engine.py  # SQL‑based
+└── services/
+    ├── config.py        # rule loaders
+    └── utils.py         # internal helpers
+tests/
+├── data/                # sample inputs
+└── test_*.py            # unit tests
+```
 
-This project is licensed under the MIT License.
+## 📈 Roadmap
 
-### Acknowledgements
+- [ ] Native Pandas engine  
+- [ ] Complete BigQuery engine  
+- [ ] Read the Docs documentation  
 
-The Cuallee project is a key dependency for this project, providing the necessary tools for `quality` checks.
-Thanks to the open-source libraries used in this project:
-- `pandas`
-- `dateutil`
-- `mysql-connector-python`
-- `psycopg2`
-- `google-cloud-bigquery`
-- `boto3`
-- `poetry`
+## 🤝 Contributing
 
-Let me know if you need further adjustments or clarifications!
+1. Fork & create a feature branch.  
+2. Implement new checks or engines, following existing signatures.  
+3. Add tests under `tests/`.  
+4. Open a PR and ensure CI passes.
+
+## 📜 License
+
+Licensed under the [Apache License 2.0](LICENSE).  
+```
