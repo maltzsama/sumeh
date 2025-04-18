@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, Window, Row
 from pyspark.sql.functions import (
     lit,
     col,
@@ -23,9 +23,10 @@ from pyspark.sql.functions import (
     trim,
     split,
 )
+from typing import List, Dict
 import operator
 from functools import reduce
-from pyspark.sql import Window
+
 from sumeh.services.utils import __convert_value
 
 
@@ -255,7 +256,7 @@ def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
             value = raw_value  # None ou lista já formatada
         try:
             rule_func = globals()[rule_name]
-            result = result.union(rule_func(df, field, value))
+            result = result.unionByName(rule_func(df, field, value))
         except KeyError:
             warnings.warn(f"Unknown rule name: {rule_name}, {field}")
     group_columns = [c for c in df.columns if c != "dq_status"]
@@ -263,21 +264,6 @@ def quality_checker(df: DataFrame, rules: list[dict]) -> DataFrame:
         concat_ws(";", collect_list("dq_status")).alias("dq_status")
     )
     return summary_df
-
-
-from pyspark.sql import Row
-from pyspark.sql.functions import (
-    col,
-    lit,
-    split,
-    explode,
-    trim,
-    count,
-    when,
-    current_timestamp,
-    monotonically_increasing_id,
-)
-from typing import List, Dict
 
 
 def _rules_to_df(rules: List[Dict]) -> DataFrame:
@@ -299,22 +285,6 @@ def _rules_to_df(rules: List[Dict]) -> DataFrame:
         )
 
     return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
-
-
-from pyspark.sql import Row, DataFrame
-from pyspark.sql.functions import (
-    col,
-    lit,
-    split,
-    explode,
-    trim,
-    count,
-    when,
-    coalesce,
-    current_timestamp,
-    monotonically_increasing_id,
-)
-from typing import List, Dict
 
 
 def _rules_to_df(rules: List[Dict]) -> DataFrame:
