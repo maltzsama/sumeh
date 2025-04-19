@@ -180,16 +180,22 @@ def has_entropy(df: dd.DataFrame, field: str, value: float) -> dd.DataFrame:
     return df.head(0).pipe(dd.from_pandas, npartitions=1)
 
 
-def satisfies(df: dd.DataFrame, field: str, expression: str) -> dd.DataFrame:
-    s = df[field].astype("object")
-    mask = s.str.contains(expression, na=False)
-    viol = df[mask]
-    return viol.assign(dq_status=f"{field}:satisfies")
+def satisfies(df: dd.DataFrame, field: str, sql_expr: str) -> dd.DataFrame:
+    py_expr = sql_expr
+    py_expr = re.sub(r"(?<![=!<>])=(?!=)", "==", py_expr)
+    py_expr = re.sub(r"\bAND\b", "&", py_expr, flags=re.IGNORECASE)
+    py_expr = re.sub(r"\bOR\b", "|", py_expr, flags=re.IGNORECASE)
+
+    def _filter_viol(pdf: pd.DataFrame) -> pd.DataFrame:
+        mask = pdf.eval(py_expr)
+        return pdf.loc[~mask]
+
+    meta = df._meta
+    viol = df.map_partitions(_filter_viol, meta=meta)
+    return viol.assign(dq_status=field + ":satisfies")
 
 
 def validate(df: dd.DataFrame, rules: list[dict]) -> dd.DataFrame:
-    """Retorna um Dask DataFrame com coluna 'dq_status' contendo as violações."""
-    # início vazio
     empty = dd.from_pandas(
         pd.DataFrame(columns=df.columns.tolist() + ["dq_status"]), npartitions=1
     )
@@ -238,9 +244,7 @@ def _rules_to_df(rules: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(rows).drop_duplicates(["column", "rule"])
 
 
-def summarize(
-    qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int
-) -> pd.DataFrame:
+def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
     df = qc_ddf.compute()
     expl = (
         df["dq_status"]

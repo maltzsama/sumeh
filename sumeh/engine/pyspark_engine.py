@@ -287,7 +287,7 @@ def _rules_to_df(rules: List[Dict]) -> DataFrame:
     return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
 
 
-def summarize(qc_df: DataFrame, rules: List[Dict]) -> DataFrame:
+def summarize(qc_df: DataFrame, rules: List[Dict], _) -> DataFrame:
     total_rows = qc_df.count()
     now_ts = current_timestamp()
 
