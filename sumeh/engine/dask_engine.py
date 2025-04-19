@@ -180,11 +180,11 @@ def has_entropy(df: dd.DataFrame, field: str, value: float) -> dd.DataFrame:
     return df.head(0).pipe(dd.from_pandas, npartitions=1)
 
 
-# def satisfies(df: dd.DataFrame, field: str, expression: str) -> dd.DataFrame:
-#     s = df[field].astype("object")
-#     mask = s.str.contains(expression, na=False)
-#     viol = df[mask]
-#     return viol.assign(dq_status=f"{field}:satisfies")
+def satisfies(df: dd.DataFrame, field: str, expression: str) -> dd.DataFrame:
+    s = df[field].astype("object")
+    mask = s.str.contains(expression, na=False)
+    viol = df[mask]
+    return viol.assign(dq_status=f"{field}:satisfies")
 
 
 def validate(df: dd.DataFrame, rules: list[dict]) -> dd.DataFrame:
