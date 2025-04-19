@@ -8,13 +8,18 @@ from .services.utils import __convert_value
 
 def _detect_engine(df):
     mod = df.__class__.__module__
-    if mod.startswith("pyspark"):
-        return "pyspark_engine"
-    if mod.startswith("dask"):
-        return "dask_engine"
-    if mod.startswith("pandas"):
-        return "pandas_engine"
-    raise TypeError(f"Unsupported DataFrame type: {type(df)}")
+    match mod:
+        case m if m.startswith("pyspark"):
+            return "pyspark_engine"
+        case m if m.startswith("dask"):
+            return "dask_engine"
+        case m if m.startswith("polars"):
+            # cobre tanto pl.DataFrame quanto pl.LazyFrame
+            return "polars_engine"
+        case m if m.startswith("pandas"):
+            return "pandas_engine"
+        case _:
+            raise TypeError(f"Unsupported DataFrame type: {type(df)}")
 
 
 def validate(df, rules, name="Quality Check"):
@@ -23,25 +28,10 @@ def validate(df, rules, name="Quality Check"):
     return engine.validate(df, rules)
 
 
-def summarize(df, rules, total_rows=None):
+def summarize(df, rules: list[dict], total_rows=None):
     engine_name = _detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
-
-    match engine_name:
-        case "dask_engine":
-            if total_rows is None:
-                raise ValueError("total_rows is required for Dask summary")
-            return engine.summarize(df, rules, total_rows)
-
-        case "pandas_engine":
-            total = total_rows if total_rows is not None else len(df)
-            return engine.summarize(df, rules, total)
-
-        case "pyspark_engine":
-            return engine.summarize(df, rules)
-
-        case _:
-            raise TypeError(f"Unsupported engine for summary: {engine_name}")
+    return engine.summarize(df, rules, total_rows)
 
 
 # TODO: refactore to get better performance
