@@ -328,63 +328,87 @@ def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
 
     return out
 
-def summarize(qc_df: pl.DataFrame,
-              rules: list[dict],
-              total_rows: int) -> pl.DataFrame:
+
+def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.DataFrame:
     exploded = (
-        qc_df
-        .select(                                  
-            pl.col("dq_status")
-              .str.split(";")                     
-              .list.explode()                    
-              .alias("violation")
+        qc_df.select(
+            pl.col("dq_status").str.split(";").list.explode().alias("violation")
         )
-        .filter(pl.col("violation") != "")       
-        .with_columns([                          
-            pl.col("violation").str.split(":").list.get(0).alias("column"),
-            pl.col("violation").str.split(":").list.get(1).alias("rule"),
-        ])
+        .filter(pl.col("violation") != "")
+        .with_columns(
+            [
+                pl.col("violation").str.split(":").list.get(0).alias("column"),
+                pl.col("violation").str.split(":").list.get(1).alias("rule"),
+            ]
+        )
     )
-    viol_count = (
-        exploded
-        .group_by(["column", "rule"])
-        .agg(pl.count().alias("violations"))
+    viol_count = exploded.group_by(["column", "rule"]).agg(
+        pl.count().alias("violations")
     )
 
     rules_df = (
-        pl.DataFrame([
-            {
-                "column": ",".join(r["field"]) if isinstance(r["field"], list) else r["field"],
-                "rule":   r["check_type"],
-                "pass_threshold": float(r.get("threshold") or 1.0),
-                "value": r.get("value")
-            }
-            for r in rules if r.get("execute", True)
-        ])
+        pl.DataFrame(
+            [
+                {
+                    "column": (
+                        ",".join(r["field"])
+                        if isinstance(r["field"], list)
+                        else r["field"]
+                    ),
+                    "rule": r["check_type"],
+                    "pass_threshold": float(r.get("threshold") or 1.0),
+                    "value": r.get("value"),
+                }
+                for r in rules
+                if r.get("execute", True)
+            ]
+        )
         .unique(subset=["column", "rule"])
-        .with_columns([
-            pl.col("column").cast(str),
-            pl.col("rule").cast(str),
-        ])
+        .with_columns(
+            [
+                pl.col("column").cast(str),
+                pl.col("rule").cast(str),
+            ]
+        )
     )
     summary = (
         rules_df.join(viol_count, on=["column", "rule"], how="left")
         .with_columns(pl.col("violations").fill_null(0))
-        .with_columns(((pl.lit(total_rows) - pl.col("violations")) / pl.lit(total_rows)).alias("pass_rate"))
-        .with_columns([
-            pl.lit(total_rows).alias("rows"),
-            pl.when(pl.col("pass_rate") >= pl.col("pass_threshold"))
-                .then(pl.lit("PASS")).otherwise(pl.lit("FAIL")).alias("status"),
-            pl.lit(datetime.now().replace(second=0, microsecond=0)).alias("timestamp"),
-            pl.lit("Quality Check").alias("check"),
-            pl.lit("WARNING").alias("level"),
-        ])
+        .with_columns(
+            ((pl.lit(total_rows) - pl.col("violations")) / pl.lit(total_rows)).alias(
+                "pass_rate"
+            )
+        )
+        .with_columns(
+            [
+                pl.lit(total_rows).alias("rows"),
+                pl.when(pl.col("pass_rate") >= pl.col("pass_threshold"))
+                .then(pl.lit("PASS"))
+                .otherwise(pl.lit("FAIL"))
+                .alias("status"),
+                pl.lit(datetime.now().replace(second=0, microsecond=0)).alias(
+                    "timestamp"
+                ),
+                pl.lit("Quality Check").alias("check"),
+                pl.lit("WARNING").alias("level"),
+            ]
+        )
         .with_columns(pl.arange(1, pl.count() + 1).alias("id"))
-        .select([
-            "id", "timestamp", "check", "level",
-            "column", "rule", "value",
-            "rows", "violations", "pass_rate",
-            "pass_threshold", "status",
-        ])
+        .select(
+            [
+                "id",
+                "timestamp",
+                "check",
+                "level",
+                "column",
+                "rule",
+                "value",
+                "rows",
+                "violations",
+                "pass_rate",
+                "pass_threshold",
+                "status",
+            ]
+        )
     )
     return summary
