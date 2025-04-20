@@ -91,7 +91,7 @@ def are_unique(df: DataFrame, rule: dict) -> DataFrame:
 
 def is_greater_than(df: DataFrame, rule: dict) -> DataFrame:
     field, check, value = __extract_params(rule)
-    return df.filter(col(field) > value).withColumn(
+    return df.filter(col(field) <= value).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -321,9 +321,17 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
         .withColumn("value", col("dq_status")[2])
         .groupBy("column", "rule", "value")
         .agg(count("*").alias("violations"))
+        .withColumn(
+            "value",
+            coalesce(
+                when(col("value") == "", None).otherwise(col("value")), lit("N/A")
+            ),
+        )
     )
 
-    rules_df = _rules_to_df(rules)
+    rules_df = _rules_to_df(rules).withColumn(
+        "value", coalesce(col("value"), lit("N/A"))
+    )
 
     base = rules_df.join(viol_df, ["column", "rule", "value"], how="left").withColumn(
         "violations", coalesce(col("violations"), lit(0))
