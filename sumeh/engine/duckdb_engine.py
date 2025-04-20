@@ -309,13 +309,11 @@ def summarize(
         r.value,
         tr.cnt                                         AS rows,
         COALESCE(v.violations, 0)                      AS violations,
-        (tr.cnt - COALESCE(v.violations,0))::DOUBLE
-            / r.pass_threshold                           AS pass_rate,
+        (tr.cnt - COALESCE(v.violations, 0))::DOUBLE / tr.cnt          AS pass_rate,
         r.pass_threshold,
         CASE
-            WHEN (tr.cnt - COALESCE(v.violations,0))::DOUBLE
-                / r.pass_threshold >= r.pass_threshold
-            THEN 'PASS'
+            WHEN (tr.cnt - COALESCE(v.violations,0))::DOUBLE / tr.cnt 
+             >= r.pass_threshold THEN 'PASS'
             ELSE 'FAIL'
         END                                            AS status
         FROM rules r
