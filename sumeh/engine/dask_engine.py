@@ -7,6 +7,7 @@ from functools import reduce
 import pandas as pd
 import dask.dataframe as dd
 import numpy as np
+from datetime import datetime
 from sumeh.services.utils import __convert_value, __extract_params
 
 
@@ -278,49 +279,48 @@ def _rules_to_df(rules: list[dict]) -> pd.DataFrame:
 
 def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
     df = qc_ddf.compute()
-    expl = (
-        df["dq_status"]
-        .str.split(";", expand=True)
-        .stack()
-        .str.strip()
-        .loc[lambda s: s != ""]
-        .reset_index(drop=True)
+
+    df = df[df["dq_status"].astype(bool)]
+    split = df["dq_status"].str.split(":", expand=True)
+    split.columns = ["column", "rule", "value"]
+    viol_count = (
+        split
+        .groupby(["column", "rule", "value"], dropna=False)
+        .size()
+        .reset_index(name="violations")
     )
-    cols = expl.str.split(":", expand=True)
-    viol = pd.DataFrame(
-        {
-            "column": cols[0],
-            "rule": cols[1],
-        }
-    )
-    viol_count = viol.value_counts().reset_index(name="violations")
 
     rules_df = _rules_to_df(rules)
-    summary = rules_df.merge(viol_count, how="left", on=["column", "rule"])
-    summary["violations"] = summary["violations"].fillna(0).astype(int)
 
-    summary["rows"] = total_rows
-    summary["pass_rate"] = (total_rows - summary["violations"]) / total_rows
-    summary["status"] = np.where(
-        summary["pass_rate"] >= summary["pass_threshold"], "PASS", "FAIL"
+    rules_df["value"]    = rules_df["value"].fillna("")
+    viol_count["value"]  = viol_count["value"].fillna("")
+
+    summary = (
+        rules_df
+        .merge(viol_count, on=["column", "rule", "value"], how="left")
+        .assign(
+            violations = lambda df: df["violations"].fillna(0).astype(int),
+            rows       = total_rows,
+            pass_rate  = lambda df: (total_rows - df["violations"]) / total_rows,
+            status     = lambda df: np.where(
+                              df["pass_rate"] >= df["pass_threshold"],
+                              "PASS", "FAIL"
+                          ),
+            timestamp  = datetime.now().replace(second=0, microsecond=0),
+            check      = "Quality Check",
+            level      = "WARNING",
+        )
+        .reset_index(drop=True)
     )
-    summary["timestamp"] = pd.Timestamp.now()
-    summary["check"] = "Quality Check"
-    summary["level"] = "WARNING"
-    summary["id"] = np.arange(1, len(summary) + 1)
-    return summary[
+
+    summary.insert(0, "id", np.arange(1, len(summary) + 1))
+    summary = summary[
         [
-            "id",
-            "timestamp",
-            "check",
-            "level",
-            "column",
-            "rule",
-            "value",
-            "rows",
-            "violations",
-            "pass_rate",
-            "pass_threshold",
-            "status",
+            "id", "timestamp", "check", "level",
+            "column", "rule", "value",
+            "rows", "violations", "pass_rate",
+            "pass_threshold", "status",
         ]
     ]
+
+    return dd.from_pandas(summary, npartitions=1)
