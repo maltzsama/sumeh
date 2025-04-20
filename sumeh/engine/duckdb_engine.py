@@ -212,16 +212,12 @@ def _rules_to_duckdb_df(rules: List[Dict]) -> str:
     Retorna apenas a string SQL montada.
     """
     parts: List[str] = []
-    
+
     for r in rules:
         if not r.get("execute", True):
             continue
 
-        ctx = _RuleCtx(
-            column=r["field"],
-            value=r.get("value"),
-            name=r["check_type"]
-        )
+        ctx = _RuleCtx(column=r["field"], value=r.get("value"), name=r["check_type"])
 
         # Formatação da coluna (string ou lista)
         col = ", ".join(ctx.column) if isinstance(ctx.column, list) else ctx.column
@@ -258,7 +254,7 @@ def _rules_to_duckdb_df(rules: List[Dict]) -> str:
 
     if not parts:
         return "SELECT NULL AS col, NULL AS rule, NULL AS pass_threshold, NULL AS value LIMIT 0"
-    
+
     union_sql = "\nUNION ALL\n".join(parts)
     return (
         "SELECT DISTINCT col, rule, pass_threshold, value\n"
@@ -317,5 +313,4 @@ def summarize(
         LEFT JOIN violations v ON r.col = v.col AND r.rule = v.rule,
             total_rows tr
     """
-
     return conn.sql(sql)
