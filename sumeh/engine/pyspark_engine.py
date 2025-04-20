@@ -30,43 +30,67 @@ from functools import reduce
 from sumeh.services.utils import __convert_value
 
 
-def is_positive(df: DataFrame, field: str, _) -> DataFrame:
+def __extract_params(rule: dict) -> tuple:
+    rule_name = rule["check_type"]
+    field = rule["field"]
+    raw_value = rule.get("value")
+    if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
+        try:
+            value = __convert_value(raw_value)
+        except ValueError:
+            value = raw_value
+    else:
+        value = raw_value
+    value = value if value not in (None, "", "NULL") else ""
+    return field, rule_name, value
+
+
+def is_positive(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) < 0).withColumn(
-        "dq_status", concat(lit(field), lit(":is_positive"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_negative(df: DataFrame, field: str, _) -> DataFrame:
+def is_negative(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) >= 0).withColumn(
-        "dq_status", concat(lit(field), lit(":is_negative"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_complete(df: DataFrame, field: str, _) -> DataFrame:
+def is_complete(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field).isNull()).withColumn(
-        "dq_status", concat(lit(field), lit(":is_complete"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_unique(df: DataFrame, field: str, _) -> DataFrame:
+def is_unique(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     window = Window.partitionBy(col(field))
     df_with_count = df.withColumn("count", count(col(field)).over(window))
     res = (
         df_with_count.filter(col("count") > 1)
-        .withColumn("dq_status", concat(lit(field), lit(":is_unique")))
+        .withColumn(
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+        )
         .drop("count")
     )
     return res
 
 
-def are_complete(df: DataFrame, fields: list[str], _) -> DataFrame:
+def are_complete(df: DataFrame, rule: dict) -> DataFrame:
+    fields, check, value = __extract_params(rule)
     predicate = reduce(operator.and_, [col(field).isNotNull() for field in fields])
     return df.filter(~predicate).withColumn(
-        "dq_status", concat(lit(str(fields)), lit(":are_complete"))
+        "dq_status",
+        concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value)),
     )
 
 
-def are_unique(df: DataFrame, fields: list[str], _) -> DataFrame:
+def are_unique(df: DataFrame, rule: dict) -> DataFrame:
+    fields, check, value = __extract_params(rule)
     combined_col = concat_ws("|", *[coalesce(col(f), lit("")) for f in fields])
     window = Window.partitionBy(combined_col)
     result = (
@@ -75,195 +99,210 @@ def are_unique(df: DataFrame, fields: list[str], _) -> DataFrame:
         .drop("_count")
         .withColumn(
             "dq_status",
-            concat(lit(str(fields)), lit("are_unique")),
+            concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value)),
         )
     )
     return result
 
 
-def is_greater_than(df: DataFrame, field: str, value: str) -> DataFrame:
+def is_greater_than(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) > value).withColumn(
-        "dq_status", concat(lit(field), lit(":is_greater_than"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_greater_or_equal_than(df: DataFrame, field: str, value: str) -> DataFrame:
+def is_greater_or_equal_than(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) < value).withColumn(
-        "dq_status", concat(lit(field), lit(":is_greater_or_equal_than"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_less_than(df: DataFrame, field: str, value: str) -> DataFrame:
+def is_less_than(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) >= value).withColumn(
-        "dq_status", concat(lit(field), lit(":is_less_than"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_less_or_equal_than(df: DataFrame, field: str, value: str) -> DataFrame:
+def is_less_or_equal_than(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) > value).withColumn(
-        "dq_status", concat(lit(field), lit(":is_less_or_equal_than"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_equal(df: DataFrame, field: str, value: str) -> DataFrame:
+def is_equal(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(~col(field).eqNullSafe(value)).withColumn(
-        "dq_status", concat(lit(field), lit(":is_equal"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_equal_than(df: DataFrame, field: str, value: float) -> DataFrame:
+def is_equal_than(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(~col(field).eqNullSafe(value)).withColumn(
-        "dq_status", concat(lit(field), lit(":is_equal_than"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_contained_in(df: DataFrame, field: str, positive_list_str: str) -> DataFrame:
-    positive_list = positive_list_str.replace("[", "").replace("]", "").split(",")
+def is_contained_in(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    positive_list = value.strip("[]").split(",")
     return df.filter(~col(field).isin(positive_list)).withColumn(
-        "dq_status", concat(lit(field), lit(":is_contained_in"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def not_contained_in(df: DataFrame, field: str, negative_list_str: str) -> DataFrame:
-    negative_list = negative_list_str.replace("[", "").replace("]", "").split(",")
+def not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    negative_list = value.strip("[]").split(",")
     return df.filter(col(field).isin(negative_list)).withColumn(
-        "dq_status", concat(lit(field), lit(":not_contained_in"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_between(df: DataFrame, field: str, limits_list: str) -> DataFrame:
-    min_value, max_value = limits_list.replace("[", "").replace("]", "").split(",")
+def is_between(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    min_value, max_value = value.strip("[]").split(",")
     return df.filter(~col(field).between(min_value, max_value)).withColumn(
-        "dq_status", concat(lit(field), lit(":is_between"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def has_pattern(df: DataFrame, field: str, pattern: str) -> DataFrame:
-    return df.filter(~col(field).rlike(pattern)).withColumn(
-        "dq_status", concat(lit(field), lit(":has_pattern"))
+def has_pattern(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(~col(field).rlike(value)).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def is_legit(df: DataFrame, field: str, _) -> DataFrame:
+def is_legit(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     pattern_legit = "\S*"
     return df.filter(
         ~(col(field).isNotNull() & col(field).rlike(pattern_legit))
-    ).withColumn("dq_status", concat(lit(field), lit(":is_legit")))
+    ).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
 
 
-def is_primary_key(df: DataFrame, field: str, _):
-    return is_unique(df, field, _)
+def is_primary_key(df: DataFrame, rule: dict):
+
+    return is_unique(df, rule)
 
 
-def is_composite_key(df: DataFrame, fields: list[str], _):
-    return are_unique(df, fields, _)
+def is_composite_key(df: DataFrame, rule: dict):
+    return are_unique(df, rule)
 
 
-def has_max(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_max(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) > value).withColumn(
-        "dq_status", concat(lit(field), lit(":has_max"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def has_min(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_min(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field) < value).withColumn(
-        "dq_status", concat(lit(field), lit(":has_min"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def has_std(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_std(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     std_val = df.select(stddev(col(field))).first()[0]
     std_val = std_val or 0.0
     if std_val > value:
         return df.withColumn(
-            "dq_status", concat(lit(field), lit(f":has_std({std_val})"))
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
         )
     else:
         return df.limit(0)
 
 
-def has_mean(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_mean(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     mean_val = (df.select(avg(col(field))).first()[0]) or 0.0
     if mean_val > value:  # regra falhou
         return df.withColumn(
-            "dq_status", concat(lit(field), lit(f":has_mean({mean_val})"))
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
         )
     else:  # passou
         return df.limit(0)
 
 
-def has_sum(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_sum(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     sum_val = (df.select(sum(col(field))).first()[0]) or 0.0
     if sum_val > value:
         return df.withColumn(
-            "dq_status", concat(lit(field), lit(f":has_sum({sum_val})"))
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
         )
     return df.limit(0)
 
 
-def has_cardinality(df: DataFrame, field: str, value: int) -> DataFrame:
+def has_cardinality(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     card_val = df.select(countDistinct(col(field))).first()[0] or 0
     if card_val > value:
         return df.withColumn(
-            "dq_status", concat(lit(field), lit(f":has_cardinality({card_val})"))
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
         )
     return df.limit(0)
 
 
-def has_infogain(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_infogain(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     info_gain = df.select(countDistinct(col(field))).first()[0] or 0.0
     if info_gain > value:
         return df.withColumn(
-            "dq_status", concat(lit(field), lit(f":has_infogain({info_gain})"))
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
         )
     return df.limit(0)
 
 
-def has_entropy(df: DataFrame, field: str, value: float) -> DataFrame:
+def has_entropy(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     entropy_val = df.select(countDistinct(col(field))).first()[0] or 0.0
     if entropy_val > value:
         return df.withColumn(
-            "dq_status", concat(lit(field), lit(f":has_entropy({entropy_val})"))
+            "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
         )
     return df.limit(0)
 
 
-def all_date_checks(df: DataFrame, field: str) -> DataFrame:
+def all_date_checks(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter((col(field) < current_date())).withColumn(
-        "dq_status", concat(lit(field), lit(":all_date_checks"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
-def satisfies(df: DataFrame, field: str, expression: str) -> DataFrame:
+def satisfies(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
     return df.filter(col(field).rlike(expression)).withColumn(
-        "dq_status", concat(lit(field), lit(":satisfies"))
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
 
 def validate(df: DataFrame, rules: list[dict]) -> DataFrame:
     df = df.withColumn("dq_status", lit(""))
-    result = df.limit(0)
+    raw_result = df.limit(0)
     for rule in rules:
-        rule_name = rule["check_type"]
-        field = rule["field"]
-        raw_value = rule.get("value")
-        if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
-            try:
-                value = __convert_value(raw_value)
-            except ValueError:
-                value = raw_value
-        else:
-            value = raw_value  # None ou lista já formatada
+        field, rule_name, value = __extract_params(rule)
         try:
             rule_func = globals()[rule_name]
-            result = result.unionByName(rule_func(df, field, value))
+            raw_result = raw_result.unionByName(rule_func(df, rule))
         except KeyError:
             warnings.warn(f"Unknown rule name: {rule_name}, {field}")
     group_columns = [c for c in df.columns if c != "dq_status"]
-    summary_df = result.groupBy(*group_columns).agg(
+    result = raw_result.groupBy(*group_columns).agg(
         concat_ws(";", collect_list("dq_status")).alias("dq_status")
     )
-    return summary_df
+    return result, raw_result
 
 
 def _rules_to_df(rules: List[Dict]) -> DataFrame:
@@ -287,24 +326,22 @@ def _rules_to_df(rules: List[Dict]) -> DataFrame:
     return spark.createDataFrame(rows).dropDuplicates(["column", "rule"])
 
 
-def summarize(qc_df: DataFrame, rules: List[Dict], _) -> DataFrame:
-    total_rows = qc_df.count()
+def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
     now_ts = current_timestamp()
 
-    exploded = (
-        qc_df.select(explode(split(col("dq_status"), ";")).alias("status"))
-        .filter(trim("status") != "")
-        .select(
-            trim(split("status", ":")[0]).alias("column"),
-            trim(split("status", ":")[1]).alias("rule"),
-        )
+    viol_df = (
+        df.filter(trim(col("dq_status")) != lit(""))
+        .withColumn("dq_status", split(trim(col("dq_status")), ":"))
+        .withColumn("column", col("dq_status")[0])
+        .withColumn("rule", col("dq_status")[1])
+        .withColumn("value", col("dq_status")[2])
+        .groupBy("column", "rule", "value")
+        .agg(count("*").alias("violations"))
     )
-
-    viol_df = exploded.groupBy("column", "rule").agg(count("*").alias("violations"))
 
     rules_df = _rules_to_df(rules)
 
-    base = rules_df.join(viol_df, ["column", "rule"], how="left").withColumn(
+    base = rules_df.join(viol_df, ["column", "rule", "value"], how="left").withColumn(
         "violations", coalesce(col("violations"), lit(0))
     )
 
