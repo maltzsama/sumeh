@@ -14,24 +14,44 @@ def _detect_engine(df):
         case m if m.startswith("dask"):
             return "dask_engine"
         case m if m.startswith("polars"):
-            # cobre tanto pl.DataFrame quanto pl.LazyFrame
             return "polars_engine"
         case m if m.startswith("pandas"):
             return "pandas_engine"
+        case m if m.startswith("duckdb"):
+            return "duckdb_engine"
         case _:
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
 
 
-def validate(df, rules, name="Quality Check"):
+def validate(df, rules, **context):
     engine_name = _detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
-    return engine.validate(df, rules)
+
+    match engine_name:
+        case "duckdb_engine":
+            return engine.validate(df, rules, context.get("conn"))
+        case _:
+            return engine.validate(df, rules)
 
 
-def summarize(df, rules: list[dict], total_rows=None):
+def summarize(df, rules: list[dict], **context):
     engine_name = _detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
-    return engine.summarize(df, rules, total_rows)
+    match engine_name:
+        case "polars_engine" | "dask_engine" | "pandas_engine":
+            print("Pandas engine")
+            return engine.summarize(df, rules, total_rows=context.get("total_rows"))
+        case "duckdb_engine":
+            print("DuckDB engine")
+            return engine.summarize(
+                df_rel=df,
+                rules=rules,
+                conn=context.get("conn"),
+                total_rows=context.get("total_rows"),
+            )
+        case _:
+            print("Default engine")
+            return engine.summarize(df, rules)
 
 
 # TODO: refactore to get better performance
