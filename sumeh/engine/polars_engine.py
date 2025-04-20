@@ -34,7 +34,7 @@ def is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
     dup_vals = (
         df.group_by(field)
-        .agg(pl.count().alias("cnt"))
+        .agg(pl.len().alias("cnt"))
         .filter(pl.col("cnt") > 1)
         .select(field)
         .to_series()
@@ -62,7 +62,7 @@ def are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     )
     dupes = (
         combo.group_by("_combo")
-        .agg(pl.count().alias("cnt"))
+        .agg(pl.len().alias("cnt"))
         .filter(pl.col("cnt") > 1)
         .select("_combo")
         .to_series()
@@ -234,7 +234,7 @@ def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 
 def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
-    df = df.with_columns(pl.arange(0, pl.count()).alias("__id"))
+    df = df.with_columns(pl.arange(0, pl.len()).alias("__id"))
     df_with_dq = df.with_columns(pl.lit("").alias("dq_status"))
     result = df_with_dq.head(0)
     for rule in rules:
@@ -325,7 +325,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         )
     ).drop("dq_status")
     viol_count = exploded.group_by(["column", "rule", "value"]).agg(
-        pl.count().alias("violations_count")
+        pl.len().alias("violations_count")
     )
 
     rules_df = __build_rules_df(rules)
@@ -364,7 +364,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         ]
     )
 
-    summary = step4.with_columns(pl.arange(1, pl.count() + 1).alias("id")).select(
+    summary = step4.with_columns(pl.arange(1, pl.len() + 1).alias("id")).select(
         [
             "id",
             "timestamp",
