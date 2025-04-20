@@ -163,7 +163,7 @@ def _build_union_sql(rules: List[Dict]) -> str:
         )
 
         expr_ok = builder(ctx)  # condição “passa”
-        dq_tag = _escape_single_quotes(f"{ctx.column}:{check}")
+        dq_tag = _escape_single_quotes(f"{ctx.column}:{check}:{ctx.value}")
         pieces.append(
             f"SELECT *, '{dq_tag}' AS dq_status FROM tbl WHERE NOT ({expr_ok})"
         )
@@ -287,11 +287,14 @@ def summarize(
         rules      AS ({rules_sql}),
         violations AS (
             SELECT
-            col,
-            rule,
-            COUNT(*) AS violations
+                split_part(dq_status, ':', 1) AS col,
+                split_part(dq_status, ':', 2) AS rule,
+                split_part(dq_status, ':', 2) AS value,
+                COUNT(*)               AS violations
             FROM violations_raw
-            GROUP BY col, rule
+            WHERE dq_status IS NOT NULL
+                AND dq_status <> ''
+            GROUP BY col, rule, value, value
         ),
         total_rows AS (
             SELECT {total_rows} AS cnt
