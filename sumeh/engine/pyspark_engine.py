@@ -84,7 +84,8 @@ def are_complete(df: DataFrame, rule: dict) -> DataFrame:
     fields, check, value = __extract_params(rule)
     predicate = reduce(operator.and_, [col(field).isNotNull() for field in fields])
     return df.filter(~predicate).withColumn(
-        "dq_status", concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value))
+        "dq_status",
+        concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value)),
     )
 
 
@@ -97,7 +98,8 @@ def are_unique(df: DataFrame, rule: dict) -> DataFrame:
         .filter(col("_count") > 1)
         .drop("_count")
         .withColumn(
-            "dq_status", concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value))
+            "dq_status",
+            concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value)),
         )
     )
     return result
@@ -328,17 +330,18 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
     now_ts = current_timestamp()
 
     viol_df = (
-        df.filter(trim(col("dq_status")) == lit(""))
+        df.filter(trim(col("dq_status")) != lit(""))
         .withColumn("dq_status", split(trim(col("dq_status")), ":"))
         .withColumn("column", col("dq_status")[0])
         .withColumn("rule", col("dq_status")[1])
-        .groupBy("column", "rule")
+        .withColumn("value", col("dq_status")[2])
+        .groupBy("column", "rule", "value")
         .agg(count("*").alias("violations"))
     )
 
     rules_df = _rules_to_df(rules)
 
-    base = rules_df.join(viol_df, ["column", "rule"], how="left").withColumn(
+    base = rules_df.join(viol_df, ["column", "rule", "value"], how="left").withColumn(
         "violations", coalesce(col("violations"), lit(0))
     )
 
