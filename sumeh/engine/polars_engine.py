@@ -26,7 +26,7 @@ def is_negative(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
-    return df.filter(pl.col(field).is_null()).with_columns(
+    return df.filter(pl.col(field).is_not_null()).with_columns(
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
 
@@ -49,9 +49,9 @@ def is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 def are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     fields, check, value = __extract_params(rule)
     cond = reduce(operator.or_, [pl.col(f).is_null() for f in fields])
-    return df.filter(cond).with_columns(
-        pl.lit(f"{fields}:{check}:{value}").alias("dq_status")
-    )
+
+    tag = f"{fields}:{check}:{value}"
+    return df.filter(cond).with_columns(pl.lit(tag).alias("dq_status"))
 
 
 def are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -78,7 +78,7 @@ def are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
-    return df.filter(pl.col(field) > value).with_columns(
+    return df.filter(pl.col(field) <= value).with_columns(
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
 
@@ -118,9 +118,7 @@ def is_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     )
 
 
-def is_contained_in(
-    df: pl.DataFrame, rule: dict
-) -> pl.DataFrame:
+def is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
     lst = [v.strip() for v in value.strip("[]").split(",")]
     return df.filter(~pl.col(field).is_in(lst)).with_columns(
@@ -128,9 +126,7 @@ def is_contained_in(
     )
 
 
-def not_contained_in(
-    df: pl.DataFrame, rule: dict
-) -> pl.DataFrame:
+def not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
     lst = [v.strip() for v in value.strip("[]").split(",")]
     return df.filter(pl.col(field).is_in(lst)).with_columns(
@@ -149,17 +145,17 @@ def is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def has_pattern(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, pattern = __extract_params(rule)
-    return (
-        df
-        .filter(~pl.col(field).str.contains(pattern, literal=False))
-        .with_columns(pl.lit(f"{field}:{check}:{pattern}").alias("dq_status"))
+    return df.filter(~pl.col(field).str.contains(pattern, literal=False)).with_columns(
+        pl.lit(f"{field}:{check}:{pattern}").alias("dq_status")
     )
 
 
 def is_legit(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
     mask = pl.col(field).is_not_null() & pl.col(field).str.contains(r"^\S+$")
-    return df.filter(~mask).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+    return df.filter(~mask).with_columns(
+        pl.lit(f"{field}:{check}:{value}").alias("dq_status")
+    )
 
 
 def has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -188,9 +184,7 @@ def has_mean(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
     mean_val = df.select(pl.col(field).mean()).to_numpy()[0] or 0.0
     if mean_val > value:
-        return df.with_columns(
-            pl.lit(f"{field}:{check}:{value}").alias("dq_status")
-        )
+        return df.with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
     return df.head(0)
 
 
@@ -206,9 +200,7 @@ def has_cardinality(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     field, check, value = __extract_params(rule)
     card = df.select(pl.col(field).n_unique()).to_numpy()[0] or 0
     if card > value:
-        return df.with_columns(
-            pl.lit(f"{field}:{check}:{value}").alias("dq_status")
-        )
+        return df.with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
     return df.head(0)
 
 
@@ -243,70 +235,6 @@ def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 
 def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
-    """
-    Executa validações de qualidade de dados e retorna DataFrame com violações agregadas.
-    Versão otimizada que:
-    - Minimiza operações de concatenação
-    - Reduz uso de memória
-    - Mantém compatibilidade com a versão PySpark
-    """
-
-    df_with_id = df.with_columns(
-        pl.arange(0, pl.count()).alias("__id"), pl.lit("").alias("dq_status")
-    )
-
-    violations = []
-
-    for rule in rules:
-        if not rule.get("execute", True):
-            continue
-
-        rule_name = rule["check_type"]
-        field = rule["field"]
-
-        rule_name = {
-            "is_primary_key": "is_unique",
-            "is_composite_key": "are_unique",
-        }.get(rule_name, rule_name)
-
-        if (rule_func := globals().get(rule_name)) is None:
-            warnings.warn(f"Unknown rule: {rule_name}", RuntimeWarning)
-            continue
-
-        raw_value = rule.get("value")
-        value = (
-            __convert_value(raw_value)
-            if isinstance(raw_value, str) and raw_value not in ("", "NULL")
-            else raw_value
-        )
-
-        try:
-            viol = rule_func(df_with_id, rule)
-            if not viol.is_empty():
-                violations.append(viol.select(["__id", "dq_status"]))
-        except Exception as e:
-            warnings.warn(f"Error in rule {rule_name}: {str(e)}", RuntimeWarning)
-
-    # 4. Agregação otimizada
-    if not violations:
-        return df.with_columns(pl.lit("").alias("dq_status"))
-
-    # Concatenação única e agregação
-    all_violations = (
-        pl.concat(violations)
-        .group_by("__id", maintain_order=True)
-        .agg(pl.col("dq_status").str.concat(";"))
-    )
-
-    # 5. Junção final otimizada
-    return (
-        df.join(all_violations, on="__id", how="left")
-        .with_columns(pl.coalesce(pl.col("dq_status"), pl.lit("")))
-        .drop("__id")
-    )
-
-
-def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
     df = df.with_columns(pl.arange(0, pl.count()).alias("__id"))
     df_with_dq = df.with_columns(pl.lit("").alias("dq_status"))
     result = df_with_dq.head(0)
@@ -337,7 +265,6 @@ def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
             except ValueError:
                 value = raw_value
 
-
         viol = func(df_with_dq, rule)
         result = pl.concat([result, viol]) if not result.is_empty() else viol
 
@@ -354,19 +281,19 @@ def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
 def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.DataFrame:
     exploded = (
         qc_df.select(
-            pl.col("dq_status").str.split(";").list.explode().alias("violation")
+            pl.col("dq_status").str.split(";").list.explode().alias("dq_status")
         )
-        .filter(pl.col("violation") != "")
+        .filter(pl.col("dq_status") != "")
         .with_columns(
             [
-                pl.col("violation").str.split(":").list.get(0).alias("column"),
-                pl.col("violation").str.split(":").list.get(1).alias("rule"),
-                pl.col("violation").str.split(":").list.get(2).alias("value"),
+                pl.col("dq_status").str.split(":").list.get(0).alias("column"),
+                pl.col("dq_status").str.split(":").list.get(1).alias("rule"),
+                pl.col("dq_status").str.split(":").list.get(2).alias("value"),
             ]
         )
-    )
+    ).drop("dq_status")
     viol_count = exploded.group_by(["column", "rule", "value"]).agg(
-        pl.count().alias("violations")
+        pl.count().alias("violations_count")
     )
 
     rules_df = (
@@ -386,21 +313,28 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
                 if r.get("execute", True)
             ]
         )
-        .unique(subset=["column", "rule"])
+        .unique(subset=["column", "rule", "value"])
         .with_columns(
             [
                 pl.col("column").cast(str),
                 pl.col("rule").cast(str),
+                pl.col("value").cast(str),
             ]
         )
     )
     summary = (
         rules_df.join(viol_count, on=["column", "rule", "value"], how="left")
-        .with_columns(pl.col("violations").fill_null(0))
         .with_columns(
-            ((pl.lit(total_rows) - pl.col("violations")) / pl.lit(total_rows)).alias(
-                "pass_rate"
-            )
+            [
+                pl.col("violations_count").fill_null(0).alias("violations"),
+            ]
+        )
+        .with_columns(
+            [
+                (
+                    (pl.lit(total_rows) - pl.col("violations")) / pl.lit(total_rows)
+                ).alias("pass_rate")
+            ]
         )
         .with_columns(
             [
