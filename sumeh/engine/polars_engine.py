@@ -226,7 +226,7 @@ def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         f"""
         SELECT *
         FROM sumeh
-        WHERE NOT ({expression})
+        WHERE NOT ({value})
         """,
         eager=True,
     )

@@ -267,7 +267,7 @@ def all_date_checks(df: DataFrame, rule: dict) -> DataFrame:
 
 def satisfies(df: DataFrame, rule: dict) -> DataFrame:
     field, check, value = __extract_params(rule)
-    return df.filter(col(field).rlike(expression)).withColumn(
+    return df.filter(col(field).rlike(value)).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
