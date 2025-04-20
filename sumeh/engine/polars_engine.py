@@ -325,10 +325,10 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         )
     ).drop("dq_status")
     viol_count = exploded.group_by(["column", "rule", "value"]).agg(
-        pl.len().alias("violations_count")
+        pl.len().alias("violations")
     )
 
-    rules_df = __build_rules_df(rules)
+    rules_df = _rules_to_df(rules)
 
     viol_count2 = viol_count.with_columns(pl.col("value").fill_null("").alias("value"))
 
@@ -338,9 +338,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         how="left",
     )
 
-    step2 = step1.with_columns(
-        [pl.col("violations_count").fill_null(0).alias("violations")]
-    )
+    step2 = step1.with_columns([pl.col("violations").fill_null(0).alias("violations")])
 
     step3 = step2.with_columns(
         [
