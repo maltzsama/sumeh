@@ -11,7 +11,6 @@ from datetime import datetime
 from sumeh.services.utils import __convert_value, __extract_params
 
 
-
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     viol = df[df[field] < 0]
@@ -217,8 +216,7 @@ def satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
 def validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
     empty = dd.from_pandas(
-        pd.DataFrame(columns=df.columns.tolist() + ["dq_status"]), 
-        npartitions=1
+        pd.DataFrame(columns=df.columns.tolist() + ["dq_status"]), npartitions=1
     )
     raw_df = empty
 
@@ -250,10 +248,8 @@ def validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.Data
         return ";".join([s for s in series.astype(str) if s])
 
     agg_df = (
-        raw_df
-        .groupby(group_cols)
-        .dq_status
-        .apply(_concat_status, meta=('dq_status', 'object'))
+        raw_df.groupby(group_cols)
+        .dq_status.apply(_concat_status, meta=("dq_status", "object"))
         .reset_index()
     )
 
@@ -284,31 +280,28 @@ def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.Da
     split = df["dq_status"].str.split(":", expand=True)
     split.columns = ["column", "rule", "value"]
     viol_count = (
-        split
-        .groupby(["column", "rule", "value"], dropna=False)
+        split.groupby(["column", "rule", "value"], dropna=False)
         .size()
         .reset_index(name="violations")
     )
 
     rules_df = _rules_to_df(rules)
 
-    rules_df["value"]    = rules_df["value"].fillna("")
-    viol_count["value"]  = viol_count["value"].fillna("")
+    rules_df["value"] = rules_df["value"].fillna("")
+    viol_count["value"] = viol_count["value"].fillna("")
 
     summary = (
-        rules_df
-        .merge(viol_count, on=["column", "rule", "value"], how="left")
+        rules_df.merge(viol_count, on=["column", "rule", "value"], how="left")
         .assign(
-            violations = lambda df: df["violations"].fillna(0).astype(int),
-            rows       = total_rows,
-            pass_rate  = lambda df: (total_rows - df["violations"]) / total_rows,
-            status     = lambda df: np.where(
-                              df["pass_rate"] >= df["pass_threshold"],
-                              "PASS", "FAIL"
-                          ),
-            timestamp  = datetime.now().replace(second=0, microsecond=0),
-            check      = "Quality Check",
-            level      = "WARNING",
+            violations=lambda df: df["violations"].fillna(0).astype(int),
+            rows=total_rows,
+            pass_rate=lambda df: (total_rows - df["violations"]) / total_rows,
+            status=lambda df: np.where(
+                df["pass_rate"] >= df["pass_threshold"], "PASS", "FAIL"
+            ),
+            timestamp=datetime.now().replace(second=0, microsecond=0),
+            check="Quality Check",
+            level="WARNING",
         )
         .reset_index(drop=True)
     )
@@ -316,10 +309,18 @@ def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.Da
     summary.insert(0, "id", np.arange(1, len(summary) + 1))
     summary = summary[
         [
-            "id", "timestamp", "check", "level",
-            "column", "rule", "value",
-            "rows", "violations", "pass_rate",
-            "pass_threshold", "status",
+            "id",
+            "timestamp",
+            "check",
+            "level",
+            "column",
+            "rule",
+            "value",
+            "rows",
+            "violations",
+            "pass_rate",
+            "pass_threshold",
+            "status",
         ]
     ]
 
