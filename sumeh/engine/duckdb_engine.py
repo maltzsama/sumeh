@@ -179,7 +179,7 @@ def validate(
     df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection
 ) -> dk.DuckDBPyRelation:
 
-    conn.register("tbl", df_rel)
+    df_rel.create_view("tbl")
 
     union_sql = _build_union_sql(rules)
 
@@ -275,13 +275,10 @@ def summarize(
     total_rows: Optional[int] = None,
 ) -> dk.DuckDBPyRelation:
 
-    # 1) prepara CTE de regras
     rules_sql = _rules_to_duckdb_df(rules)
 
-    # 2) expõe df_rel como view
     df_rel.create_view("violations_raw")
 
-    # 3) constrói e executa o SQL final
     sql = f"""
         WITH
         rules      AS ({rules_sql}),
