@@ -38,9 +38,6 @@ def summarize(df, rules: list[dict], **context):
     engine_name = _detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
     match engine_name:
-        case "polars_engine" | "dask_engine" | "pandas_engine":
-            print("Pandas engine")
-            return engine.summarize(df, rules, total_rows=context.get("total_rows"))
         case "duckdb_engine":
             print("DuckDB engine")
             return engine.summarize(
@@ -50,8 +47,8 @@ def summarize(df, rules: list[dict], **context):
                 total_rows=context.get("total_rows"),
             )
         case _:
-            print("Default engine")
-            return engine.summarize(df, rules)
+            print("default engine")
+            return engine.summarize(df, rules, total_rows=context.get("total_rows"))
 
 
 # TODO: refactore to get better performance
