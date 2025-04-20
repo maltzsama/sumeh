@@ -200,7 +200,7 @@ def has_entropy(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
 def satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
-    py_expr = sql_expr
+    py_expr = value
     py_expr = re.sub(r"(?<![=!<>])=(?!=)", "==", py_expr)
     py_expr = re.sub(r"\bAND\b", "&", py_expr, flags=re.IGNORECASE)
     py_expr = re.sub(r"\bOR\b", "|", py_expr, flags=re.IGNORECASE)
