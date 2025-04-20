@@ -30,3 +30,18 @@ def __convert_value(value):
         if "." in value:
             return float(value)
         return int(value)
+
+
+def __extract_params(rule: dict) -> tuple:
+    rule_name = rule["check_type"]
+    field = rule["field"]
+    raw_value = rule.get("value")
+    if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
+        try:
+            value = __convert_value(raw_value)
+        except ValueError:
+            value = raw_value
+    else:
+        value = raw_value
+    value = value if value not in (None, "", "NULL") else ""
+    return field, rule_name, value
