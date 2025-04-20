@@ -18,7 +18,6 @@ from pyspark.sql.functions import (
     current_date,
     monotonically_increasing_id,
     current_timestamp,
-    explode,
     when,
     trim,
     split,

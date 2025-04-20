@@ -3,7 +3,6 @@
 
 import warnings
 from functools import reduce
-import numpy as np
 import polars as pl
 from sumeh.services.utils import __convert_value, __extract_params
 import operator
