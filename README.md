@@ -122,12 +122,6 @@ sumeh/
 │   ├── core.py
 │   ├── engine
 │   │   ├── __init__.py
-│   │   ├── __pycache__
-│   │   │   ├── __init__.cpython-310.pyc
-│   │   │   ├── dask_engine.cpython-310.pyc
-│   │   │   ├── duckdb_engine.cpython-310.pyc
-│   │   │   ├── polars_engine.cpython-310.pyc
-│   │   │   └── pyspark_engine.cpython-310.pyc
 │   │   ├── bigquery_engine.py
 │   │   ├── dask_engine.py
 │   │   ├── duckdb_engine.py
@@ -135,11 +129,6 @@ sumeh/
 │   │   └── pyspark_engine.py
 │   └── services
 │       ├── __init__.py
-│       ├── __pycache__
-│       │   ├── __init__.cpython-310.pyc
-│       │   ├── config.cpython-310.pyc
-│       │   ├── spark_validation.cpython-312.pyc
-│       │   └── utils.cpython-310.pyc
 │       ├── config.py
 │       ├── index.html
 │       └── utils.py
