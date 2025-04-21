@@ -18,7 +18,7 @@ def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:
 
 
 def validate_schema(
-    client: bigquery.Client, table_ref: str, expected: List[Dict[str, Any]]
+    client: bigquery.Client, expected: List[Dict[str, Any]], table_ref: str
 ) -> Tuple[bool, List[Tuple[str, str]]]:
 
     table = client.get_table(table_ref)

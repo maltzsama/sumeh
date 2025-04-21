@@ -163,10 +163,12 @@ def _detect_engine(df):
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
 
 
-def validate_schema(df, expected: List[Dict[str, Any]]):
+def validate_schema(
+    df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs
+) -> Tuple[bool, List[Tuple[str, str]]]:
     engine_name = _detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
-    return engine.validate_schema(df_or_conn, **engine_kwargs, expected=expected)
+    return engine.validate_schema(df_or_conn, expected=expected, **engine_kwargs)
 
 
 def validate(df, rules, **context):

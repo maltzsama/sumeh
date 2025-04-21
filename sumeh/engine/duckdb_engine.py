@@ -336,7 +336,7 @@ def __duckdb_schema_to_list(
 
 
 def validate_schema(
-    conn: duckdb.DuckDBPyConnection, table: str, expected: List[Dict[str, Any]]
+    conn: duckdb.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
 ) -> Tuple[bool, List[Tuple[str, str]]]:
     actual = __duckdb_schema_to_list(conn, table)
     return __compare_schemas(actual, expected)
