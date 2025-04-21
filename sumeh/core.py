@@ -157,8 +157,16 @@ def _detect_engine(df):
             return "pandas_engine"
         case m if m.startswith("duckdb"):
             return "duckdb_engine"
+        case m if m.startswith("bigquery"):
+            return "duckdb_engine"
         case _:
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
+
+
+def validate_schema(df, expected: List[Dict[str, Any]]):
+    engine_name = _detect_engine(df)
+    engine = import_module(f"sumeh.engine.{engine_name}")
+    return engine.validate_schema(df_or_conn, **engine_kwargs, expected=expected)
 
 
 def validate(df, rules, **context):

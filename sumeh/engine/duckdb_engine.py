@@ -6,6 +6,7 @@ import duckdb as dk
 import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional
+from sumeh.services.utils import __compare_schemas
 
 
 def _escape_single_quotes(txt: str) -> str:
@@ -314,3 +315,28 @@ def summarize(
             total_rows tr
     """
     return conn.sql(sql)
+
+
+def __duckdb_schema_to_list(
+    conn: duckdb.DuckDBPyConnection, table: str
+) -> List[Dict[str, Any]]:
+    """
+    Introspects a DuckDB table via PRAGMA and returns a list of column specs.
+    """
+    df_info = conn.execute(f"PRAGMA table_info('{table}')").fetchdf()
+    return [
+        {
+            "field": row["name"],
+            "data_type": row["type"].lower(),
+            "nullable": not bool(row["notnull"]),
+            "max_length": None,
+        }
+        for _, row in df_info.iterrows()
+    ]
+
+
+def validate_schema(
+    conn: duckdb.DuckDBPyConnection, table: str, expected: List[Dict[str, Any]]
+) -> Tuple[bool, List[Tuple[str, str]]]:
+    actual = __duckdb_schema_to_list(conn, table)
+    return __compare_schemas(actual, expected)

@@ -1,12 +1,26 @@
 # #!/usr/bin/env python
 # # -*- coding: utf-8 -*-
-# from google.cloud import bigquery
-#
-#
-# def is_complete(table: str, column: str) -> str:
-#     query = f"""
-#     SELECT *
-#     FROM `{table}`
-#     WHERE {column} IS NULL
-#     """
-#     return query
+from google.cloud import bigquery
+from typing import List, Dict, Any, Tuple
+from sumeh.services.utils import __compare_schemas
+
+
+def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:
+    return [
+        {
+            "field": fld.name,
+            "data_type": fld.field_type.lower(),
+            "nullable": fld.is_nullable,
+            "max_length": None,
+        }
+        for fld in table.schema
+    ]
+
+
+def validate_schema(
+    client: bigquery.Client, table_ref: str, expected: List[Dict[str, Any]]
+) -> Tuple[bool, List[Tuple[str, str]]]:
+
+    table = client.get_table(table_ref)
+    actual = __bigquery_schema_to_list(table)
+    return __compare_schemas(actual, expected)

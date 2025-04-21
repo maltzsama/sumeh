@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import List, Dict, Any, Tuple
+
 
 def __convert_value(value):
     """
@@ -45,3 +47,46 @@ def __extract_params(rule: dict) -> tuple:
         value = raw_value
     value = value if value not in (None, "", "NULL") else ""
     return field, rule_name, value
+
+
+SchemaDef = Dict[str, Any]
+
+
+def __compare_schemas(
+    actual: List[SchemaDef],
+    expected: List[SchemaDef],
+) -> Tuple[bool, List[Tuple[str, str]]]:
+
+    exp_map = {c["field"]: c for c in expected}
+    act_map = {c["field"]: c for c in actual}
+
+    erros: List[Tuple[str, str]] = []
+
+    # 1. faltantes e mismatches
+    for fld, exp in exp_map.items():
+        if fld not in act_map:
+            erros.append((fld, "missing"))
+            continue
+        act = act_map[fld]
+        # tipo
+        if act["data_type"] != exp["data_type"]:
+            erros.append(
+                (
+                    fld,
+                    f"type mismatch (got {act['data_type']}, expected {exp['data_type']})",
+                )
+            )
+        # nullability
+        if act["nullable"] and not exp["nullable"]:
+            erros.append((fld, "nullable but expected non-nullable"))
+        # max_length
+        if exp.get("max_length") is not None:
+            # *aqui você precisaria inspecionar o df…*
+            pass
+
+    # 2. campos extras (se quiser)
+    extras = set(act_map) - set(exp_map)
+    for fld in extras:
+        erros.append((fld, "extra column"))
+
+    return (len(erros) == 0, erros)

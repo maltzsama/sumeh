@@ -8,7 +8,7 @@ import pandas as pd
 import dask.dataframe as dd
 import numpy as np
 from datetime import datetime
-from sumeh.services.utils import __convert_value, __extract_params
+from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 
 
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
@@ -325,3 +325,22 @@ def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.Da
     ]
 
     return dd.from_pandas(summary, npartitions=1)
+
+
+def __dask_schema_to_list(df: dd.DataFrame) -> List[Dict[str, Any]]:
+    return [
+        {
+            "field": col,
+            "data_type": str(dtype).lower(),
+            "nullable": True,
+            "max_length": None,
+        }
+        for col, dtype in df.dtypes.items()
+    ]
+
+
+def validate_schema(
+    df: dd.DataFrame, expected: List[Dict[str, Any]]
+) -> Tuple[bool, List[Tuple[str, str]]]:
+    actual = __dask_schema_to_list(df)
+    return __compare_schemas(actual, expected)
