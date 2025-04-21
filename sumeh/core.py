@@ -3,7 +3,145 @@
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
+from typing import List, Dict, Any, Optional
+import re
 from .services.utils import __convert_value
+from sumeh.services.config import (
+    get_config_from_s3,
+    get_config_from_csv,
+    get_config_from_mysql,
+    get_config_from_postgresql,
+    get_config_from_bigquery,
+    get_config_from_glue_data_catalog,
+    get_config_from_duckdb,
+    get_config_from_databricks,
+)
+
+from sumeh.services.config import (
+    get_schema_from_s3,
+    get_schema_from_csv,
+    get_schema_from_mysql,
+    get_schema_from_postgresql,
+    get_schema_from_bigquery,
+    get_schema_from_glue,
+    get_schema_from_duckdb,
+    get_schema_from_databricks,
+)
+
+_CONFIG_DISPATCH = {
+    "mysql": get_config_from_mysql,
+    "postgresql": get_config_from_postgresql,
+}
+
+
+def _parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
+    _, path = uri.split("://", 1)
+    parts = path.split(".")
+    if len(parts) == 3:
+        catalog, schema, table = parts
+    elif len(parts) == 2:
+        catalog, schema, table = None, parts[0], parts[1]
+    else:
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.getOrCreate()
+        catalog = None
+        schema = spark.catalog.currentDatabase()
+        table = parts[0]
+    return {"catalog": catalog, "schema": schema, "table": table}
+
+
+def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    match source:
+        case s if s.startswith("bigquery://"):
+            _, path = s.split("://", 1)
+            project, dataset, table = path.split(".")
+            return get_config_from_bigquery(
+                project_id=project,
+                dataset_id=dataset,
+                table_id=table,
+                **kwargs,
+            )
+
+        case s if s.startswith("s3://"):
+            return get_config_from_s3(s, **kwargs)
+
+        case s if re.search(r"\.csv$", s, re.IGNORECASE):
+            return get_config_from_csv(s, **kwargs)
+
+        case "mysql" | "postgresql" as driver:
+            loader = _CONFIG_DISPATCH[driver]
+            return loader(**kwargs)
+
+        case "glue":
+            return get_config_from_glue_data_catalog(**kwargs)
+
+        case s if s.startswith("duckdb://"):
+            _, path = s.split("://", 1)
+            db_path, table = path.rsplit(".", 1)
+            conn = kwargs.pop("conn", None)
+            return get_config_from_duckdb(
+                conn=conn,
+                table=table,
+            )
+
+        case s if s.startswith("databricks://"):
+            parts = _parse_databricks_uri(s)
+            return get_config_from_databricks(
+                catalog=parts["catalog"],
+                schema=parts["schema"],
+                table=parts["table"],
+                **kwargs,
+            )
+
+        case _:
+            raise ValueError(f"Unknow source: {source}")
+
+
+def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    match source:
+        case s if s.startswith("bigquery://"):
+            _, path = s.split("://", 1)
+            project, dataset, table = path.split(".")
+            return get_schema_from_bigquery(
+                project_id=project,
+                dataset_id=dataset,
+                table_id=table,
+                **kwargs,
+            )
+
+        case s if s.startswith("s3://"):
+            return get_schema_from_s3(s, **kwargs)
+
+        case s if re.search(r"\.csv$", s, re.IGNORECASE):
+            return get_schema_from_csv(s, **kwargs)
+
+        case "mysql":
+            return get_schema_from_mysql(**kwargs)
+
+        case "postgresql":
+            return get_schema_from_postgresql(**kwargs)
+
+        case "glue":
+            return get_schema_from_glue(**kwargs)
+
+        case s if s.startswith("duckdb://"):
+            conn = kwargs.pop("conn")
+            _, path = s.split("://", 1)
+            db_path, table = path.rsplit(".", 1)
+            return get_schema_from_duckdb(conn=conn, table=table)
+
+        case s if s.startswith("databricks://"):
+            parts = _parse_databricks_uri(s)
+            return get_schema_from_databricks(
+                catalog=parts["catalog"],
+                schema=parts["schema"],
+                table=parts["table"],
+                **kwargs,
+            )
+
+        case _:
+            raise ValueError(f"Unknow source: {source}")
 
 
 def _detect_engine(df):
