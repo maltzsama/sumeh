@@ -4,7 +4,7 @@
 import warnings
 from functools import reduce
 import polars as pl
-from sumeh.services.utils import __convert_value, __extract_params
+from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 import operator
 from datetime import datetime
 
@@ -380,3 +380,20 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
     )
 
     return summary
+
+
+def __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
+    return [
+        {
+            "field": name,
+            "data_type": str(dtype).lower(),
+            "nullable": True,  # Polars não expõe nullability no schema
+            "max_length": None,
+        }
+        for name, dtype in df.schema.items()
+    ]
+
+
+def validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+    actual = __polars_schema_to_list(df)
+    result, errors = __compare_schemas(actual, expected)

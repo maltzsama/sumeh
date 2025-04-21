@@ -3,7 +3,7 @@
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import re
 from .services.utils import __convert_value
 from sumeh.services.config import (
@@ -157,8 +157,18 @@ def _detect_engine(df):
             return "pandas_engine"
         case m if m.startswith("duckdb"):
             return "duckdb_engine"
+        case m if m.startswith("bigquery"):
+            return "duckdb_engine"
         case _:
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
+
+
+def validate_schema(
+    df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs
+) -> Tuple[bool, List[Tuple[str, str]]]:
+    engine_name = _detect_engine(df)
+    engine = import_module(f"sumeh.engine.{engine_name}")
+    return engine.validate_schema(df_or_conn, expected=expected, **engine_kwargs)
 
 
 def validate(df, rules, **context):

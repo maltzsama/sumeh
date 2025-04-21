@@ -3,6 +3,7 @@
 
 import warnings
 from pyspark.sql import DataFrame, Window, Row
+
 from pyspark.sql.functions import (
     lit,
     col,
@@ -22,11 +23,11 @@ from pyspark.sql.functions import (
     trim,
     split,
 )
-from typing import List, Dict
+from typing import List, Dict, Any, Tuple
 import operator
 from functools import reduce
 
-from sumeh.services.utils import __convert_value, __extract_params
+from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 
 
 def is_positive(df: DataFrame, rule: dict) -> DataFrame:
@@ -368,3 +369,22 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
     )
 
     return summary
+
+
+def __pyspark_schema_to_list(df: DataFrame) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    for f in df.schema.fields:
+        out.append(
+            {
+                "field": f.name,
+                "data_type": f.dataType.simpleString().lower(),
+                "nullable": f.nullable,
+                "max_length": None,
+            }
+        )
+    return out
+
+
+def validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+    actual = __pyspark_schema_to_list(df)
+    result, errors = __compare_schemas(actual, expected)
