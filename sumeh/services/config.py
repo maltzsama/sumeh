@@ -295,6 +295,29 @@ def get_config_from_glue_data_catalog(
         ) from e
 
 
+def get_config_from_duckdb(
+    db_path: str,
+    table: str = None,
+    query: str = None,
+    conn=None,
+) -> List[Dict[str, Any]]:
+    import duckdb
+
+    if query:
+        df = conn.execute(query).fetchdf()
+    elif table:
+        df = conn.execute(f"SELECT * FROM {table}").fetchdf()
+    else:
+        raise ValueError(
+            "DuckDB configuration requires:\n"
+            "1. Either a `table` name or custom `query`\n"
+            "2. A valid database `conn` connection object\n"
+            "Example: get_config('duckdb', table='rules', conn=duckdb.connect('my_db.duckdb'))"
+        )
+
+    return __parse_data(df.to_dict(orient="records"))
+
+
 def __read_s3_file(s3_path: str) -> Optional[str]:
     """
     Reads the content of a file stored in S3.

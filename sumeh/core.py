@@ -14,6 +14,7 @@ from sumeh.services.config import (
     get_config_from_postgresql,
     get_config_from_bigquery,
     get_config_from_glue_data_catalog,
+    get_config_from_duckdb,
 )
 
 _CONFIG_DISPATCH = {
