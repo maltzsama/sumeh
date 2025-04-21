@@ -3,7 +3,52 @@
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
+import re
+from typing import List, Dict, Any
+
 from .services.utils import __convert_value
+from sumeh.services.config import (
+    get_config_from_s3,
+    get_config_from_csv,
+    get_config_from_mysql,
+    get_config_from_postgresql,
+    get_config_from_bigquery,
+    get_config_from_glue_data_catalog,
+)
+
+_CONFIG_DISPATCH = {
+    "mysql": get_config_from_mysql,
+    "postgresql": get_config_from_postgresql,
+}
+
+
+def get_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    match source:
+        case s if s.startswith("bigquery://"):
+            _, path = s.split("://", 1)
+            project, dataset, table = path.split(".")
+            return get_config_from_bigquery(
+                project_id=project,
+                dataset_id=dataset,
+                table_id=table,
+                **kwargs,
+            )
+
+        case s if s.startswith("s3://"):
+            return get_config_from_s3(s, **kwargs)
+
+        case s if re.search(r"\.csv$", s, re.IGNORECASE):
+            return get_config_from_csv(s, **kwargs)
+
+        case "mysql" | "postgresql" as driver:
+            loader = _CONFIG_DISPATCH[driver]
+            return loader(**kwargs)
+
+        case "glue":
+            return get_config_from_glue_data_catalog(**kwargs)
+
+        case _:
+            raise ValueError(f"Unknow source: {source}")
 
 
 def _detect_engine(df):
@@ -248,3 +293,37 @@ def report(df, rules: list[dict], name: str = "Quality Check"):
 
     quality_check = check.validate(df)
     return quality_check
+
+
+import re
+from typing import List, Dict, Any
+
+
+def get_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    # detecta URI de BigQuery: bigquery://project.dataset.table
+    if source.startswith("bigquery://"):
+        # parseia bigquery://project.dataset.table
+        _, path = source.split("://", 1)
+        project, dataset, table = path.split(".")
+        return get_config_from_bigquery(
+            project_id=project,
+            dataset_id=dataset,
+            table_id=table,
+            **kwargs,
+        )
+
+    if source.startswith("s3://"):
+        return get_config_from_s3(source, **kwargs)
+
+    if re.search(r"\.csv$", source, re.IGNORECASE):
+        return get_config_from_csv(source, **kwargs)
+
+    driver = source.lower()
+    if driver in ("mysql", "postgresql"):
+        loader = _CONFIG_DISPATCH[driver]
+        return loader(**kwargs)
+
+    if driver == "glue":
+        return get_config_from_glue_data_catalog(**kwargs)
+
+    raise ValueError(f"Fonte de configuração desconhecida: {source}")
