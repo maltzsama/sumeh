@@ -5,6 +5,8 @@ from io import StringIO
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
 
+# from dateutil.parser import parse as parse_date
+
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
     """
@@ -301,7 +303,6 @@ def get_config_from_duckdb(
     query: str = None,
     conn=None,
 ) -> List[Dict[str, Any]]:
-    import duckdb
 
     if query:
         df = conn.execute(query).fetchdf()
@@ -316,6 +317,22 @@ def get_config_from_duckdb(
         )
 
     return __parse_data(df.to_dict(orient="records"))
+
+
+def get_config_from_databricks(
+    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
+) -> List[Dict[str, Any]]:
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder.getOrCreate()
+    if catalog and schema:
+        full = f"{catalog}.{schema}.{table}"
+    elif schema:
+        full = f"{schema}.{table}"
+    else:
+        full = table
+    df = spark.table(full)
+    return [row.asDict() for row in df.collect()]
 
 
 def __read_s3_file(s3_path: str) -> Optional[str]:
@@ -417,6 +434,203 @@ def __read_csv_file(
         raise ValueError(f"Error: Could not parse CSV content. Details: {e}") from e
 
 
+def get_schema_from_csv(
+    file_path: str, delimiter: str = ",", sample_size: int = 1_000
+) -> List[Dict[str, Any]]:
+    import csv
+
+    cols: Dict[str, Dict[str, Any]] = {}
+    with open(file_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter=delimiter)
+        for idx, row in enumerate(reader):
+            if idx >= sample_size:
+                break
+            for name, raw in row.items():
+                info = cols.setdefault(
+                    name,
+                    {
+                        "field": name,
+                        "nullable": False,
+                        "max_length": 0,
+                        "type_hints": set(),
+                    },
+                )
+                if raw == "" or raw is None:
+                    info["nullable"] = True
+                    continue
+                info["max_length"] = max(info["max_length"], len(raw))
+                info["type_hints"].add(infer_basic_type(raw))
+
+    out: List[Dict[str, Any]] = []
+    for info in cols.values():
+        hints = info["type_hints"]
+        if hints == {"integer"}:
+            dtype = "integer"
+        elif hints <= {"integer", "float"}:
+            dtype = "float"
+        elif hints == {"date"}:
+            dtype = "date"
+        else:
+            dtype = "string"
+        out.append(
+            {
+                "field": info["field"],
+                "data_type": dtype,
+                "nullable": info["nullable"],
+                "max_length": info["max_length"] or None,
+            }
+        )
+    return out
+
+
+def get_schema_from_s3(s3_path: str, **kwargs) -> List[Dict[str, Any]]:
+
+    content = __read_s3_file(s3_path)
+    with open("/tmp/temp.csv", "w") as f:
+        f.write(content)
+    return get_schema_from_csv("/tmp/temp.csv", **kwargs)
+
+
+def get_schema_from_mysql(
+    host: str, user: str, password: str, database: str, table: str, port: int = 3306
+) -> List[Dict[str, Any]]:
+    import mysql.connector
+
+    conn = mysql.connector.connect(
+        host=host, user=user, password=password, database=database, port=port
+    )
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        f"""
+        SELECT 
+            column_name AS field,
+            data_type,
+            is_nullable = 'YES' AS nullable,
+            character_maximum_length AS max_length
+        FROM information_schema.columns
+        WHERE table_schema = %s AND table_name = %s
+    """,
+        (database, table),
+    )
+    schema = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return schema
+
+
+def get_schema_from_postgresql(
+    host: str, user: str, password: str, database: str, table: str, port: int = 5432
+) -> List[Dict[str, Any]]:
+    import psycopg2
+
+    conn = psycopg2.connect(
+        host=host, user=user, password=password, dbname=database, port=port
+    )
+    cursor = conn.cursor()
+    cursor.execute(
+        f"""
+        SELECT
+            column_name AS field,
+            data_type,
+            is_nullable = 'YES' AS nullable,
+            character_maximum_length AS max_length
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = %s
+    """,
+        (table,),
+    )
+    cols = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return [
+        {"field": f, "data_type": dt, "nullable": nl, "max_length": ml}
+        for f, dt, nl, ml in cols
+    ]
+
+
+def get_schema_from_bigquery(
+    project_id: str, dataset_id: str, table_id: str, credentials_path: str = None
+) -> List[Dict[str, Any]]:
+    from google.cloud import bigquery
+
+    client = bigquery.Client(
+        project=project_id,
+        credentials=(
+            None
+            if credentials_path is None
+            else bigquery.Credentials.from_service_account_file(credentials_path)
+        ),
+    )
+    table = client.get_table(f"{project_id}.{dataset_id}.{table_id}")
+    return [
+        {
+            "field": schema_field.name,
+            "data_type": schema_field.field_type.lower(),
+            "nullable": schema_field.is_nullable,
+            "max_length": None,
+        }
+        for schema_field in table.schema
+    ]
+
+
+def get_schema_from_glue(
+    glue_context, database_name: str, table_name: str
+) -> List[Dict[str, Any]]:
+    from awsglue.context import GlueContext
+
+    if not isinstance(glue_context, GlueContext):
+        raise ValueError("Informe um GlueContext válido")
+    df = glue_context.spark_session.read.table(f"{database_name}.{table_name}")
+    return [
+        {
+            "field": field.name,
+            "data_type": field.dataType.simpleString(),
+            "nullable": field.nullable,
+            "max_length": None,
+        }
+        for field in df.schema.fields
+    ]
+
+
+def get_schema_from_duckdb(db_path: str, table: str, conn) -> List[Dict[str, Any]]:
+    df = conn.execute(f"PRAGMA table_info('{table}')").fetchdf()
+    return [
+        {
+            "field": row["name"],
+            "data_type": row["type"].lower(),
+            "nullable": not bool(row["notnull"]),
+            "max_length": None,
+        }
+        for _, row in df.iterrows()
+    ]
+
+
+def get_schema_from_databricks(
+    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
+) -> List[Dict[str, Any]]:
+    from pyspark.sql import SparkSession
+
+    spark = SparkSession.builder.getOrCreate()
+    if catalog and schema:
+        full = f"{catalog}.{schema}.{table}"
+    elif schema:
+        full = f"{schema}.{table}"
+    else:
+        full = table
+    schema = spark.table(full).schema
+    result = []
+    for f in schema.fields:
+        result.append(
+            {
+                "field": f.name,
+                "data_type": f.dataType.simpleString(),
+                "nullable": f.nullable,
+                "max_length": None,
+            }
+        )
+    return result
+
+
 def __parse_data(data: list[dict]) -> list[dict]:
     """
     Parse the configuration data.
@@ -477,3 +691,22 @@ def __create_connection(connect_func, host, user, password, database, port) -> A
         )
     except Exception as e:
         raise ConnectionError(f"Error creating connection: {e}")
+
+
+def infer_basic_type(val: str) -> str:
+    try:
+        int(val)
+        return "integer"
+    except:
+        pass
+    try:
+        float(val)
+        return "float"
+    except:
+        pass
+    try:
+        _ = parser.parse(val)
+        return "date"
+    except:
+        pass
+    return "string"
