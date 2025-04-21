@@ -3,7 +3,7 @@
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import re
 from .services.utils import __convert_value
 from sumeh.services.config import (
