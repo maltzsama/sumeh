@@ -90,3 +90,20 @@ def __compare_schemas(
         erros.append((fld, "extra column"))
 
     return (len(erros) == 0, erros)
+
+
+def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
+    _, path = uri.split("://", 1)
+    parts = path.split(".")
+    if len(parts) == 3:
+        catalog, schema, table = parts
+    elif len(parts) == 2:
+        catalog, schema, table = None, parts[0], parts[1]
+    else:
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.getOrCreate()
+        catalog = None
+        schema = spark.catalog.currentDatabase()
+        table = parts[0]
+    return {"catalog": catalog, "schema": schema, "table": table}

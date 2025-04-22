@@ -5,7 +5,7 @@ import warnings
 from importlib import import_module
 from typing import List, Dict, Any, Optional, Tuple
 import re
-from .services.utils import __convert_value
+from .services.utils import __convert_value, __parse_databricks_uri
 from sumeh.services.config import (
     get_config_from_s3,
     get_config_from_csv,
@@ -32,23 +32,6 @@ _CONFIG_DISPATCH = {
     "mysql": get_config_from_mysql,
     "postgresql": get_config_from_postgresql,
 }
-
-
-def _parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
-    _, path = uri.split("://", 1)
-    parts = path.split(".")
-    if len(parts) == 3:
-        catalog, schema, table = parts
-    elif len(parts) == 2:
-        catalog, schema, table = None, parts[0], parts[1]
-    else:
-        from pyspark.sql import SparkSession
-
-        spark = SparkSession.builder.getOrCreate()
-        catalog = None
-        schema = spark.catalog.currentDatabase()
-        table = parts[0]
-    return {"catalog": catalog, "schema": schema, "table": table}
 
 
 def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
@@ -86,7 +69,7 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             )
 
         case s if s.startswith("databricks://"):
-            parts = _parse_databricks_uri(s)
+            parts = __parse_databricks_uri(s)
             return get_config_from_databricks(
                 catalog=parts["catalog"],
                 schema=parts["schema"],
