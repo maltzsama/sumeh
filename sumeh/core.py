@@ -1,5 +1,50 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+This module provides a set of functions and utilities for data validation, schema 
+retrieval, and summarization. It supports multiple data sources and engines, 
+including BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB, and Databricks.
+
+Functions:
+    - get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+        Retrieves configuration rules based on the specified source.
+
+    - get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+        Retrieves the schema configuration based on the provided data source.
+
+    - __detect_engine(df) -> str:
+
+    - validate_schema(df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs) -> Tuple[bool, List[Tuple[str, str]]]:
+
+    - validate(df, rules, **context):
+
+    - summarize(df, rules: list[dict], **context):
+
+    - report(df, rules: list[dict], name: str = "Quality Check"):
+
+Constants:
+    - _CONFIG_DISPATCH: A dictionary mapping data source types (e.g., "mysql", "postgresql") 
+      to their respective configuration retrieval functions.
+
+Imports:
+    - cuallee: Provides the `Check` and `CheckLevel` classes for data validation.
+    - warnings: Used to issue warnings for unknown rule names.
+    - importlib: Dynamically imports modules based on engine detection.
+    - typing: Provides type hints for function arguments and return values.
+    - re: Used for regular expression matching in source string parsing.
+    - sumeh.services.config: Contains functions for retrieving configurations and schemas 
+      from various data sources.
+    - sumeh.services.utils: Provides utility functions for value conversion and URI parsing.
+
+    - The module uses Python's structural pattern matching (`match-case`) to handle 
+      different data source types and validation rules.
+    - The `report` function supports a wide range of validation checks, including 
+      completeness, uniqueness, value comparisons, patterns, and date-related checks.
+    - The `validate` and `summarize` functions dynamically detect the appropriate engine 
+      based on the input DataFrame type and delegate the processing to the corresponding 
+      engine module.
+"""
+
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
@@ -35,6 +80,31 @@ _CONFIG_DISPATCH = {
 
 
 def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    """
+    Retrieve configuration rules based on the specified source.
+
+    This function dispatches the retrieval of configuration rules to the appropriate
+    handler based on the format or type of the `source` string. Supported sources include
+    BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue Data Catalog, DuckDB, and Databricks.
+
+    Args:
+        source (str): The source identifier, which determines the configuration retrieval method.
+            Supported formats:
+            - "bigquery://<project>.<dataset>.<table>"
+            - "s3://<bucket>/<path>"
+            - "<file>.csv"
+            - "mysql" or "postgresql"
+            - "glue"
+            - "duckdb://<db_path>.<table>"
+            - "databricks://<catalog>.<schema>.<table>"
+        **kwargs: Additional keyword arguments passed to the specific configuration loader.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries containing the configuration rules.
+
+    Raises:
+        ValueError: If the `source` format is unknown or unsupported.
+    """
     match source:
         case s if s.startswith("bigquery://"):
             _, path = s.split("://", 1)
@@ -82,6 +152,44 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
 
 
 def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    """
+    Retrieve the schema configuration based on the provided data source.
+
+    This function determines the appropriate method to extract schema information
+    based on the format or type of the `source` string. It supports various data
+    sources such as BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB,
+    and Databricks.
+
+    Args:
+        source (str): A string representing the data source. The format of the
+            string determines the method used to retrieve the schema. Supported
+            formats include:
+            - "bigquery://<project>.<dataset>.<table>"
+            - "s3://<bucket>/<path>"
+            - "<file>.csv"
+            - "mysql"
+            - "postgresql"
+            - "glue"
+            - "duckdb://<db_path>.<table>"
+            - "databricks://<catalog>.<schema>.<table>"
+        **kwargs: Additional keyword arguments required by specific schema
+            retrieval methods. For example:
+            - For DuckDB: `conn` (a database connection object).
+            - For other sources: Additional parameters specific to the source.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries representing the schema
+        configuration. Each dictionary contains details about a column in the
+        schema.
+
+    Raises:
+        ValueError: If the `source` string does not match any supported format.
+
+    Examples:
+        >>> get_schema_config("bigquery://my_project.my_dataset.my_table")
+        >>> get_schema_config("s3://my_bucket/my_file.csv")
+        >>> get_schema_config("mysql", host="localhost", user="root", password="password")
+    """
     match source:
         case s if s.startswith("bigquery://"):
             _, path = s.split("://", 1)
@@ -127,7 +235,24 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             raise ValueError(f"Unknow source: {source}")
 
 
-def _detect_engine(df):
+def __detect_engine(df):
+    """
+    Detects the engine type of the given DataFrame based on its module.
+
+    Args:
+        df: The DataFrame object whose engine type is to be detected.
+
+    Returns:
+        str: A string representing the detected engine type. Possible values are:
+            - "pyspark_engine" for PySpark DataFrames
+            - "dask_engine" for Dask DataFrames
+            - "polars_engine" for Polars DataFrames
+            - "pandas_engine" for Pandas DataFrames
+            - "duckdb_engine" for DuckDB or BigQuery DataFrames
+
+    Raises:
+        TypeError: If the DataFrame type is unsupported.
+    """
     mod = df.__class__.__module__
     match mod:
         case m if m.startswith("pyspark"):
@@ -146,16 +271,62 @@ def _detect_engine(df):
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
 
 
-def validate_schema(
-    df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs
-) -> Tuple[bool, List[Tuple[str, str]]]:
-    engine_name = _detect_engine(df_or_conn)
+def validate_schema(df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs) -> Tuple[bool, List[Tuple[str, str]]]:
+    """
+    Validates the schema of a given data source or connection against an expected schema.
+
+    Args:
+        df_or_conn (Any): The data source or connection to validate. This can be a DataFrame, 
+                          database connection, or other supported data structure.
+        expected (List[Dict[str, Any]]): A list of dictionaries defining the expected schema. 
+                                         Each dictionary should describe a column or field, 
+                                         including its name, type, and other attributes.
+        engine (str): The name of the engine to use for validation. This determines the 
+                      specific validation logic to apply based on the data source type.
+        **engine_kwargs: Additional keyword arguments to pass to the engine's validation logic.
+
+    Returns:
+        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating 
+                                            whether the schema is valid, and the second element is 
+                                            a list of tuples containing error messages for any 
+                                            validation failures. Each tuple consists of the field 
+                                            name and the corresponding error message.
+    """
+    engine_name = __detect_engine(df_or_conn)
     engine = import_module(f"sumeh.engine.{engine_name}")
     return engine.validate_schema(df_or_conn, expected=expected, **engine_kwargs)
 
 
 def validate(df, rules, **context):
-    engine_name = _detect_engine(df)
+    """
+    Validates a DataFrame against a set of rules using the appropriate engine.
+
+    This function dynamically detects the engine to use based on the input
+    DataFrame and delegates the validation process to the corresponding engine's
+    implementation.
+
+    Args:
+        df (DataFrame): The input DataFrame to be validated.
+        rules (list or dict): The validation rules to be applied to the DataFrame.
+        **context: Additional context parameters that may be required by the engine.
+            - conn (optional): A database connection object, required for certain engines
+              like "duckdb_engine".
+
+    Returns:
+        bool or dict: The result of the validation process. The return type and structure
+        depend on the specific engine's implementation.
+
+    Raises:
+        ImportError: If the required engine module cannot be imported.
+        AttributeError: If the detected engine does not have a `validate` method.
+
+    Notes:
+        - The engine is dynamically determined based on the DataFrame type or other
+          characteristics.
+        - For "duckdb_engine", a database connection object should be provided in the
+          context under the key "conn".
+    """
+    engine_name = __detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
 
     match engine_name:
@@ -166,7 +337,40 @@ def validate(df, rules, **context):
 
 
 def summarize(df, rules: list[dict], **context):
-    engine_name = _detect_engine(df)
+    """
+    Summarizes a DataFrame based on the provided rules and context.
+
+    This function dynamically detects the appropriate engine to use for summarization
+    based on the type of the input DataFrame. It delegates the summarization process
+    to the corresponding engine module.
+
+    Args:
+        df: The input DataFrame to be summarized. The type of the DataFrame determines
+            the engine used for summarization.
+        rules (list[dict]): A list of dictionaries defining the summarization rules.
+            Each dictionary specifies the operations or transformations to be applied.
+        **context: Additional context parameters required by specific engines. Common
+            parameters include:
+            - conn: A database connection object (used by certain engines like DuckDB).
+            - total_rows: The total number of rows in the DataFrame (optional).
+
+    Returns:
+        The summarized DataFrame as processed by the appropriate engine.
+
+    Raises:
+        TypeError: If the type of the input DataFrame is unsupported.
+
+    Notes:
+        - The function uses the `__detect_engine` method to determine the engine name
+          based on the input DataFrame.
+        - Supported engines are dynamically imported from the `sumeh.engine` package.
+        - The "duckdb_engine" case requires a database connection (`conn`) to be passed
+          in the context.
+
+    Example:
+        >>> summarized_df = summarize(df, rules=[{"operation": "sum", "column": "sales"}], conn=my_conn)
+    """
+    engine_name = __detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
     match engine_name:
         case "duckdb_engine":
@@ -212,7 +416,6 @@ def report(df, rules: list[dict], name: str = "Quality Check"):
     """
 
     check = Check(CheckLevel.WARNING, name)
-
     for rule in rules:
         rule_name = rule["check_type"]
         field = rule["field"]

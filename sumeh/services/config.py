@@ -296,12 +296,31 @@ def get_config_from_glue_data_catalog(
         ) from e
 
 
-def get_config_from_duckdb(
-    db_path: str,
-    table: str = None,
-    query: str = None,
-    conn=None,
-) -> List[Dict[str, Any]]:
+def get_config_from_duckdb(db_path: str, table: str = None, query: str = None, conn=None) -> List[Dict[str, Any]]:
+    """
+    Retrieve configuration data from a DuckDB database.
+
+    This function fetches data from a DuckDB database either by executing a custom SQL query
+    or by selecting all rows from a specified table. The data is then parsed into a list of
+    dictionaries.
+
+    Args:
+        db_path (str): The path to the DuckDB database file.
+        table (str, optional): The name of the table to fetch data from. Defaults to None.
+        query (str, optional): A custom SQL query to execute. Defaults to None.
+        conn: A valid DuckDB connection object.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries representing the fetched data.
+
+    Raises:
+        ValueError: If neither `table` nor `query` is provided, or if a valid `conn` is not supplied.
+
+    Example:
+        >>> import duckdb
+        >>> conn = duckdb.connect('my_db.duckdb')
+        >>> config = get_config_from_duckdb('my_db.duckdb', table='rules', conn=conn)
+    """
 
     if query:
         df = conn.execute(query).fetchdf()
