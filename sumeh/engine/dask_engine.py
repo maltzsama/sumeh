@@ -9,12 +9,12 @@ import dask.dataframe as dd
 import numpy as np
 from datetime import datetime
 from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
-
+from typing import List, Dict, Any, Tuple
 
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     viol = df[df[field] < 0]
-    return viol.assign(dq_status=field + ":is_positive")
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
 def is_negative(df: dd.DataFrame, rule: dict) -> dd.DataFrame:

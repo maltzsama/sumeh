@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 
 
 def __convert_value(value):
@@ -62,13 +62,11 @@ def __compare_schemas(
 
     erros: List[Tuple[str, str]] = []
 
-    # 1. faltantes e mismatches
     for fld, exp in exp_map.items():
         if fld not in act_map:
             erros.append((fld, "missing"))
             continue
         act = act_map[fld]
-        # tipo
         if act["data_type"] != exp["data_type"]:
             erros.append(
                 (
@@ -76,12 +74,11 @@ def __compare_schemas(
                     f"type mismatch (got {act['data_type']}, expected {exp['data_type']})",
                 )
             )
-        # nullability
+
         if act["nullable"] and not exp["nullable"]:
             erros.append((fld, "nullable but expected non-nullable"))
-        # max_length
+
         if exp.get("max_length") is not None:
-            # *aqui você precisaria inspecionar o df…*
             pass
 
     # 2. campos extras (se quiser)
@@ -89,7 +86,7 @@ def __compare_schemas(
     for fld in extras:
         erros.append((fld, "extra column"))
 
-    return (len(erros) == 0, erros)
+    return len(erros) == 0, erros
 
 
 def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:

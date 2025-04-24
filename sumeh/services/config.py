@@ -5,7 +5,6 @@ from io import StringIO
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
 
-# from dateutil.parser import parse as parse_date
 
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):

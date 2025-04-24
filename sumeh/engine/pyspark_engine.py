@@ -273,7 +273,7 @@ def satisfies(df: DataFrame, rule: dict) -> DataFrame:
     )
 
 
-def validate(df: DataFrame, rules: list[dict]) -> DataFrame:
+def validate(df: DataFrame, rules: list[dict]) -> Tuple[DataFrame, DataFrame]:
     df = df.withColumn("dq_status", lit(""))
     raw_result = df.limit(0)
     for rule in rules:
@@ -388,3 +388,4 @@ def __pyspark_schema_to_list(df: DataFrame) -> List[Dict[str, Any]]:
 def validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]]]:
     actual = __pyspark_schema_to_list(df)
     result, errors = __compare_schemas(actual, expected)
+    return result, errors

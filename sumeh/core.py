@@ -3,7 +3,7 @@
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Tuple
 import re
 from .services.utils import __convert_value, __parse_databricks_uri
 from sumeh.services.config import (
@@ -115,7 +115,7 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_schema_from_duckdb(conn=conn, table=table)
 
         case s if s.startswith("databricks://"):
-            parts = _parse_databricks_uri(s)
+            parts = __parse_databricks_uri(s)
             return get_schema_from_databricks(
                 catalog=parts["catalog"],
                 schema=parts["schema"],
@@ -149,7 +149,7 @@ def _detect_engine(df):
 def validate_schema(
     df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs
 ) -> Tuple[bool, List[Tuple[str, str]]]:
-    engine_name = _detect_engine(df)
+    engine_name = _detect_engine(df_or_conn)
     engine = import_module(f"sumeh.engine.{engine_name}")
     return engine.validate_schema(df_or_conn, expected=expected, **engine_kwargs)
 
@@ -170,7 +170,6 @@ def summarize(df, rules: list[dict], **context):
     engine = import_module(f"sumeh.engine.{engine_name}")
     match engine_name:
         case "duckdb_engine":
-            print("DuckDB engine")
             return engine.summarize(
                 df_rel=df,
                 rules=rules,
@@ -178,8 +177,9 @@ def summarize(df, rules: list[dict], **context):
                 total_rows=context.get("total_rows"),
             )
         case _:
-            print("default engine")
             return engine.summarize(df, rules, total_rows=context.get("total_rows"))
+
+    raise TypeError(f"Unsupported DataFrame type: {type(df)}")
 
 
 # TODO: refactore to get better performance
@@ -218,7 +218,6 @@ def report(df, rules: list[dict], name: str = "Quality Check"):
         field = rule["field"]
         threshold = rule.get("threshold", 1.0)
         threshold = 1.0 if threshold is None else threshold
-        print(field)
 
         match rule_name:
 

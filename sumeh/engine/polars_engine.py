@@ -7,6 +7,7 @@ import polars as pl
 from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 import operator
 from datetime import datetime
+from typing import List, Dict, Any, Tuple
 
 
 def is_positive(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -233,7 +234,7 @@ def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return viol.with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
 
 
-def validate(df: pl.DataFrame, rules: list[dict]) -> pl.DataFrame:
+def validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame,pl.DataFrame]:
     df = df.with_columns(pl.arange(0, pl.len()).alias("__id"))
     df_with_dq = df.with_columns(pl.lit("").alias("dq_status"))
     result = df_with_dq.head(0)
@@ -303,9 +304,7 @@ def __build_rules_df(rules: list[dict]) -> pl.DataFrame:
                 pl.col("value").cast(str),
             ]
         )
-    )
-
-    rules_df2 = rules_df.with_columns(pl.col("value").fill_null("").alias("value"))
+    ).with_columns(pl.col("value").fill_null("").alias("value"))
 
     return rules_df
 
@@ -328,7 +327,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         pl.len().alias("violations")
     )
 
-    rules_df = _rules_to_df(rules)
+    rules_df = __build_rules_df(rules)
 
     viol_count2 = viol_count.with_columns(pl.col("value").fill_null("").alias("value"))
 
@@ -397,3 +396,4 @@ def __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
 def validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
     actual = __polars_schema_to_list(df)
     result, errors = __compare_schemas(actual, expected)
+    return result, errors

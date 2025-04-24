@@ -5,7 +5,7 @@ from __future__ import annotations
 import duckdb as dk
 import ast, warnings
 from dataclasses import dataclass
-from typing import List, Dict, Callable, Any, Optional
+from typing import List, Dict, Callable, Any, Optional, Tuple
 from sumeh.services.utils import __compare_schemas
 
 
@@ -318,7 +318,7 @@ def summarize(
 
 
 def __duckdb_schema_to_list(
-    conn: duckdb.DuckDBPyConnection, table: str
+    conn: dk.DuckDBPyConnection, table: str
 ) -> List[Dict[str, Any]]:
     """
     Introspects a DuckDB table via PRAGMA and returns a list of column specs.
@@ -336,7 +336,7 @@ def __duckdb_schema_to_list(
 
 
 def validate_schema(
-    conn: duckdb.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
+    conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
 ) -> Tuple[bool, List[Tuple[str, str]]]:
     actual = __duckdb_schema_to_list(conn, table)
     return __compare_schemas(actual, expected)
