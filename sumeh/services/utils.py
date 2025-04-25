@@ -52,10 +52,30 @@ def __extract_params(rule: dict) -> tuple:
 SchemaDef = Dict[str, Any]
 
 
-def __compare_schemas(
-    actual: List[SchemaDef],
-    expected: List[SchemaDef],
-) -> Tuple[bool, List[Tuple[str, str]]]:
+def __compare_schemas(actual: List[SchemaDef], expected: List[SchemaDef],) -> Tuple[bool, List[Tuple[str, str]]]:
+    """
+    Compare two lists of schema definitions and identify discrepancies.
+
+    Args:
+        actual (List[SchemaDef]): The list of actual schema definitions.
+        expected (List[SchemaDef]): The list of expected schema definitions.
+
+    Returns:
+        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating 
+        whether the schemas match (True if they match, False otherwise), and the second element 
+        is a list of tuples describing the discrepancies. Each tuple contains:
+            - The field name (str).
+            - A description of the discrepancy (str), such as "missing", "type mismatch", 
+              "nullable but expected non-nullable", or "extra column".
+
+    Notes:
+        - A field is considered "missing" if it exists in the expected schema but not in the actual schema.
+        - A "type mismatch" occurs if the data type of a field in the actual schema does not match 
+          the expected data type.
+        - A field is considered "nullable but expected non-nullable" if it is nullable in the actual 
+          schema but not nullable in the expected schema.
+        - An "extra column" is a field that exists in the actual schema but not in the expected schema.
+    """
 
     exp_map = {c["field"]: c for c in expected}
     act_map = {c["field"]: c for c in actual}
@@ -90,6 +110,23 @@ def __compare_schemas(
 
 
 def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
+    """
+    Parses a Databricks URI into its catalog, schema, and table components.
+
+    The URI is expected to follow the format `protocol://catalog.schema.table` or 
+    `protocol://schema.table`. If the catalog is not provided, it will be set to `None`. 
+    If the schema is not provided, the current database from the active Spark session 
+    will be used.
+
+    Args:
+        uri (str): The Databricks URI to parse.
+
+    Returns:
+        Dict[str, Optional[str]]: A dictionary containing the parsed components:
+            - "catalog" (Optional[str]): The catalog name, or `None` if not provided.
+            - "schema" (Optional[str]): The schema name, or the current database if not provided.
+            - "table" (Optional[str]): The table name.
+    """
     _, path = uri.split("://", 1)
     parts = path.split(".")
     if len(parts) == 3:
