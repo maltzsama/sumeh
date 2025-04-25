@@ -6,99 +6,98 @@ It includes various checks for data validation, such as completeness, uniqueness
 pattern matching, and schema validation.
 
 Functions:
-----------
-- is_positive(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_positive(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is less than zero.
 
-- is_negative(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_negative(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is greater than or equal to zero.
 
-- is_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is null.
 
-- is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows with duplicate values in the specified field.
 
-- are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where any of the specified fields are null.
 
-- are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows with duplicate combinations of the specified fields.
 
-- is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is less than or equal to the given value.
 
-- is_greater_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_greater_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is less than the given value.
 
-- is_less_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_less_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is greater than or equal to the given value.
 
-- is_less_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_less_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is greater than the given value.
 
-- is_equal(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_equal(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is not equal to the given value.
 
-- is_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Alias for `is_equal`.
 
-- is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is not in the given list of values.
 
-- not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is in the given list of values.
 
-- is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is not within the given range.
 
-- has_pattern(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_pattern(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field does not match the given regex pattern.
 
-- is_legit(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    is_legit(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is null or contains whitespace.
 
-- has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field exceeds the given maximum value.
 
-- has_min(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_min(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows where the specified field is below the given minimum value.
 
-- has_std(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_std(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Checks if the standard deviation of the specified field exceeds the given value.
 
-- has_mean(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_mean(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Checks if the mean of the specified field exceeds the given value.
 
-- has_sum(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_sum(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Checks if the sum of the specified field exceeds the given value.
 
-- has_cardinality(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_cardinality(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Checks if the cardinality (number of unique values) of the specified field exceeds the given value.
 
-- has_infogain(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_infogain(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Placeholder for information gain validation (currently uses cardinality).
 
-- has_entropy(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    has_entropy(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Placeholder for entropy validation (currently uses cardinality).
 
-- satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows that do not satisfy the given SQL condition.
 
-- validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame, pl.DataFrame]:
+    validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame, pl.DataFrame]:
     Validates a DataFrame against a list of rules and returns the original DataFrame with 
     data quality status and a DataFrame of violations.
 
-- __build_rules_df(rules: list[dict]) -> pl.DataFrame:
+    __build_rules_df(rules: list[dict]) -> pl.DataFrame:
     Converts a list of rules into a Polars DataFrame for summarization.
 
-- summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.DataFrame:
+    summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.DataFrame:
     Summarizes the results of data quality checks, including pass rates and statuses.
 
-- __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
+    __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
     Converts a Polars DataFrame schema into a list of dictionaries.
 
-- validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+    validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
     Validates the schema of a DataFrame against an expected schema and returns a boolean 
     result and a list of errors.
 """

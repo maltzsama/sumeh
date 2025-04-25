@@ -67,17 +67,9 @@ Functions:
         conn: dk.DuckDBPyConnection
         Validates a DuckDB dataframe against a set of rules and returns the results.
 
-    __rules_to_duckdb_df(rules: List[Dict]) -> str:
-        Generates a SQL query to create a DuckDB CTE (Common Table Expression) 
-        for rules with inline values.
-
     summarize(
         total_rows: Optional[int] = None
         Summarizes rule violations and calculates pass rates for each rule.
-
-    __duckdb_schema_to_list(
-        table: str
-        Introspects a DuckDB table and returns a list of column specifications.
 
     validate_schema(
         expected: List[Dict[str, Any]], 
@@ -92,6 +84,23 @@ import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
 from sumeh.services.utils import __compare_schemas
+
+__RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
+    "is_complete": _is_complete,
+    "are_complete": _are_complete,
+    "is_unique": _is_unique,
+    "are_unique": _are_unique,
+    "is_greater_than": _is_greater_than,
+    "is_less_than": _is_less_than,
+    "is_greater_or_equal_than": _is_greater_or_equal_than,
+    "is_less_or_equal_than": _is_less_or_equal_than,
+    "is_equal_than": _is_equal_than,
+    "is_between": _is_between,
+    "has_pattern": _has_pattern,
+    "is_contained_in": _is_contained_in,
+    "not_contained_in": _not_contained_in,
+    "satisfies": _satisfies,
+}
 
 
 def __escape_single_quotes(txt: str) -> str:
@@ -381,26 +390,6 @@ def _satisfies(r: __RuleCtx) -> str:
         str: A string in the format "(value)" where 'value' is the value of the rule context.
     """
     return f"({r.value})"
-
-
-
-__RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
-    "is_complete": _is_complete,
-    "are_complete": _are_complete,
-    "is_unique": _is_unique,
-    "are_unique": _are_unique,
-    "is_greater_than": _is_greater_than,
-    "is_less_than": _is_less_than,
-    "is_greater_or_equal_than": _is_greater_or_equal_than,
-    "is_less_or_equal_than": _is_less_or_equal_than,
-    "is_equal_than": _is_equal_than,
-    "is_between": _is_between,
-    "has_pattern": _has_pattern,
-    "is_contained_in": _is_contained_in,
-    "not_contained_in": _not_contained_in,
-    "satisfies": _satisfies,
-}
-
 
 def _build_union_sql(rules: List[Dict]) -> str:
     """

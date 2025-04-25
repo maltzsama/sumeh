@@ -6,43 +6,43 @@ retrieval, and summarization. It supports multiple data sources and engines,
 including BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB, and Databricks.
 
 Functions:
-    - get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
         Retrieves configuration rules based on the specified source.
 
-    - get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+    get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
         Retrieves the schema configuration based on the provided data source.
 
-    - __detect_engine(df) -> str:
+    __detect_engine(df) -> str:
 
-    - validate_schema(df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs) -> Tuple[bool, List[Tuple[str, str]]]:
+    validate_schema(df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs) -> Tuple[bool, List[Tuple[str, str]]]:
 
-    - validate(df, rules, **context):
+    validate(df, rules, **context):
 
-    - summarize(df, rules: list[dict], **context):
+    summarize(df, rules: list[dict], **context):
 
-    - report(df, rules: list[dict], name: str = "Quality Check"):
+    report(df, rules: list[dict], name: str = "Quality Check"):
 
 Constants:
-    - _CONFIG_DISPATCH: A dictionary mapping data source types (e.g., "mysql", "postgresql") 
+    _CONFIG_DISPATCH: A dictionary mapping data source types (e.g., "mysql", "postgresql") 
       to their respective configuration retrieval functions.
 
 Imports:
-    - cuallee: Provides the `Check` and `CheckLevel` classes for data validation.
-    - warnings: Used to issue warnings for unknown rule names.
-    - importlib: Dynamically imports modules based on engine detection.
-    - typing: Provides type hints for function arguments and return values.
-    - re: Used for regular expression matching in source string parsing.
-    - sumeh.services.config: Contains functions for retrieving configurations and schemas 
+    cuallee: Provides the `Check` and `CheckLevel` classes for data validation.
+    warnings: Used to issue warnings for unknown rule names.
+    importlib: Dynamically imports modules based on engine detection.
+    typing: Provides type hints for function arguments and return values.
+    re: Used for regular expression matching in source string parsing.
+    sumeh.services.config: Contains functions for retrieving configurations and schemas 
       from various data sources.
-    - sumeh.services.utils: Provides utility functions for value conversion and URI parsing.
+    sumeh.services.utils: Provides utility functions for value conversion and URI parsing.
 
-    - The module uses Python's structural pattern matching (`match-case`) to handle 
-      different data source types and validation rules.
-    - The `report` function supports a wide range of validation checks, including 
-      completeness, uniqueness, value comparisons, patterns, and date-related checks.
-    - The `validate` and `summarize` functions dynamically detect the appropriate engine 
-      based on the input DataFrame type and delegate the processing to the corresponding 
-      engine module.
+    The module uses Python's structural pattern matching (`match-case`) to handle 
+    different data source types and validation rules.
+    The `report` function supports a wide range of validation checks, including 
+    completeness, uniqueness, value comparisons, patterns, and date-related checks.
+    The `validate` and `summarize` functions dynamically detect the appropriate engine 
+    based on the input DataFrame type and delegate the processing to the corresponding 
+    engine module.
 """
 
 from cuallee import Check, CheckLevel
@@ -83,27 +83,34 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
     """
     Retrieve configuration rules based on the specified source.
 
-    This function dispatches the retrieval of configuration rules to the appropriate
-    handler based on the format or type of the `source` string. Supported sources include
-    BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue Data Catalog, DuckDB, and Databricks.
+    Dispatches to the appropriate loader according to the format of `source`,
+    returning a list of parsed rule dictionaries.
+
+    Supported sources:
+      - `bigquery://<project>.<dataset>.<table>`
+      - `s3://<bucket>/<path>`
+      - `<file>.csv`
+      - `"mysql"` or `"postgresql"` (requires host/user/etc. in kwargs)
+      - `"glue"` (AWS Glue Data Catalog)
+      - `duckdb://<db_path>.<table>`
+      - `databricks://<catalog>.<schema>.<table>`
 
     Args:
-        source (str): The source identifier, which determines the configuration retrieval method.
-            Supported formats:
-            - "bigquery://<project>.<dataset>.<table>"
-            - "s3://<bucket>/<path>"
-            - "<file>.csv"
-            - "mysql" or "postgresql"
-            - "glue"
-            - "duckdb://<db_path>.<table>"
-            - "databricks://<catalog>.<schema>.<table>"
-        **kwargs: Additional keyword arguments passed to the specific configuration loader.
+        source (str):
+            Identifier of the rules configuration location. Determines which
+            handler is invoked.
+        **kwargs:
+            Loader-specific parameters (e.g. `host`, `user`, `password`,
+            `connection`, `query`).
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries containing the configuration rules.
+        List[Dict[str, Any]]:
+            A list of dictionaries, each representing a validation rule with keys
+            like `"field"`, `"check_type"`, `"value"`, `"threshold"`, and `"execute"`.
 
     Raises:
-        ValueError: If the `source` format is unknown or unsupported.
+        ValueError:
+            If `source` does not match any supported format.
     """
     match source:
         case s if s.startswith("bigquery://"):
@@ -161,21 +168,16 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
     and Databricks.
 
     Args:
-        source (str): A string representing the data source. The format of the
+        source (str): 
+            A string representing the data source. The format of the
             string determines the method used to retrieve the schema. Supported
-            formats include:
-            - "bigquery://<project>.<dataset>.<table>"
-            - "s3://<bucket>/<path>"
-            - "<file>.csv"
-            - "mysql"
-            - "postgresql"
-            - "glue"
-            - "duckdb://<db_path>.<table>"
-            - "databricks://<catalog>.<schema>.<table>"
+            formats include: `bigquery://<project>.<dataset>.<table>`, `s3://<bucket>/<path>`, 
+            `<file>.csv`, `mysql`, `postgresql`, `glue`, `duckdb://<db_path>.<table>`, 
+            `databricks://<catalog>.<schema>.<table>`
         **kwargs: Additional keyword arguments required by specific schema
             retrieval methods. For example:
-            - For DuckDB: `conn` (a database connection object).
-            - For other sources: Additional parameters specific to the source.
+            For DuckDB: `conn` (a database connection object).
+            For other sources: Additional parameters specific to the source.
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries representing the schema

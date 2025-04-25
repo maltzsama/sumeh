@@ -7,106 +7,100 @@ and schema validation. The module also provides utilities for summarizing valida
 results and schema comparison.
 
 Functions:
-----------
-- is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains only positive values.
 
-- is_negative(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_negative(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains only negative values.
 
-- is_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains no null values.
 
-- is_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains unique values.
 
-- are_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    are_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if all specified fields contain no null values.
 
-- are_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    are_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the combination of specified fields is unique.
 
-- is_greater_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_greater_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values greater than a given value.
 
-- is_greater_or_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_greater_or_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values greater than or equal to a given value.
 
-- is_less_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_less_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values less than a given value.
 
-- is_less_or_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_less_or_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values less than or equal to a given value.
 
-- is_equal(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_equal(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values equal to a given value.
 
-- is_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Alias for `is_equal`.
 
-- is_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values within a given list.
 
-- not_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    not_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values not within a given list.
 
-- is_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains values within a given range.
 
-- has_pattern(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_pattern(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field matches a given regex pattern.
 
-- is_legit(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_legit(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains non-null, non-whitespace values.
 
-- is_primary_key(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_primary_key(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field is a primary key (unique).
 
-- is_composite_key(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    is_composite_key(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the combination of specified fields is a composite key (unique).
 
-- has_max(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_max(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the maximum value of the specified field exceeds a given value.
 
-- has_min(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_min(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the minimum value of the specified field is below a given value.
 
-- has_std(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_std(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the standard deviation of the specified field exceeds a given value.
 
-- has_mean(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_mean(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the mean of the specified field exceeds a given value.
 
-- has_sum(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_sum(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the sum of the specified field exceeds a given value.
 
-- has_cardinality(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_cardinality(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the cardinality (number of unique values) of the specified field exceeds a given value.
 
-- has_infogain(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_infogain(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the information gain of the specified field exceeds a given value.
 
-- has_entropy(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    has_entropy(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the entropy of the specified field exceeds a given value.
 
-- satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field satisfies a given Python expression.
 
-- validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
+    validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
     Validates a Dask DataFrame against a list of rules and returns aggregated and raw validation results.
 
-- summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
+    summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
     Summarizes the validation results and generates a report.
 
-- validate_schema(df: dd.DataFrame, expected: List[Dict[str, Any]]) -> Tuple[bool, List[Tuple[str, str]]]:
+    validate_schema(df: dd.DataFrame, expected: List[Dict[str, Any]]) -> Tuple[bool, List[Tuple[str, str]]]:
     Validates the schema of a Dask DataFrame against an expected schema.
-
-- _rules_to_df(rules: list[dict]) -> pd.DataFrame:
-    Converts a list of rules into a Pandas DataFrame for easier processing.
-
-- __dask_schema_to_list(df: dd.DataFrame) -> List[Dict[str, Any]]:
-    Converts the schema of a Dask DataFrame into a list of dictionaries for comparison.
 """
+
 import re
 import warnings
 import operator

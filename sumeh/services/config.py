@@ -1,6 +1,71 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+This module provides a set of utility functions to retrieve and parse configuration data 
+from various data sources, including S3, MySQL, PostgreSQL, BigQuery, CSV files, AWS Glue 
+Data Catalog, DuckDB, and Databricks. Additionally, it includes functions to infer schema 
+information from these sources.
 
+Functions:
+    get_config_from_s3(s3_path: str, delimiter: Optional[str] = ",") -> List[Dict[str, Any]]:
+
+    get_config_from_mysql(...) -> List[Dict[str, Any]]:
+
+    get_config_from_postgresql(...) -> List[Dict[str, Any]]:
+
+    get_config_from_bigquery(...) -> List[Dict[str, str]]:
+
+    get_config_from_csv(file_path: str, delimiter: Optional[str] = ",") -> List[Dict[str, str]]:
+        Retrieves configuration data from a local CSV file.
+
+    get_config_from_glue_data_catalog(...) -> List[Dict[str, str]]:
+
+    get_config_from_duckdb(...) -> List[Dict[str, Any]]:
+        Retrieves configuration data from a DuckDB database.
+
+    get_config_from_databricks(...) -> List[Dict[str, Any]]:
+        Retrieves configuration data from a Databricks table.
+
+    get_schema_from_csv(file_path: str, delimiter: str = ",", sample_size: int = 1_000) -> List[Dict[str, Any]]:
+        Infers the schema of a CSV file based on its content.
+
+    get_schema_from_s3(s3_path: str, **kwargs) -> List[Dict[str, Any]]:
+        Infers the schema of a CSV file stored in S3.
+
+    get_schema_from_mysql(...) -> List[Dict[str, Any]]:
+        Retrieves schema information from a MySQL database table.
+
+    get_schema_from_postgresql(...) -> List[Dict[str, Any]]:
+        Retrieves schema information from a PostgreSQL database table.
+
+    get_schema_from_bigquery(...) -> List[Dict[str, Any]]:
+        Retrieves schema information from a Google BigQuery table.
+
+    get_schema_from_glue(...) -> List[Dict[str, Any]]:
+        Retrieves schema information from AWS Glue Data Catalog.
+
+    get_schema_from_duckdb(...) -> List[Dict[str, Any]]:
+        Retrieves schema information from a DuckDB database table.
+
+    get_schema_from_databricks(...) -> List[Dict[str, Any]]:
+        Retrieves schema information from a Databricks table.
+
+    __read_s3_file(s3_path: str) -> Optional[str]:
+
+    __parse_s3_path(s3_path: str) -> Tuple[str, str]:
+
+    __read_local_file(file_path: str) -> str:
+
+    __read_csv_file(file_content: str, delimiter: Optional[str] = ",") -> List[Dict[str, str]]:
+
+    __parse_data(data: list[dict]) -> list[dict]:
+        Parses the configuration data into a structured format.
+
+    __create_connection(connect_func, host, user, password, database, port) -> Any:
+
+    infer_basic_type(val: str) -> str:
+        Infers the basic data type of a given value.
+"""
 from io import StringIO
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
@@ -337,9 +402,19 @@ def get_config_from_duckdb(db_path: str, table: str = None, query: str = None, c
     return __parse_data(df.to_dict(orient="records"))
 
 
-def get_config_from_databricks(
-    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
-) -> List[Dict[str, Any]]:
+def get_config_from_databricks(catalog: Optional[str], schema: Optional[str], table: str, **kwargs) -> List[Dict[str, Any]]:
+    """
+    Retrieves configuration data from a Databricks table and returns it as a list of dictionaries.
+
+    Args:
+        catalog (Optional[str]): The catalog name in Databricks. If provided, it will be included in the table's full path.
+        schema (Optional[str]): The schema name in Databricks. If provided, it will be included in the table's full path.
+        table (str): The name of the table to retrieve data from.
+        **kwargs: Additional keyword arguments (currently unused).
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries, where each dictionary represents a row of data from the table.
+    """
     from pyspark.sql import SparkSession
 
     spark = SparkSession.builder.getOrCreate()
@@ -388,6 +463,19 @@ def __read_s3_file(s3_path: str) -> Optional[str]:
 
 
 def __parse_s3_path(s3_path: str) -> Tuple[str, str]:
+    """
+    Parses an S3 path into its bucket and key components.
+
+    Args:
+        s3_path (str): The S3 path to parse. Must start with "s3://".
+
+    Returns:
+        Tuple[str, str]: A tuple containing the bucket name and the key.
+
+    Raises:
+        ValueError: If the S3 path does not start with "s3://", or if the path
+                    format is invalid and cannot be split into bucket and key.
+    """
     try:
         if not s3_path.startswith("s3://"):
             raise ValueError("S3 path must start with 's3://'")
