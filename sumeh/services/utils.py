@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import List, Dict, Any, Tuple, Optional
-
+from typing import Optional
 
 def __convert_value(value):
     """

@@ -158,7 +158,6 @@ def is_positive(df: DataFrame, rule: dict) -> DataFrame:
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
-
 def is_negative(df: DataFrame, rule: dict) -> DataFrame:
     """
     Filters rows in the given DataFrame where the specified field is non-negative
@@ -202,6 +201,80 @@ def is_complete(df: DataFrame, rule: dict) -> DataFrame:
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
+
+def validate_date_format(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, date_format = __extract_params(rule)
+
+    format_patterns = {
+        'DD/MM/AAAA': r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/(19|20)\d\d$',
+        'MM/DD/AAAA': r'^(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])/(19|20)\d\d$',
+        'AAAA-MM-DD': r'^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$',
+        'DD-MM-AAAA': r'^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[012])-(19|20)\d\d$',
+        'MM-DD-AAAA': r'^(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])-(19|20)\d\d$',
+        'AAAA/MM/DD': r'^(19|20)\d\d/(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])$'
+    }
+
+    if date_format not in format_patterns:
+        raise ValueError(
+            f"Format not supported: {date_format}. Available Formats: {', '.join(format_patterns.keys())}")
+
+    date_regex = format_patterns[date_format]
+
+    return df.filter(~col(field).rlike(date_regex) | col(field).isNull()).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(date_format))
+    )
+
+
+def is_future_date(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) > current_date()).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_past_date(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) < current_date()).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_date_between(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    start_date, end_date = value.strip("[]").split(",")
+    return df.filter(~col(field).between(start_date, end_date)).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_date_after(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) < value).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_date_before(df: DataFrame, rule: dict) -> DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) > value).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_date_diff_within(df: DataFrame, rule: dict) -> DataFrame:
+    from pyspark.sql.functions import datediff
+
+    fields, check, value = __extract_params(rule)
+    if len(fields) != 2:
+        raise ValueError("Esta validação requer exatamente dois campos de data")
+
+    min_days, max_days = map(int, value.strip("[]").split(","))
+    date1, date2 = fields[0], fields[1]
+
+    diff = datediff(col(date1), col(date2))
+    return df.filter((diff < min_days) | (diff > max_days)).withColumn(
+        "dq_status", concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value))
+    )
 
 def is_unique(df: DataFrame, rule: dict) -> DataFrame:
     """
