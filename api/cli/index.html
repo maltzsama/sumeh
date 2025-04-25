@@ -13,23 +13,25 @@
       
       
       
-        <link rel="prev" href="../quickstart/">
+        <link rel="prev" href="../core/">
       
       
+        <link rel="next" href="../engine/engines/">
       
-      <link rel="icon" href="../img/favicon.png">
+      
+      <link rel="icon" href="../../img/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
     
     
       
-        <title>Tests - Sumeh DQ — Unified Data Quality Framework</title>
+        <title>CLI - Sumeh DQ — Unified Data Quality Framework</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,9 +50,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -75,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#module-sumehcli" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -87,9 +94,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Sumeh DQ — Unified Data Quality Framework" class="md-header__button md-logo" aria-label="Sumeh DQ — Unified Data Quality Framework" data-md-component="logo">
+    <a href="../.." title="Sumeh DQ — Unified Data Quality Framework" class="md-header__button md-logo" aria-label="Sumeh DQ — Unified Data Quality Framework" data-md-component="logo">
       
-  <img src="../img/sumeh.svg" alt="logo">
+  <img src="../../img/sumeh.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -106,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Tests
+              CLI
             
           </span>
         </div>
@@ -210,9 +217,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Sumeh DQ — Unified Data Quality Framework" class="md-nav__button md-logo" aria-label="Sumeh DQ — Unified Data Quality Framework" data-md-component="logo">
+    <a href="../.." title="Sumeh DQ — Unified Data Quality Framework" class="md-nav__button md-logo" aria-label="Sumeh DQ — Unified Data Quality Framework" data-md-component="logo">
       
-  <img src="../img/sumeh.svg" alt="logo">
+  <img src="../../img/sumeh.svg" alt="logo">
 
     </a>
     Sumeh DQ — Unified Data Quality Framework
@@ -227,7 +234,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -246,18 +253,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -273,7 +282,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             API
@@ -287,7 +296,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/core/" class="md-nav__link">
+      <a href="../core/" class="md-nav__link">
         
   
   
@@ -307,10 +316,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../api/cli/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    CLI
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -321,6 +352,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.cli.serve_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      serve_index
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -333,7 +393,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/services-config.md" class="md-nav__link">
+      <a href="../services-config.md" class="md-nav__link">
         
   
   
@@ -356,7 +416,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/services-utils.md" class="md-nav__link">
+      <a href="../services-utils.md" class="md-nav__link">
         
   
   
@@ -379,7 +439,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/engine/engines/" class="md-nav__link">
+      <a href="../engine/engines/" class="md-nav__link">
         
   
   
@@ -402,7 +462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/engine/engine-dask/" class="md-nav__link">
+      <a href="../engine/engine-dask/" class="md-nav__link">
         
   
   
@@ -425,7 +485,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/engine/engine-duckdb/" class="md-nav__link">
+      <a href="../engine/engine-duckdb/" class="md-nav__link">
         
   
   
@@ -448,7 +508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/engine/engine-polars/" class="md-nav__link">
+      <a href="../engine/engine-polars/" class="md-nav__link">
         
   
   
@@ -471,7 +531,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/engine/engine-pyspark/" class="md-nav__link">
+      <a href="../engine/engine-pyspark/" class="md-nav__link">
         
   
   
@@ -501,7 +561,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quickstart/" class="md-nav__link">
+      <a href="../../quickstart/" class="md-nav__link">
         
   
   
@@ -520,17 +580,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../tests/" class="md-nav__link">
         
   
   
@@ -541,7 +594,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -563,6 +615,25 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.cli.serve_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      serve_index
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -578,9 +649,168 @@
 
 
 
-  <h1>Tests</h1>
+<h1 id="module-sumehcli">Module <code>sumeh.cli</code><a class="headerlink" href="#module-sumehcli" title="Permanent link">&para;</a></h1>
 
 
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="sumeh.cli.serve_index" class="doc doc-heading">
+            <code class=" language-python"><span class="n">serve_index</span><span class="p">()</span></code>
+
+<a href="#sumeh.cli.serve_index" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Serves the index.html file for initial configuration and opens it in a browser.</p>
+<p>This function determines the path to the 'index.html' file, changes the
+working directory to the appropriate location, and starts a simple HTTP server
+to serve the file. It also automatically opens the served page in the default
+web browser.</p>
+<p>The server runs on localhost at port 8000. The process continues until
+interrupted by the user (via a KeyboardInterrupt), at which point the server
+shuts down.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="KeyboardInterrupt">KeyboardInterrupt</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the server is manually interrupted by the user.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sumeh/cli.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">serve_index</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Serves the index.html file for initial configuration and opens it in a browser.</span>
+
+<span class="sd">    This function determines the path to the &#39;index.html&#39; file, changes the</span>
+<span class="sd">    working directory to the appropriate location, and starts a simple HTTP server</span>
+<span class="sd">    to serve the file. It also automatically opens the served page in the default</span>
+<span class="sd">    web browser.</span>
+
+<span class="sd">    The server runs on localhost at port 8000. The process continues until</span>
+<span class="sd">    interrupted by the user (via a KeyboardInterrupt), at which point the server</span>
+<span class="sd">    shuts down.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        KeyboardInterrupt: If the server is manually interrupted by the user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># Determine the directory of the index.html file</span>
+    <span class="n">base_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="n">html_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;services&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Change the current working directory to the location of index.html</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span>
+
+    <span class="c1"># Define the port and URL</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="mi">8000</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;http://localhost:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Serve the HTML file</span>
+    <span class="k">with</span> <span class="n">TCPServer</span><span class="p">((</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">),</span> <span class="n">SimpleHTTPRequestHandler</span><span class="p">)</span> <span class="k">as</span> <span class="n">httpd</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Serving index.html at </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Open the URL in the default web browser</span>
+        <span class="n">webbrowser</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">httpd</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Shutting down server.&quot;</span><span class="p">)</span>
+            <span class="n">httpd</span><span class="o">.</span><span class="n">server_close</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 
@@ -629,10 +859,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
       
     
   </body>

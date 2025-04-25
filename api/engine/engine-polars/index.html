@@ -13,6 +13,10 @@
       
       
       
+        <link rel="prev" href="../engine-duckdb/">
+      
+      
+        <link rel="next" href="../engine-pyspark/">
       
       
       <link rel="icon" href="../../../img/favicon.png">
@@ -20,7 +24,7 @@
     
     
       
-        <title>Module sumeh.engine.polars_engine - Sumeh DQ — Unified Data Quality Framework</title>
+        <title>Polars engine - Sumeh DQ — Unified Data Quality Framework</title>
       
     
     
@@ -109,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Module sumeh.engine.polars_engine
+              Polars engine
             
           </span>
         </div>
@@ -249,18 +253,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -276,7 +282,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             API
@@ -313,7 +319,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../cli.md" class="md-nav__link">
+      <a href="../../cli/" class="md-nav__link">
         
   
   
@@ -382,7 +388,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../engine/engines.md" class="md-nav__link">
+      <a href="../engines/" class="md-nav__link">
         
   
   
@@ -405,7 +411,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../engine/engine-dask.md" class="md-nav__link">
+      <a href="../engine-dask/" class="md-nav__link">
         
   
   
@@ -428,7 +434,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../engine/engine-duckdb.md" class="md-nav__link">
+      <a href="../engine-duckdb/" class="md-nav__link">
         
   
   
@@ -448,10 +454,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../../engine/engine-polars.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Polars engine
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -462,6 +490,332 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.__build_rules_df" class="md-nav__link">
+    <span class="md-ellipsis">
+      __build_rules_df
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.__compare_schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      __compare_schemas
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.__convert_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      __convert_value
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.__extract_params" class="md-nav__link">
+    <span class="md-ellipsis">
+      __extract_params
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.__polars_schema_to_list" class="md-nav__link">
+    <span class="md-ellipsis">
+      __polars_schema_to_list
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.are_complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      are_complete
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.are_unique" class="md-nav__link">
+    <span class="md-ellipsis">
+      are_unique
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_cardinality" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_cardinality
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_entropy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_infogain" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_infogain
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_max" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_max
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_mean" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_mean
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_min" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_min
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_pattern
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_std" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_std
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.has_sum" class="md-nav__link">
+    <span class="md-ellipsis">
+      has_sum
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_between" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_between
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_complete
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_contained_in" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_contained_in
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_equal" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_equal
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_equal_than" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_equal_than
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_greater_or_equal_than" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_greater_or_equal_than
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_greater_than" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_greater_than
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_legit" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_legit
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_less_or_equal_than" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_less_or_equal_than
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_less_than" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_less_than
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_negative" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_negative
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_positive" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_positive
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.is_unique" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_unique
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.not_contained_in" class="md-nav__link">
+    <span class="md-ellipsis">
+      not_contained_in
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.satisfies" class="md-nav__link">
+    <span class="md-ellipsis">
+      satisfies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.summarize" class="md-nav__link">
+    <span class="md-ellipsis">
+      summarize
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engine.polars_engine.validate_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate_schema
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -474,7 +828,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../engine/engine-pyspark.md" class="md-nav__link">
+      <a href="../engine-pyspark/" class="md-nav__link">
         
   
   
