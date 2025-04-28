@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import List, Dict, Any, Tuple, Optional
-
+from typing import Optional
 
 def __convert_value(value):
     """
@@ -141,3 +141,20 @@ def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
         schema = spark.catalog.currentDatabase()
         table = parts[0]
     return {"catalog": catalog, "schema": schema, "table": table}
+
+
+def __transform_date_format_in_pattern(date_format):
+    date_patterns = {
+        'DD': '(0[1-9]|[12][0-9]|3[01])',
+        'MM': '(0[1-9]|1[012])',
+        'YYYY': '(19|20)\d\d',
+        'YY': '\d\d',
+        ' ': '\s',
+        '.': '\.'
+    }
+
+    date_pattern = date_format
+    for single_format, pattern in date_patterns.items():
+        date_pattern = date_pattern.replace(single_format, pattern)
+
+    return date_pattern
