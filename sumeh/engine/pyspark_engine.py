@@ -134,7 +134,7 @@ from typing import List, Dict, Any, Tuple
 import operator
 from functools import reduce
 
-from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
+from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas, __transform_date_format_in_pattern
 
 
 def is_positive(df: DataFrame, rule: dict) -> DataFrame:
@@ -203,22 +203,30 @@ def is_complete(df: DataFrame, rule: dict) -> DataFrame:
 
 
 def validate_date_format(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters a DataFrame to identify rows where a specified field has wrong date format based in the format from the rule
+    and adds a "dq_status" column indicating the data quality rule applied.
+
+    YYYY = full year, ex: 2012;
+    YY = only second part of the year, ex: 12;
+    MM = Month number (1-12);
+    DD = Day (1-31);
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame to be checked.
+        rule (dict): A dictionary containing the data quality rule. It should include:
+            - "field" (str): The name of the field to check for null values.
+            - "check" (str): A description of the check being performed.
+            - "value" (str): Additional information about the rule.
+
+    Returns:
+        DataFrame: A new DataFrame filtered to include only rows where the specified
+        field is null, with an additional "dq_status" column describing the rule.
+    """
+
     field, check, date_format = __extract_params(rule)
 
-    format_patterns = {
-        'DD/MM/AAAA': r'^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/(19|20)\d\d$',
-        'MM/DD/AAAA': r'^(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])/(19|20)\d\d$',
-        'AAAA-MM-DD': r'^(19|20)\d\d-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$',
-        'DD-MM-AAAA': r'^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[012])-(19|20)\d\d$',
-        'MM-DD-AAAA': r'^(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])-(19|20)\d\d$',
-        'AAAA/MM/DD': r'^(19|20)\d\d/(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])$'
-    }
-
-    if date_format not in format_patterns:
-        raise ValueError(
-            f"Format not supported: {date_format}. Available Formats: {', '.join(format_patterns.keys())}")
-
-    date_regex = format_patterns[date_format]
+    date_regex = __transform_date_format_in_pattern(date_format)
 
     return df.filter(~col(field).rlike(date_regex) | col(field).isNull()).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(date_format))
@@ -226,6 +234,22 @@ def validate_date_format(df: DataFrame, rule: dict) -> DataFrame:
 
 
 def is_future_date(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters a DataFrame to identify rows where a specified field has a date greater than the current date and
+    adds a "dq_status" column indicating the data quality rule applied.
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame to be checked.
+        rule (dict): A dictionary containing the data quality rule. It should include:
+            - "field" (str): The name of the field to check for null values.
+            - "check" (str): A description of the check being performed.
+            - "value" (str): Additional information about the rule.
+
+    Returns:
+        DataFrame: A new DataFrame filtered to include only rows where the specified
+        field is null, with an additional "dq_status" column describing the rule.
+    """
+
     field, check, value = __extract_params(rule)
     return df.filter(col(field) > current_date()).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
@@ -233,6 +257,22 @@ def is_future_date(df: DataFrame, rule: dict) -> DataFrame:
 
 
 def is_past_date(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters a DataFrame to identify rows where a specified field has a date lower than the current date and
+    adds a "dq_status" column indicating the data quality rule applied.
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame to be checked.
+        rule (dict): A dictionary containing the data quality rule. It should include:
+            - "field" (str): The name of the field to check for null values.
+            - "check" (str): A description of the check being performed.
+            - "value" (str): Additional information about the rule.
+
+    Returns:
+        DataFrame: A new DataFrame filtered to include only rows where the specified
+        field is null, with an additional "dq_status" column describing the rule.
+    """
+
     field, check, value = __extract_params(rule)
     return df.filter(col(field) < current_date()).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
@@ -240,6 +280,22 @@ def is_past_date(df: DataFrame, rule: dict) -> DataFrame:
 
 
 def is_date_between(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters a DataFrame to identify rows where a specified field has a date between two dates passed in the rule using
+    the format: "[<initial_date>, <final_date>]" and adds a "dq_status" column indicating the data quality rule applied.
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame to be checked.
+        rule (dict): A dictionary containing the data quality rule. It should include:
+            - "field" (str): The name of the field to check for null values.
+            - "check" (str): A description of the check being performed.
+            - "value" (str): Additional information about the rule.
+
+    Returns:
+        DataFrame: A new DataFrame filtered to include only rows where the specified
+        field is null, with an additional "dq_status" column describing the rule.
+    """
+
     field, check, value = __extract_params(rule)
     start_date, end_date = value.strip("[]").split(",")
     return df.filter(~col(field).between(start_date, end_date)).withColumn(
@@ -248,6 +304,22 @@ def is_date_between(df: DataFrame, rule: dict) -> DataFrame:
 
 
 def is_date_after(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters a DataFrame to identify rows where a specified field has a date lower than the date informed in the rule
+    and adds a "dq_status" column indicating the data quality rule applied.
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame to be checked.
+        rule (dict): A dictionary containing the data quality rule. It should include:
+            - "field" (str): The name of the field to check for null values.
+            - "check" (str): A description of the check being performed.
+            - "value" (str): Additional information about the rule.
+
+    Returns:
+        DataFrame: A new DataFrame filtered to include only rows where the specified
+        field is null, with an additional "dq_status" column describing the rule.
+    """
+
     field, check, value = __extract_params(rule)
     return df.filter(col(field) < value).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
@@ -255,26 +327,27 @@ def is_date_after(df: DataFrame, rule: dict) -> DataFrame:
 
 
 def is_date_before(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters a DataFrame to identify rows where a specified field has a date greater than the date informed in the rule
+    and adds a "dq_status" column indicating the data quality rule applied.
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame to be checked.
+        rule (dict): A dictionary containing the data quality rule. It should include:
+            - "field" (str): The name of the field to check for null values.
+            - "check" (str): A description of the check being performed.
+            - "value" (str): Additional information about the rule.
+
+    Returns:
+        DataFrame: A new DataFrame filtered to include only rows where the specified
+        field is null, with an additional "dq_status" column describing the rule.
+    """
+
     field, check, value = __extract_params(rule)
     return df.filter(col(field) > value).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
-
-def is_date_diff_within(df: DataFrame, rule: dict) -> DataFrame:
-    from pyspark.sql.functions import datediff
-
-    fields, check, value = __extract_params(rule)
-    if len(fields) != 2:
-        raise ValueError("Esta validação requer exatamente dois campos de data")
-
-    min_days, max_days = map(int, value.strip("[]").split(","))
-    date1, date2 = fields[0], fields[1]
-
-    diff = datediff(col(date1), col(date2))
-    return df.filter((diff < min_days) | (diff > max_days)).withColumn(
-        "dq_status", concat(lit(str(fields)), lit(":"), lit(check), lit(":"), lit(value))
-    )
 
 def is_unique(df: DataFrame, rule: dict) -> DataFrame:
     """
