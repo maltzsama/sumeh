@@ -1,6 +1,6 @@
 id,name,age,email,salary,performance,gender,country,join_date,last_updated,currency
 1,Gregoor_a,65,gkubyszek011@phoca.cz,60844.76,0.25,non_bin,Indonesia,2024-09-18,2023-01-17,IDR
-2,Marcel,57,maronson2@s1mh.com.au,57759.93,0.non_bin,male,Portugal,2023-05-04,2024-04-06,EUR
+2,Marcel,57,maronson2@s1mh.com.au,57759.93,0.0,non_bin,Portugal,2023-05-04,2024-04-06,EUR
 3,Asa,23,afirminger31@aol.com,14640.45,0.29,non_bin,France,2024-04-03,2024-06-19,EUR
 4,Louis,24,lasey4@msn.1com,80565.39,0.84,non_bin,Canada,2024-04-23,2024-07-28,CAD
 5,Rickey,37,rcrossley5@1google.fr,53319.86,0.16,non_bin,Guatemala,2023-01-19,2023-10-20,GTQ

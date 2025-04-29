@@ -1,0 +1,63 @@
+site_name: Sumeh DQ — Unified Data Quality Framework
+site_description: "Library for Data Quality checks"
+site_author: "Demetrius Albuquerque"
+
+theme:
+  name: material
+  logo: img/sumeh.svg
+  favicon: img/favicon.png
+
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    logo: img/sumeh.svg
+    primary: white
+    scheme: default
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+
+  - media: "(prefers-color-scheme: dark)"
+    logo: img/sumeh.svg
+    primary: black
+    scheme: slate
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
+
+
+
+plugins:
+  - search
+  - include-markdown:
+      basepath: ../
+  - mkdocstrings:
+      handlers:
+        python:
+          # setup_commands:
+          #   - import sys; sys.path.insert(0, ".")
+          options:
+            members: true
+            show_root_toc_entry: false
+
+nav:
+  - home: index.md
+  - quickstart: quickstart.md
+  - api:
+      - cli: api/cli.md
+      - core: api/core.md    
+      - services:
+        - services overview: api/services/services.md
+        - services config: api/services/services-config.md
+        - services utils: api/services/services-utils.md
+      - engines:
+        - engine overview: api/engine/engines.md
+        - dask engine: api/engine/engine-dask.md
+        - duckDB engine: api/engine/engine-duckdb.md
+        - polars engine: api/engine/engine-polars.md
+        - pyspark engine: api/engine/engine-pyspark.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite
