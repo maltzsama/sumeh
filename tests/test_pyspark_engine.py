@@ -76,10 +76,20 @@ class TestPySparkEngine(unittest.TestCase):
         result = engine.is_greater_than(self.test_df, rule)
         self.assertEqual(result.count(), 3)
 
+    def test_is_greater_or_equal_than(self):
+        rule = {"field": "age", "check_type": "is_greater_than", "value": "30"}
+        result = engine.is_greater_or_equal_than(self.test_df, rule)
+        self.assertEqual(result.count(), 2)
+
     def test_is_less_than(self):
         rule = {"field": "age", "check_type": "is_less_than", "value": "35"}
         result = engine.is_less_than(self.test_df, rule)
         self.assertEqual(result.count(), 4)
+
+    def test_is_less_or_equal_than(self):
+        rule = {"field": "age", "check_type": "is_less_than", "value": "35"}
+        result = engine.is_less_than(self.test_df, rule)
+        self.assertEqual(result.count(), 2)
 
     def test_is_equal(self):
         rule = {"field": "department", "check_type": "is_equal", "value": "IT"}
