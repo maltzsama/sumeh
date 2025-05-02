@@ -424,7 +424,10 @@ def get_config_from_databricks(catalog: Optional[str], schema: Optional[str], ta
         full = f"{schema}.{table}"
     else:
         full = table
-    df = spark.table(full)
+    if 'query' in kwargs.keys():
+        df = spark.sql(f"select * from {full} where {kwargs['query']}")
+    else:
+        df = spark.table(full)
     return [row.asDict() for row in df.collect()]
 
 
