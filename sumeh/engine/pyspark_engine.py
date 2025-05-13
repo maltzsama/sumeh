@@ -129,6 +129,7 @@ from pyspark.sql.functions import (
     when,
     trim,
     split,
+    expr
 )
 from typing import List, Dict, Any, Tuple
 import operator
@@ -972,14 +973,15 @@ def satisfies(df: DataFrame, rule: dict) -> DataFrame:
         rule (dict): A dictionary containing the filtering rule. It should include:
             - 'field': The name of the column to apply the filter on.
             - 'check': The type of check to perform (currently unused in this implementation).
-            - 'value': The regex pattern to match against the column values.
+            - 'value': The expression in the pattern of pyspark.sql.functions.expr.
 
     Returns:
         DataFrame: A new DataFrame filtered based on the rule, with an additional column
         "dq_status" that describes the rule applied in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    return df.filter(col(field).rlike(value)).withColumn(
+    expression = expr(value)
+    return df.filter(~expression).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1213,7 +1215,8 @@ def validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]
     Args:
         df (DataFrame): The PySpark DataFrame whose schema is to be validated.
         expected (list): The expected schema represented as a list of tuples, 
-                         where each tuple contains the column name and its data type.
+                         where each tuple contains the column name and its data type
+                         and a boolean, if the column is nullable or not.
 
     Returns:
         Tuple[bool, List[Tuple[str, str]]]: A tuple containing:

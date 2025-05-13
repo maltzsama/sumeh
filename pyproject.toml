@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sumeh"
-version = "0.2.1"
+version = "0.2.2"
 description = "Quality Check and Config Management Tool"
 authors = ["Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>"]
 license = "Apache-2.0"
@@ -63,6 +63,10 @@ pyspark = [
 
 [tool.poetry.scripts]
 sumeh-config = "sumeh.cli:serve_index"
+
+[[tool.poetry.source]]
+name = "test-pypi"
+url = "https://test.pypi.org/project/sumeh/"
 
 [build-system]
 requires = ["poetry-core"]
