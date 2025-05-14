@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sumeh"
-version = "0.2.2"
+version = "0.2.3"
 description = "Quality Check and Config Management Tool"
 authors = ["Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>"]
 license = "Apache-2.0"
