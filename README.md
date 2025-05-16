@@ -38,7 +38,7 @@ Each engine implements the `validate()` + `summarize()` pair:
 | Dask                  | `sumeh.engine.dask_engine`              | ✅ Fully implemented |
 | Polars                | `sumeh.engine.polars_engine`            | ✅ Fully implemented |
 | DuckDB                | `sumeh.engine.duckdb_engine`            | ✅ Fully implemented |
-| Pandas                | `sumeh.engine.pandas_engine`            | 🔧 Stub implementation |
+| Pandas                | `sumeh.engine.pandas_engine`            | ✅ Stub implementation |
 | BigQuery (SQL)        | `sumeh.engine.bigquery_engine`          | 🔧 Stub implementation |
 
 ## 🏗 Configuration Sources
