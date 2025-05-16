@@ -4,6 +4,7 @@
 from typing import List, Dict, Any, Tuple, Optional
 from typing import Optional
 
+
 def __convert_value(value):
     """
     Converts the provided value to the appropriate type (date, float, or int).
@@ -52,7 +53,10 @@ def __extract_params(rule: dict) -> tuple:
 SchemaDef = Dict[str, Any]
 
 
-def __compare_schemas(actual: List[SchemaDef], expected: List[SchemaDef],) -> Tuple[bool, List[Tuple[str, str]]]:
+def __compare_schemas(
+    actual: List[SchemaDef],
+    expected: List[SchemaDef],
+) -> Tuple[bool, List[Tuple[str, str]]]:
     """
     Compare two lists of schema definitions and identify discrepancies.
 
@@ -61,18 +65,18 @@ def __compare_schemas(actual: List[SchemaDef], expected: List[SchemaDef],) -> Tu
         expected (List[SchemaDef]): The list of expected schema definitions.
 
     Returns:
-        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating 
-        whether the schemas match (True if they match, False otherwise), and the second element 
+        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating
+        whether the schemas match (True if they match, False otherwise), and the second element
         is a list of tuples describing the discrepancies. Each tuple contains:
             - The field name (str).
-            - A description of the discrepancy (str), such as "missing", "type mismatch", 
+            - A description of the discrepancy (str), such as "missing", "type mismatch",
               "nullable but expected non-nullable", or "extra column".
 
     Notes:
         - A field is considered "missing" if it exists in the expected schema but not in the actual schema.
-        - A "type mismatch" occurs if the data type of a field in the actual schema does not match 
+        - A "type mismatch" occurs if the data type of a field in the actual schema does not match
           the expected data type.
-        - A field is considered "nullable but expected non-nullable" if it is nullable in the actual 
+        - A field is considered "nullable but expected non-nullable" if it is nullable in the actual
           schema but not nullable in the expected schema.
         - An "extra column" is a field that exists in the actual schema but not in the expected schema.
     """
@@ -113,9 +117,9 @@ def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
     """
     Parses a Databricks URI into its catalog, schema, and table components.
 
-    The URI is expected to follow the format `protocol://catalog.schema.table` or 
-    `protocol://schema.table`. If the catalog is not provided, it will be set to `None`. 
-    If the schema is not provided, the current database from the active Spark session 
+    The URI is expected to follow the format `protocol://catalog.schema.table` or
+    `protocol://schema.table`. If the catalog is not provided, it will be set to `None`.
+    If the schema is not provided, the current database from the active Spark session
     will be used.
 
     Args:
@@ -145,12 +149,12 @@ def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
 
 def __transform_date_format_in_pattern(date_format):
     date_patterns = {
-        'DD':   '(0[1-9]|[12][0-9]|3[01])',
-        'MM':   '(0[1-9]|1[012])',
-        'YYYY': '(19|20)\\d\\d',
-        'YY':   '\\d\\d',
-        ' ':    '\\s',
-        '.':    '\\.'
+        "DD": "(0[1-9]|[12][0-9]|3[01])",
+        "MM": "(0[1-9]|1[012])",
+        "YYYY": "(19|20)\\d\\d",
+        "YY": "\\d\\d",
+        " ": "\\s",
+        ".": "\\.",
     }
 
     date_pattern = date_format

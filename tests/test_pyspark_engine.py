@@ -1,7 +1,14 @@
 import unittest
 from pyspark.sql import SparkSession, DataFrame, Row
 from pyspark.sql.functions import col
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, DateType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+    DoubleType,
+    DateType,
+)
 import sumeh.engine.pyspark_engine as engine
 from datetime import date
 
@@ -9,29 +16,32 @@ from datetime import date
 class TestPySparkEngine(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.spark = SparkSession.builder \
-            .appName("PySparkEngineTests") \
-            .master("local[*]") \
+        cls.spark = (
+            SparkSession.builder.appName("PySparkEngineTests")
+            .master("local[*]")
             .getOrCreate()
+        )
 
-        cls.schema = StructType([
-            StructField("id", IntegerType(), True),
-            StructField("name", StringType(), True),
-            StructField("age", IntegerType(), True),
-            StructField("salary", DoubleType(), True),
-            StructField("email", StringType(), True),
-            StructField("join_date", StringType(), True),
-            StructField("department", StringType(), True)
-        ])
+        cls.schema = StructType(
+            [
+                StructField("id", IntegerType(), True),
+                StructField("name", StringType(), True),
+                StructField("age", IntegerType(), True),
+                StructField("salary", DoubleType(), True),
+                StructField("email", StringType(), True),
+                StructField("join_date", StringType(), True),
+                StructField("department", StringType(), True),
+            ]
+        )
 
         cls.test_data = [
-            (1, "John Doe", 30, 5000.0, "john@example.com", '01-01-2020', "IT"),
-            (2, "Jane Smith", -25, 6000.0, "jane@example.com", '31-01-2021', "HR"),
-            (3, "Bob Johnson", 40, None, "bob@example.com", '01-31-2019', "Finance"),
-            (4, "Alice Brown", 35, 7000.0, None, '31-12-2022', "IT"),
-            (5, "Charlie Davis", 28, 5500.0, "charlie@example.com", '01-06-2023', "HR"),
-            (6, "Eve Wilson", 45, 8000.0, "eve@example.com", '02/02/2024', "Finance"),
-            (7, "John Doe", 50, 9000.0, "john2@example.com", '02-02-2024', "IT")
+            (1, "John Doe", 30, 5000.0, "john@example.com", "01-01-2020", "IT"),
+            (2, "Jane Smith", -25, 6000.0, "jane@example.com", "31-01-2021", "HR"),
+            (3, "Bob Johnson", 40, None, "bob@example.com", "01-31-2019", "Finance"),
+            (4, "Alice Brown", 35, 7000.0, None, "31-12-2022", "IT"),
+            (5, "Charlie Davis", 28, 5500.0, "charlie@example.com", "01-06-2023", "HR"),
+            (6, "Eve Wilson", 45, 8000.0, "eve@example.com", "02/02/2024", "Finance"),
+            (7, "John Doe", 50, 9000.0, "john2@example.com", "02-02-2024", "IT"),
         ]
 
         cls.test_df = cls.spark.createDataFrame(cls.test_data, schema=cls.schema)
@@ -67,7 +77,11 @@ class TestPySparkEngine(unittest.TestCase):
         self.assertEqual(result.count(), 2)
 
     def test_are_unique(self):
-        rule = {"field": ["name", "department"], "check_type": "are_unique", "value": ""}
+        rule = {
+            "field": ["name", "department"],
+            "check_type": "are_unique",
+            "value": "",
+        }
         result = engine.are_unique(self.test_df, rule)
         self.assertEqual(result.count(), 2)
 
@@ -97,12 +111,20 @@ class TestPySparkEngine(unittest.TestCase):
         self.assertEqual(result.count(), 4)
 
     def test_is_contained_in(self):
-        rule = {"field": "department", "check_type": "is_contained_in", "value": "[IT,HR]"}
+        rule = {
+            "field": "department",
+            "check_type": "is_contained_in",
+            "value": "[IT,HR]",
+        }
         result = engine.is_contained_in(self.test_df, rule)
         self.assertEqual(result.count(), 2)
 
     def test_not_contained_in(self):
-        rule = {"field": "department", "check_type": "not_contained_in", "value": "[IT,HR]"}
+        rule = {
+            "field": "department",
+            "check_type": "not_contained_in",
+            "value": "[IT,HR]",
+        }
         result = engine.not_contained_in(self.test_df, rule)
         self.assertEqual(result.count(), 2)
 
@@ -112,7 +134,11 @@ class TestPySparkEngine(unittest.TestCase):
         self.assertEqual(result.count(), 4)
 
     def test_has_pattern(self):
-        rule = {"field": "email", "check_type": "has_pattern", "value": "^[a-z]+@example.com$"}
+        rule = {
+            "field": "email",
+            "check_type": "has_pattern",
+            "value": "^[a-z]+@example.com$",
+        }
         result = engine.has_pattern(self.test_df, rule)
         self.assertEqual(result.count(), 1)
 
@@ -130,7 +156,7 @@ class TestPySparkEngine(unittest.TestCase):
         rules = [
             {"field": "age", "check_type": "is_positive", "value": "0"},
             {"field": "email", "check_type": "is_complete", "value": ""},
-            {"field": "name", "check_type": "is_unique", "value": ""}
+            {"field": "name", "check_type": "is_unique", "value": ""},
         ]
         result, raw_result = engine.validate(self.test_df, rules)
 
@@ -141,9 +167,19 @@ class TestPySparkEngine(unittest.TestCase):
 
     def test_summarize(self):
         rules = [
-            {"field": "age", "check_type": "is_positive", "value": "0", "threshold": 0.9},
-            {"field": "email", "check_type": "is_complete", "value": "", "threshold": 0.95},
-            {"field": "name", "check_type": "is_unique", "value": "", "threshold": 1.0}
+            {
+                "field": "age",
+                "check_type": "is_positive",
+                "value": "0",
+                "threshold": 0.9,
+            },
+            {
+                "field": "email",
+                "check_type": "is_complete",
+                "value": "",
+                "threshold": 0.95,
+            },
+            {"field": "name", "check_type": "is_unique", "value": "", "threshold": 1.0},
         ]
 
         _, raw_result = engine.validate(self.test_df, rules)
@@ -151,8 +187,18 @@ class TestPySparkEngine(unittest.TestCase):
         summary = engine.summarize(raw_result, rules, self.test_df.count())
 
         expected_columns = [
-            "id", "timestamp", "check", "level", "column", "rule", "value",
-            "rows", "violations", "pass_rate", "pass_threshold", "status"
+            "id",
+            "timestamp",
+            "check",
+            "level",
+            "column",
+            "rule",
+            "value",
+            "rows",
+            "violations",
+            "pass_rate",
+            "pass_threshold",
+            "status",
         ]
         self.assertListEqual(summary.columns, expected_columns)
 
@@ -177,7 +223,13 @@ class TestPySparkEngine(unittest.TestCase):
         self.assertEqual(len(errors), 2)
 
     def test_validate_date_format(self):
-        rules = [{"field": "join_date", "join_date": "validate_date_format", "value": "DD-MM-YYYY"}]
+        rules = [
+            {
+                "field": "join_date",
+                "join_date": "validate_date_format",
+                "value": "DD-MM-YYYY",
+            }
+        ]
         result, raw_result = engine.validate_date_format(self.test_df, rules)
 
         self.assertTrue("dq_status" in result.columns)
@@ -186,29 +238,46 @@ class TestPySparkEngine(unittest.TestCase):
         self.assertEqual(raw_result.count(), 4)
 
     def test_is_future_date(self):
-        rule = {"field": "join_date", "check_type": "is_future_date", "value": "01-01-2020"}
+        rule = {
+            "field": "join_date",
+            "check_type": "is_future_date",
+            "value": "01-01-2020",
+        }
         result = engine.is_future_date(self.test_df, rule)
         self.assertEqual(result.count(), 6)
 
     def test_is_past_date(self):
-        rule = {"field": "join_date", "check_type": "is_past_date", "value": "01-01-2023"}
+        rule = {
+            "field": "join_date",
+            "check_type": "is_past_date",
+            "value": "01-01-2023",
+        }
         result = engine.is_past_date(self.test_df, rule)
         self.assertEqual(result.count(), 3)
 
     def test_is_date_between(self):
-        rule = {"field": "join_date", "check_type": "is_date_between",
-                "value": "[01-01-2023,31-12-2023]"}
+        rule = {
+            "field": "join_date",
+            "check_type": "is_date_between",
+            "value": "[01-01-2023,31-12-2023]",
+        }
         result = engine.is_date_between(self.test_df, rule)
         self.assertEqual(result.count(), 1)
 
     def test_is_date_after(self):
-        rule = {"field": "join_date", "check_type": "is_date_after",
-                "value": "31-12-2023"}
+        rule = {
+            "field": "join_date",
+            "check_type": "is_date_after",
+            "value": "31-12-2023",
+        }
         result = engine.is_date_after(self.test_df, rule)
         self.assertEqual(result.count(), 2)
 
     def test_is_date_before(self):
-        rule = {"field": "join_date", "check_type": "is_date_before",
-                "value": "01-03-2024"}
+        rule = {
+            "field": "join_date",
+            "check_type": "is_date_before",
+            "value": "01-03-2024",
+        }
         result = engine.is_date_before(self.test_df, rule)
         self.assertEqual(result.count(), 1)

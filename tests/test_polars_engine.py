@@ -196,10 +196,9 @@ def test_empty_input():
     summary = summarize(violations, rules, 0)
     assert summary.shape[0] == 1  # Should still produce a summary row
 
+
 def test_validate_date_format():
-    df = pl.DataFrame({
-        "dt": ["2025-05-16", "16-05-2025", None]
-    })
+    df = pl.DataFrame({"dt": ["2025-05-16", "16-05-2025", None]})
     rule = {"field": "dt", "check_type": "validate_date_format", "value": "YYYY-MM-DD"}
     result = validate_date_format(df, rule)
     # should catch the bad format and the null
@@ -229,7 +228,11 @@ def test_is_date_between():
     future = (date.today() + timedelta(days=1)).isoformat()
     df = pl.DataFrame({"d": [past, today, future]})
 
-    rule = {"field": "d", "check_type": "is_date_between", "value": f"[{past},{future}]"}
+    rule = {
+        "field": "d",
+        "check_type": "is_date_between",
+        "value": f"[{past},{future}]",
+    }
     out = is_date_between(df, rule)
     # all three are within the inclusive [past,future], so nothing should remain
     assert out.is_empty()

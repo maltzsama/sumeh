@@ -53,8 +53,10 @@ nav:
         - engine overview: api/engine/engines.md
         - dask engine: api/engine/engine-dask.md
         - duckDB engine: api/engine/engine-duckdb.md
+        - pandas engine: api/engine/engine-pandas.md
         - polars engine: api/engine/engine-polars.md
         - pyspark engine: api/engine/engine-pyspark.md
+        
 
 markdown_extensions:
   - toc:

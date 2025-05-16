@@ -185,6 +185,7 @@ def test_empty_rules(sample_data, test_conn):
     summary = summarize(raw, rules, test_conn, total_rows=4)
     assert summary.df().empty
 
+
 def test_validate_date_format_builder():
     ctx = __RuleCtx(column="dt", value="YYYY-MM-DD", name="validate_date_format")
     sql = _validate_date_format(ctx)
