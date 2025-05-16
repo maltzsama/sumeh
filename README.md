@@ -1,7 +1,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)
 
-# <h1 style="display: flex; align-items: center; gap: 0.5rem;"><img src="https://raw.githubusercontent.com/maltzsama/sumeh/refs/heads/feature/docs/docs/img/sumeh.svg" alt="Logo" style="height: 40px; width: auto; vertical-align: middle;" /> <span>Sumeh DQ</span> </h1>
+# <h1 style="display: flex; align-items: center; gap: 0.5rem;"><img src="https://raw.githubusercontent.com/maltzsama/sumeh/refs/heads/main/docs/img/sumeh.svg" alt="Logo" style="height: 40px; width: auto; vertical-align: middle;" /> <span>Sumeh DQ</span> </h1>
 
 Sumeh is a unified data quality validation framework supporting multiple backends (PySpark, Dask, Polars, DuckDB) with centralized rule configuration.
 
@@ -142,18 +142,6 @@ The following data quality checks are available:
 | `validate_schema`          | Compares the actual schema of a DataFrame against an expected schema and returns a match flag and errors.           |
 
 
-## Supported Validation Rules
-
-Sumeh supports a wide variety of validation checks including:
-- Completeness checks (`is_complete`, `are_complete`)
-- Uniqueness checks (`is_unique`, `are_unique`, `is_primary_key`, `is_composite_key`)
-- Value comparisons (`is_greater_than`, `is_less_than`, `is_equal`, `is_between`)
-- Set operations (`is_contained_in`, `not_contained_in`)
-- Pattern matching (`has_pattern`)
-- Statistical checks (`has_min`, `has_max`, `has_mean`, `has_std`, `has_sum`)
-- Date validations (`is_today`, `is_yesterday`, `is_on_weekday`, etc.)
-- Custom expressions (`satisfies`)
-
 ## 📂 Project Layout
 
 ```
@@ -193,7 +181,7 @@ sumeh/
 
 - [ ] Complete BigQuery engine implementation
 - [ ] Complete Pandas engine implementation
-- [ ] Enhanced documentation
+- ✅ Enhanced documentation
 - [ ] More validation rule types
 - [ ] Performance optimizations
 
