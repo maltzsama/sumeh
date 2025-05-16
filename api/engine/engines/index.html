@@ -598,6 +598,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../engine-pandas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    pandas engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../engine-polars/" class="md-nav__link">
         
   
@@ -727,6 +750,7 @@
 <span class="err">├──</span> <span class="n">bigquery_engine</span><span class="o">.</span><span class="n">py</span>  <span class="c1"># ⇨ BigQuery schema introspection &amp; validation</span>
 <span class="err">├──</span> <span class="n">dask_engine</span><span class="o">.</span><span class="n">py</span>      <span class="c1"># ⇨ Dask DataFrame rule execution, validation &amp; summarization</span>
 <span class="err">├──</span> <span class="n">duckdb_engine</span><span class="o">.</span><span class="n">py</span>    <span class="c1"># ⇨ DuckDB SQL builder for rule validation &amp; summarization</span>
+<span class="err">├──</span> <span class="n">pandas_engine</span><span class="o">.</span><span class="n">py</span>    <span class="c1"># ⇨ Pandas DataFrame rule execution, validation &amp; summarization</span>
 <span class="err">├──</span> <span class="n">polars_engine</span><span class="o">.</span><span class="n">py</span>    <span class="c1"># ⇨ Polars DataFrame rule execution, validation &amp; summarization</span>
 <span class="err">└──</span> <span class="n">pyspark_engine</span><span class="o">.</span><span class="n">py</span>   <span class="c1"># ⇨ PySpark DataFrame rule execution, validation &amp; summarization</span>
 </code></pre></div>
@@ -746,7 +770,11 @@
 </li>
 <li>
 <p><strong><code>duckdb_engine.py</code></strong><br />
-  Builds SQL expressions for each rule, executes them in DuckDB as UNION-ALL queries, and returns both raw violations and an aggregated result, along with schema validation via PRAGMA introspection.</p>
+  Builds SQL expressions for each rule, executes them in DuckDB as UNION ALL queries, and returns both raw violations and an aggregated result, along with schema validation via PRAGMA introspection.</p>
+</li>
+<li>
+<p><strong><code>pandas_engine.py</code></strong><br />
+  Executes the full suite of data quality checks directly against a Pandas DataFrame, annotating each violation in a <code>dq_status</code> column, and provides functions to aggregate raw results and generate a pass/fail summary. Also includes schema comparison utilities via Pandas dtypes.</p>
 </li>
 <li>
 <p><strong><code>polars_engine.py</code></strong><br />

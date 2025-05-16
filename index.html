@@ -333,8 +333,71 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📋 Rule Definition Example">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-validation-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Validation Rules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported Validation Rules">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#numeric-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Numeric checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#completeness-uniqueness" class="md-nav__link">
+    <span class="md-ellipsis">
+      Completeness &amp; Uniqueness
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison &amp; Range
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#membership-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      Membership &amp; Pattern
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregate-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aggregate checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sql-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL &amp; Schema
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#date-related-checks" class="md-nav__link">
@@ -729,6 +792,29 @@
   
   
     <li class="md-nav__item">
+      <a href="api/engine/engine-pandas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    pandas engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="api/engine/engine-polars/" class="md-nav__link">
         
   
@@ -861,8 +947,71 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📋 Rule Definition Example">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-validation-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Validation Rules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported Validation Rules">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#numeric-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Numeric checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#completeness-uniqueness" class="md-nav__link">
+    <span class="md-ellipsis">
+      Completeness &amp; Uniqueness
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-range" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison &amp; Range
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#membership-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      Membership &amp; Pattern
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregate-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Aggregate checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sql-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL &amp; Schema
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#date-related-checks" class="md-nav__link">
@@ -988,7 +1137,7 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <tr>
 <td>Pandas</td>
 <td><code>sumeh.engine.pandas_engine</code></td>
-<td>🔧 Stub implementation</td>
+<td>✅ Fully implemented</td>
 </tr>
 <tr>
 <td>BigQuery (SQL)</td>
@@ -1044,8 +1193,28 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <span class="p">}</span>
 </code></pre></div>
 
-<p><strong>Supported Validation Rules</strong></p>
-<p>The following data quality checks are available:</p>
+<h2 id="supported-validation-rules">Supported Validation Rules<a class="headerlink" href="#supported-validation-rules" title="Permanent link">&para;</a></h2>
+<h3 id="numeric-checks">Numeric checks<a class="headerlink" href="#numeric-checks" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>is_in_millions</strong></td>
+<td>Retains rows where the column value is <strong>less than</strong> 1,000,000 (fails the "in millions" criteria).</td>
+</tr>
+<tr>
+<td><strong>is_in_billions</strong></td>
+<td>Retains rows where the column value is <strong>less than</strong> 1,000,000,000 (fails the "in billions" criteria).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="completeness-uniqueness">Completeness &amp; Uniqueness<a class="headerlink" href="#completeness-uniqueness" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1056,11 +1225,11 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <tbody>
 <tr>
 <td><strong>is_complete</strong></td>
-<td>Filters rows where the specified column is null.</td>
+<td>Filters rows where the column value is null.</td>
 </tr>
 <tr>
 <td><strong>are_complete</strong></td>
-<td>Filters rows where any of the specified columns is null.</td>
+<td>Filters rows where <strong>any</strong> of the specified columns are null.</td>
 </tr>
 <tr>
 <td><strong>is_unique</strong></td>
@@ -1072,107 +1241,155 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 </tr>
 <tr>
 <td><strong>is_primary_key</strong></td>
-<td>Alias of <code>is_unique</code> (checks uniqueness of a single column).</td>
+<td>Alias for <code>is_unique</code> (checks uniqueness of a single column).</td>
 </tr>
 <tr>
 <td><strong>is_composite_key</strong></td>
-<td>Alias of <code>are_unique</code> (checks uniqueness across multiple columns).</td>
+<td>Alias for <code>are_unique</code> (checks combined uniqueness of multiple columns).</td>
 </tr>
+</tbody>
+</table>
+<hr />
+<h3 id="comparison-range">Comparison &amp; Range<a class="headerlink" href="#comparison-range" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><strong>is_equal</strong></td>
-<td>Filters rows where the specified column is not equal (null-safe) to the given value.</td>
+<td>Filters rows where the column is not equal to the provided value (null-safe).</td>
 </tr>
 <tr>
 <td><strong>is_equal_than</strong></td>
-<td>Alias of <code>is_equal</code>.</td>
+<td>Alias for <code>is_equal</code>.</td>
 </tr>
 <tr>
 <td><strong>is_between</strong></td>
-<td>Filters rows where the specified column is not within the given numeric range.</td>
+<td>Filters rows where the column value is <strong>outside</strong> the numeric range <code>[min, max]</code>.</td>
 </tr>
 <tr>
 <td><strong>is_greater_than</strong></td>
-<td>Filters rows where the specified column is less than or equal to the threshold value.</td>
+<td>Filters rows where the column value is <strong>≤</strong> the threshold (fails "greater than").</td>
 </tr>
 <tr>
 <td><strong>is_greater_or_equal_than</strong></td>
-<td>Filters rows where the specified column is less than the threshold value.</td>
+<td>Filters rows where the column value is <strong>&lt;</strong> the threshold (fails "greater or equal").</td>
 </tr>
 <tr>
 <td><strong>is_less_than</strong></td>
-<td>Filters rows where the specified column is greater than or equal to the threshold value.</td>
+<td>Filters rows where the column value is <strong>≥</strong> the threshold (fails "less than").</td>
 </tr>
 <tr>
 <td><strong>is_less_or_equal_than</strong></td>
-<td>Filters rows where the specified column is greater than the threshold value.</td>
+<td>Filters rows where the column value is <strong>&gt;</strong> the threshold (fails "less or equal").</td>
 </tr>
 <tr>
 <td><strong>is_positive</strong></td>
-<td>Filters rows where the specified column is less than zero.</td>
+<td>Filters rows where the column value is <strong>&lt; 0</strong> (fails "positive").</td>
 </tr>
 <tr>
 <td><strong>is_negative</strong></td>
-<td>Filters rows where the specified column is greater than or equal to zero.</td>
+<td>Filters rows where the column value is <strong>≥ 0</strong> (fails "negative").</td>
 </tr>
+</tbody>
+</table>
+<hr />
+<h3 id="membership-pattern">Membership &amp; Pattern<a class="headerlink" href="#membership-pattern" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><strong>is_contained_in</strong></td>
-<td>Filters rows where the specified column is not in the provided list of values.</td>
+<td>Filters rows where the column value is <strong>not</strong> in the provided list.</td>
 </tr>
 <tr>
 <td><strong>not_contained_in</strong></td>
-<td>Filters rows where the specified column is in the provided list of values.</td>
+<td>Filters rows where the column value <strong>is</strong> in the provided list.</td>
 </tr>
 <tr>
 <td><strong>has_pattern</strong></td>
-<td>Filters rows where the specified column does not match the given regular-expression pattern.</td>
+<td>Filters rows where the column value does <strong>not</strong> match the specified regex.</td>
 </tr>
 <tr>
 <td><strong>is_legit</strong></td>
-<td>Filters rows where the specified column is null or does not match a non-whitespace pattern (<code>\S*</code>).</td>
+<td>Filters rows where the column value is null or contains whitespace (i.e., not <code>\S+</code>).</td>
 </tr>
+</tbody>
+</table>
+<hr />
+<h3 id="aggregate-checks">Aggregate checks<a class="headerlink" href="#aggregate-checks" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><strong>has_min</strong></td>
-<td>Filters rows where the specified column is below the minimum threshold.</td>
+<td>Returns all rows if the column's minimum value <strong>causes failure</strong> (value &lt; threshold); otherwise returns empty.</td>
 </tr>
 <tr>
 <td><strong>has_max</strong></td>
-<td>Filters rows where the specified column exceeds the maximum threshold.</td>
-</tr>
-<tr>
-<td><strong>has_mean</strong></td>
-<td>Returns all rows if the mean of the specified column exceeds the threshold; otherwise empty.</td>
-</tr>
-<tr>
-<td><strong>has_std</strong></td>
-<td>Returns all rows if the standard deviation of the specified column exceeds the threshold; otherwise empty.</td>
+<td>Returns all rows if the column's maximum value <strong>causes failure</strong> (value &gt; threshold); otherwise returns empty.</td>
 </tr>
 <tr>
 <td><strong>has_sum</strong></td>
-<td>Returns all rows if the sum of the specified column exceeds the threshold; otherwise empty.</td>
+<td>Returns all rows if the column's sum <strong>causes failure</strong> (sum &gt; threshold); otherwise returns empty.</td>
+</tr>
+<tr>
+<td><strong>has_mean</strong></td>
+<td>Returns all rows if the column's mean <strong>causes failure</strong> (mean &gt; threshold); otherwise returns empty.</td>
+</tr>
+<tr>
+<td><strong>has_std</strong></td>
+<td>Returns all rows if the column's standard deviation <strong>causes failure</strong> (std &gt; threshold); otherwise returns empty.</td>
 </tr>
 <tr>
 <td><strong>has_cardinality</strong></td>
-<td>Returns all rows if the distinct count of the specified column exceeds the threshold; otherwise empty.</td>
+<td>Returns all rows if the number of distinct values <strong>causes failure</strong> (count &gt; threshold); otherwise returns empty.</td>
 </tr>
 <tr>
 <td><strong>has_infogain</strong></td>
-<td>Uses distinct-count as a proxy for information gain; returns all rows if it exceeds the threshold; otherwise empty.</td>
+<td>Same logic as <code>has_cardinality</code> (proxy for information gain).</td>
 </tr>
 <tr>
 <td><strong>has_entropy</strong></td>
-<td>Uses distinct-count as a proxy for entropy; returns all rows if it exceeds the threshold; otherwise empty.</td>
+<td>Same logic as <code>has_cardinality</code> (proxy for entropy).</td>
 </tr>
+</tbody>
+</table>
+<hr />
+<h3 id="sql-schema">SQL &amp; Schema<a class="headerlink" href="#sql-schema" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><strong>satisfies</strong></td>
-<td>Filters rows where the given SQL expression (via <code>expr(value)</code>) is not satisfied.</td>
+<td>Filters rows where the SQL expression (based on <code>rule["value"]</code>) is <strong>not</strong> satisfied.</td>
 </tr>
 <tr>
 <td><strong>validate_schema</strong></td>
-<td>Compares the actual schema of a DataFrame against an expected schema and returns a match flag and errors.</td>
+<td>Compares the DataFrame's actual schema against the expected one and returns a match flag + error list.</td>
 </tr>
 <tr>
 <td><strong>validate</strong></td>
-<td>Applies a list of named validation rules and returns aggregated and raw result DataFrames.</td>
+<td>Executes a list of named rules and returns two DataFrames: one with aggregated status and one with raw violations.</td>
 </tr>
 </tbody>
 </table>
@@ -1187,32 +1404,88 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 </thead>
 <tbody>
 <tr>
+<td><strong>is_t_minus_1</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> equal to yesterday (T–1).</td>
+</tr>
+<tr>
+<td><strong>is_t_minus_2</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> equal to two days ago (T–2).</td>
+</tr>
+<tr>
+<td><strong>is_t_minus_3</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> equal to three days ago (T–3).</td>
+</tr>
+<tr>
+<td><strong>is_today</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> equal to today.</td>
+</tr>
+<tr>
+<td><strong>is_yesterday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> equal to yesterday.</td>
+</tr>
+<tr>
+<td><strong>is_on_weekday</strong></td>
+<td>Retains rows where the date in the column <strong>NOT FALLS</strong> on a weekend (fails "weekday").</td>
+</tr>
+<tr>
+<td><strong>is_on_weekend</strong></td>
+<td>Retains rows where the date in the column <strong>NOT FALLS</strong> on a weekday (fails "weekend").</td>
+</tr>
+<tr>
+<td><strong>is_on_monday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Monday.</td>
+</tr>
+<tr>
+<td><strong>is_on_tuesday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Tuesday.</td>
+</tr>
+<tr>
+<td><strong>is_on_wednesday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Wednesday.</td>
+</tr>
+<tr>
+<td><strong>is_on_thursday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Thursday.</td>
+</tr>
+<tr>
+<td><strong>is_on_friday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Friday.</td>
+</tr>
+<tr>
+<td><strong>is_on_saturday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Saturday.</td>
+</tr>
+<tr>
+<td><strong>is_on_sunday</strong></td>
+<td>Retains rows where the date in the column is <strong>not</strong> Sunday.</td>
+</tr>
+<tr>
 <td><strong>validate_date_format</strong></td>
-<td>Filters rows where the specified column does not match the expected date format or is null.</td>
+<td>Filters rows where the date doesn't match the expected format or is null.</td>
 </tr>
 <tr>
 <td><strong>is_future_date</strong></td>
-<td>Filters rows where the specified date column is after today’s date.</td>
+<td>Filters rows where the date in the column is <strong>not</strong> after today.</td>
 </tr>
 <tr>
 <td><strong>is_past_date</strong></td>
-<td>Filters rows where the specified date column is before today’s date.</td>
+<td>Filters rows where the date in the column is <strong>not</strong> before today.</td>
 </tr>
 <tr>
 <td><strong>is_date_after</strong></td>
-<td>Filters rows where the specified date column is before the date provided in the rule.</td>
+<td>Filters rows where the date in the column is <strong>not</strong> before the date provided in the rule.</td>
 </tr>
 <tr>
 <td><strong>is_date_before</strong></td>
-<td>Filters rows where the specified date column is after the date provided in the rule.</td>
+<td>Filters rows where the date in the column is <strong>not</strong> after the date provided in the rule.</td>
 </tr>
 <tr>
 <td><strong>is_date_between</strong></td>
-<td>Filters rows where the specified date column is not within the given start–end range.</td>
+<td>Filters rows where the date in the column is <strong>not</strong> outside the range <code>[start, end]</code>.</td>
 </tr>
 <tr>
 <td><strong>all_date_checks</strong></td>
-<td>Filters rows where the specified date column is before today’s date (similar to <code>is_past_date</code>).</td>
+<td>Alias for <code>is_past_date</code> (same logic: date before today).</td>
 </tr>
 </tbody>
 </table>
@@ -1221,40 +1494,31 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 ├── poetry.lock
 ├── pyproject.toml
 ├── README.md
-├── sumeh
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── core.py
-│   ├── engine
-│   │   ├── __init__.py
-│   │   ├── bigquery_engine.py
-│   │   ├── dask_engine.py
-│   │   ├── duckdb_engine.py
-│   │   ├── polars_engine.py
-│   │   └── pyspark_engine.py
-│   └── services
-│       ├── __init__.py
-│       ├── config.py
-│       ├── index.html
-│       └── utils.py
-└── tests
+└── sumeh
     ├── __init__.py
-    ├── mock
-    │   ├── config.csv
-    │   └── data.csv
-    ├── test_dask_engine.py
-    ├── test_duckdb_engine.py
-    ├── test_polars_engine.py
-    ├── test_pyspark_engine.py
-    └── test_sumeh.py
+    ├── cli.py
+    ├── core.py
+    ├── engine
+    │   ├── __init__.py
+    │   ├── bigquery_engine.py
+    │   ├── dask_engine.py
+    │   ├── duckdb_engine.py
+    │   ├── pandas_engine.py
+    │   ├── polars_engine.py
+    │   └── pyspark_engine.py
+    └── services
+        ├── __init__.py
+        ├── config.py
+        ├── index.html
+        └── utils.py
 </code></pre></div>
 
 <h2 id="roadmap">📈 Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h2>
 <ul>
 <li>[ ] Complete BigQuery engine implementation</li>
-<li>[ ] Complete Pandas engine implementation</li>
+<li>✅ Complete Pandas engine implementation</li>
 <li>✅ Enhanced documentation</li>
-<li>[ ] More validation rule types</li>
+<li>✅ More validation rule types</li>
 <li>[ ] Performance optimizations</li>
 </ul>
 <h2 id="contributing">🤝 Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>

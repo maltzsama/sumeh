@@ -684,6 +684,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../engine/engine-pandas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    pandas engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../engine/engine-polars/" class="md-nav__link">
         
   
@@ -966,7 +989,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating </p>
+                <p>Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating</p>
               </div>
             </td>
           </tr>
@@ -976,7 +999,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>whether the schemas match (True if they match, False otherwise), and the second element </p>
+                <p>whether the schemas match (True if they match, False otherwise), and the second element</p>
               </div>
             </td>
           </tr>
@@ -988,7 +1011,7 @@
               <div class="doc-md-description">
                 <p>is a list of tuples describing the discrepancies. Each tuple contains:
 - The field name (str).
-- A description of the discrepancy (str), such as "missing", "type mismatch", 
+- A description of the discrepancy (str), such as "missing", "type mismatch",
   "nullable but expected non-nullable", or "extra column".</p>
               </div>
             </td>
@@ -1001,9 +1024,9 @@
   <summary>Notes</summary>
   <ul>
 <li>A field is considered "missing" if it exists in the expected schema but not in the actual schema.</li>
-<li>A "type mismatch" occurs if the data type of a field in the actual schema does not match 
+<li>A "type mismatch" occurs if the data type of a field in the actual schema does not match
   the expected data type.</li>
-<li>A field is considered "nullable but expected non-nullable" if it is nullable in the actual 
+<li>A field is considered "nullable but expected non-nullable" if it is nullable in the actual
   schema but not nullable in the expected schema.</li>
 <li>An "extra column" is a field that exists in the actual schema but not in the expected schema.</li>
 </ul>
@@ -1011,8 +1034,7 @@
 
             <details class="quote">
               <summary>Source code in <code>sumeh/services/utils.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 55</span>
-<span class="normal"> 56</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 56</span>
 <span class="normal"> 57</span>
 <span class="normal"> 58</span>
 <span class="normal"> 59</span>
@@ -1065,7 +1087,14 @@
 <span class="normal">106</span>
 <span class="normal">107</span>
 <span class="normal">108</span>
-<span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__compare_schemas</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">],</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">],)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__compare_schemas</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">],</span>
+    <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compare two lists of schema definitions and identify discrepancies.</span>
 
@@ -1074,18 +1103,18 @@
 <span class="sd">        expected (List[SchemaDef]): The list of expected schema definitions.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating </span>
-<span class="sd">        whether the schemas match (True if they match, False otherwise), and the second element </span>
+<span class="sd">        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating</span>
+<span class="sd">        whether the schemas match (True if they match, False otherwise), and the second element</span>
 <span class="sd">        is a list of tuples describing the discrepancies. Each tuple contains:</span>
 <span class="sd">            - The field name (str).</span>
-<span class="sd">            - A description of the discrepancy (str), such as &quot;missing&quot;, &quot;type mismatch&quot;, </span>
+<span class="sd">            - A description of the discrepancy (str), such as &quot;missing&quot;, &quot;type mismatch&quot;,</span>
 <span class="sd">              &quot;nullable but expected non-nullable&quot;, or &quot;extra column&quot;.</span>
 
 <span class="sd">    Notes:</span>
 <span class="sd">        - A field is considered &quot;missing&quot; if it exists in the expected schema but not in the actual schema.</span>
-<span class="sd">        - A &quot;type mismatch&quot; occurs if the data type of a field in the actual schema does not match </span>
+<span class="sd">        - A &quot;type mismatch&quot; occurs if the data type of a field in the actual schema does not match</span>
 <span class="sd">          the expected data type.</span>
-<span class="sd">        - A field is considered &quot;nullable but expected non-nullable&quot; if it is nullable in the actual </span>
+<span class="sd">        - A field is considered &quot;nullable but expected non-nullable&quot; if it is nullable in the actual</span>
 <span class="sd">          schema but not nullable in the expected schema.</span>
 <span class="sd">        - An &quot;extra column&quot; is a field that exists in the actual schema but not in the expected schema.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1220,8 +1249,7 @@ a floating-point number (float), or an integer (int).</p>
 
             <details class="quote">
               <summary>Source code in <code>sumeh/services/utils.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 7</span>
-<span class="normal"> 8</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 8</span>
 <span class="normal"> 9</span>
 <span class="normal">10</span>
 <span class="normal">11</span>
@@ -1247,7 +1275,8 @@ a floating-point number (float), or an integer (int).</p>
 <span class="normal">31</span>
 <span class="normal">32</span>
 <span class="normal">33</span>
-<span class="normal">34</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__convert_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="normal">34</span>
+<span class="normal">35</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__convert_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts the provided value to the appropriate type (date, float, or int).</span>
 
@@ -1295,8 +1324,7 @@ a floating-point number (float), or an integer (int).</p>
 
             <details class="quote">
               <summary>Source code in <code>sumeh/services/utils.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
-<span class="normal">38</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
 <span class="normal">39</span>
 <span class="normal">40</span>
 <span class="normal">41</span>
@@ -1307,7 +1335,8 @@ a floating-point number (float), or an integer (int).</p>
 <span class="normal">46</span>
 <span class="normal">47</span>
 <span class="normal">48</span>
-<span class="normal">49</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__extract_params</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__extract_params</span><span class="p">(</span><span class="n">rule</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
     <span class="n">rule_name</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="s2">&quot;check_type&quot;</span><span class="p">]</span>
     <span class="n">field</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">]</span>
     <span class="n">raw_value</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span>
@@ -1338,9 +1367,9 @@ a floating-point number (float), or an integer (int).</p>
     <div class="doc doc-contents ">
 
         <p>Parses a Databricks URI into its catalog, schema, and table components.</p>
-<p>The URI is expected to follow the format <code>protocol://catalog.schema.table</code> or 
-<code>protocol://schema.table</code>. If the catalog is not provided, it will be set to <code>None</code>. 
-If the schema is not provided, the current database from the active Spark session 
+<p>The URI is expected to follow the format <code>protocol://catalog.schema.table</code> or
+<code>protocol://schema.table</code>. If the catalog is not provided, it will be set to <code>None</code>.
+If the schema is not provided, the current database from the active Spark session
 will be used.</p>
 
 
@@ -1403,11 +1432,7 @@ will be used.</p>
 
             <details class="quote">
               <summary>Source code in <code>sumeh/services/utils.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">116</span>
 <span class="normal">117</span>
 <span class="normal">118</span>
 <span class="normal">119</span>
@@ -1434,13 +1459,17 @@ will be used.</p>
 <span class="normal">140</span>
 <span class="normal">141</span>
 <span class="normal">142</span>
-<span class="normal">143</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__parse_databricks_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__parse_databricks_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parses a Databricks URI into its catalog, schema, and table components.</span>
 
-<span class="sd">    The URI is expected to follow the format `protocol://catalog.schema.table` or </span>
-<span class="sd">    `protocol://schema.table`. If the catalog is not provided, it will be set to `None`. </span>
-<span class="sd">    If the schema is not provided, the current database from the active Spark session </span>
+<span class="sd">    The URI is expected to follow the format `protocol://catalog.schema.table` or</span>
+<span class="sd">    `protocol://schema.table`. If the catalog is not provided, it will be set to `None`.</span>
+<span class="sd">    If the schema is not provided, the current database from the active Spark session</span>
 <span class="sd">    will be used.</span>
 
 <span class="sd">    Args:</span>
@@ -1486,11 +1515,7 @@ will be used.</p>
 
             <details class="quote">
               <summary>Source code in <code>sumeh/services/utils.py</code></summary>
-              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">150</span>
 <span class="normal">151</span>
 <span class="normal">152</span>
 <span class="normal">153</span>
@@ -1500,14 +1525,18 @@ will be used.</p>
 <span class="normal">157</span>
 <span class="normal">158</span>
 <span class="normal">159</span>
-<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__transform_date_format_in_pattern</span><span class="p">(</span><span class="n">date_format</span><span class="p">):</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__transform_date_format_in_pattern</span><span class="p">(</span><span class="n">date_format</span><span class="p">):</span>
     <span class="n">date_patterns</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;DD&#39;</span><span class="p">:</span>   <span class="s1">&#39;(0[1-9]|[12][0-9]|3[01])&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;MM&#39;</span><span class="p">:</span>   <span class="s1">&#39;(0[1-9]|1[012])&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;YYYY&#39;</span><span class="p">:</span> <span class="s1">&#39;(19|20)</span><span class="se">\\</span><span class="s1">d</span><span class="se">\\</span><span class="s1">d&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;YY&#39;</span><span class="p">:</span>   <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">d</span><span class="se">\\</span><span class="s1">d&#39;</span><span class="p">,</span>
-        <span class="s1">&#39; &#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">s&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;.&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">.&#39;</span>
+        <span class="s2">&quot;DD&quot;</span><span class="p">:</span> <span class="s2">&quot;(0[1-9]|[12][0-9]|3[01])&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;MM&quot;</span><span class="p">:</span> <span class="s2">&quot;(0[1-9]|1[012])&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;YYYY&quot;</span><span class="p">:</span> <span class="s2">&quot;(19|20)</span><span class="se">\\</span><span class="s2">d</span><span class="se">\\</span><span class="s2">d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;YY&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">d</span><span class="se">\\</span><span class="s2">d&quot;</span><span class="p">,</span>
+        <span class="s2">&quot; &quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">s&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.&quot;</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="n">date_pattern</span> <span class="o">=</span> <span class="n">date_format</span>
