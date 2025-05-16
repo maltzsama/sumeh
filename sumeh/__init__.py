@@ -2,7 +2,7 @@
 
 __author__ = "Demetrius Albuquerque"
 __email__ = "demetrius.albuquerque@yahoo.com.br"
-__version__ = "0.2.6"
+__version__ = "0.3.0"
 
 from .core import (
     report,
