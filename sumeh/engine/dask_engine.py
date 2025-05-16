@@ -177,7 +177,7 @@ def is_in_millions(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
                       that triggered the violation.
     """
     field, check, value = __extract_params(rule)
-    viol = df[df[field] >= 1_000_000]
+    viol = df[df[field] < 1_000_000]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -198,7 +198,7 @@ def is_in_billions(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
                       check type, and value that triggered the rule.
     """
     field, check, value = __extract_params(rule)
-    viol = df[df[field] >= 1_000_000_000]
+    viol = df[df[field] < 1_000_000_000]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -452,7 +452,7 @@ def is_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
-def is_in(df: dd.Dataframe, rule: dict) -> dd.DataFrame:
+def is_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Checks if the specified rule is contained within the given Dask DataFrame.
 
@@ -1036,7 +1036,7 @@ def is_t_minus_1(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today() - pd.Timedelta(days=1))
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt == target]
+    viol = df[col_dt != target]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1062,7 +1062,7 @@ def is_t_minus_2(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today() - pd.Timedelta(days=2))
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt == target]
+    viol = df[col_dt != target]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1085,7 +1085,7 @@ def is_t_minus_3(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today() - pd.Timedelta(days=3))
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt == target]
+    viol = df[col_dt != target]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1109,7 +1109,7 @@ def is_today(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today())
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt == target]
+    viol = df[col_dt != target]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1151,8 +1151,8 @@ def is_on_weekday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    dow = col_dt.dt.weekday  # 0=Mon … 6=Sun
-    viol = df[(dow >= 0) & (dow <= 4)]
+    dow = col_dt.dt.weekday
+    viol = df[(dow >= 5) & (dow <= 6)]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1176,7 +1176,7 @@ def is_on_weekend(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
     dow = col_dt.dt.weekday
-    viol = df[(dow >= 5) & (dow <= 6)]
+    viol = df[(dow >= 0) & (dow <= 4)]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1198,7 +1198,7 @@ def is_on_monday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 0]
+    viol = df[col_dt.dt.weekday != 0]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1220,7 +1220,7 @@ def is_on_tuesday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 1]
+    viol = df[col_dt.dt.weekday != 1]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1242,7 +1242,7 @@ def is_on_wednesday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 2]
+    viol = df[col_dt.dt.weekday != 2]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1264,7 +1264,7 @@ def is_on_thursday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 3]
+    viol = df[col_dt.dt.weekday != 3]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1288,7 +1288,7 @@ def is_on_friday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 4]
+    viol = df[col_dt.dt.weekday != 4]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1310,7 +1310,7 @@ def is_on_saturday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 5]
+    viol = df[col_dt.dt.weekday != 5]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
@@ -1332,7 +1332,7 @@ def is_on_sunday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], errors="coerce")
-    viol = df[col_dt.dt.weekday == 6]
+    viol = df[col_dt.dt.weekday != 6]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
