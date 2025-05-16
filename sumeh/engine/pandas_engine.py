@@ -937,7 +937,7 @@ def is_in_millions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       Includes an additional "dq_status" column with the rule details.
     """
     field, check, value = __extract_params(rule)
-    out = df[df[field] >= 1_000_000].copy()
+    out = df[df[field] < 1_000_000].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
 
@@ -960,7 +960,7 @@ def is_in_billions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         column `dq_status` with the format "{field}:{check}:{value}".
     """
     field, check, value = __extract_params(rule)
-    out = df[df[field] >= 1_000_000_000].copy()
+    out = df[df[field] < 1_000_000_000].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
 
@@ -981,7 +981,7 @@ def is_today(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     today = pd.Timestamp(date.today())
-    mask = df[field].dt.normalize() == today
+    mask = df[field].dt.normalize() != today
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
@@ -1004,7 +1004,7 @@ def is_yesterday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today() - timedelta(days=1))
-    mask = df[field].dt.normalize() == target
+    mask = df[field].dt.normalize() != target
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
@@ -1027,7 +1027,7 @@ def is_t_minus_2(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today() - timedelta(days=2))
-    mask = df[field].dt.normalize() == target
+    mask = df[field].dt.normalize() != target
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
@@ -1050,7 +1050,7 @@ def is_t_minus_3(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     """
     field, check, value = __extract_params(rule)
     target = pd.Timestamp(date.today() - timedelta(days=3))
-    mask = df[field].dt.normalize() == target
+    mask = df[field].dt.normalize() != target
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
@@ -1073,7 +1073,7 @@ def is_on_weekday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         falls on a weekday, with an additional "dq_status" column describing the rule applied.
     """
     field, check, value = __extract_params(rule)
-    mask = df[field].dt.dayofweek.between(0, 4)
+    mask = ~df[field].dt.dayofweek.between(0, 4)
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
@@ -1096,7 +1096,7 @@ def is_on_weekend(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         falls on a weekend. Includes an additional "dq_status" column with the rule details.
     """
     field, check, value = __extract_params(rule)
-    mask = df[field].dt.dayofweek.isin([5, 6])
+    mask = ~df[field].dt.dayofweek.isin([5, 6])
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out
@@ -1116,7 +1116,7 @@ def _day_of_week(df: pd.DataFrame, rule: dict, dow: int) -> pd.DataFrame:
                       An additional column, "dq_status", is added to indicate the rule applied.
     """
     field, check, value = __extract_params(rule)
-    mask = df[field].dt.dayofweek == dow
+    mask = df[field].dt.dayofweek != dow
     out = df[mask].copy()
     out["dq_status"] = f"{field}:{check}:{value}"
     return out

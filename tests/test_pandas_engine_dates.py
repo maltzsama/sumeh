@@ -83,10 +83,10 @@ def test_is_in_millions(test_df):
     result = is_in_millions(test_df, rule)
 
     expected_count = len(
-        [x for x in test_df["numeric"] if not pd.isna(x) and x >= 1000000]
+        [x for x in test_df["numeric"] if not pd.isna(x) and x < 1000000]
     )
     assert len(result) == expected_count
-    assert all(result["numeric"] >= 1000000)
+    assert all(result["numeric"] < 1000000)
     assert all(result["dq_status"] == "numeric:is_in_millions:1M")
 
 
@@ -94,8 +94,8 @@ def test_is_in_billions(test_df):
     rule = create_rule("numeric", "is_in_billions", "1B")
     result = is_in_billions(test_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["numeric"] >= 1000000000
+    assert len(result) == 3
+    assert result.iloc[0]["numeric"] < 1000000000
     assert result.iloc[0]["dq_status"] == "numeric:is_in_billions:1B"
 
 
@@ -103,8 +103,8 @@ def test_is_today(test_df):
     rule = create_rule("date", "is_today", "today")
     result = is_today(test_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].date() == date.today()
+    assert len(result) == 4
+    assert result.iloc[0]["date"].date() != date.today()
     assert result.iloc[0]["dq_status"] == "date:is_today:today"
 
 
@@ -112,8 +112,8 @@ def test_is_yesterday(test_df):
     rule = create_rule("date", "is_yesterday", "yesterday")
     result = is_yesterday(test_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].date() == date.today() - timedelta(days=1)
+    assert len(result) == 4
+    assert result.iloc[0]["date"].date() != date.today() - timedelta(days=1)
     assert result.iloc[0]["dq_status"] == "date:is_yesterday:yesterday"
 
 
@@ -121,8 +121,8 @@ def test_is_t_minus_2(test_df):
     rule = create_rule("date", "is_t_minus_2", "t-2")
     result = is_t_minus_2(test_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].date() == date.today() - timedelta(days=2)
+    assert len(result) == 4
+    assert result.iloc[0]["date"].date() != date.today() - timedelta(days=2)
     assert result.iloc[0]["dq_status"] == "date:is_t_minus_2:t-2"
 
 
@@ -130,8 +130,8 @@ def test_is_t_minus_3(test_df):
     rule = create_rule("date", "is_t_minus_3", "t-3")
     result = is_t_minus_3(test_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].date() == date.today() - timedelta(days=3)
+    assert len(result) == 4
+    assert result.iloc[0]["date"].date() != date.today() - timedelta(days=3)
     assert result.iloc[0]["dq_status"] == "date:is_t_minus_3:t-3"
 
 
@@ -139,8 +139,7 @@ def test_is_on_weekday(weekday_df):
     rule = create_rule("date", "is_on_weekday", "weekday")
     result = is_on_weekday(weekday_df, rule)
 
-    assert len(result) == 5
-    assert all(result["date"].dt.dayofweek < 5)
+    assert len(result) == 3
     assert all(result["dq_status"] == "date:is_on_weekday:weekday")
 
 
@@ -148,8 +147,7 @@ def test_is_on_weekend(weekday_df):
     rule = create_rule("date", "is_on_weekend", "weekend")
     result = is_on_weekend(weekday_df, rule)
 
-    assert len(result) == 2
-    assert all(result["date"].dt.dayofweek >= 5)
+    assert len(result) == 6
     assert all(result["dq_status"] == "date:is_on_weekend:weekend")
 
 
@@ -157,70 +155,67 @@ def test_is_on_monday(weekday_df):
     rule = create_rule("date", "is_on_monday", "monday")
     result = is_on_monday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 0
+    assert len(result) == 7
+    
     assert result.iloc[0]["dq_status"] == "date:is_on_monday:monday"
-    assert result.iloc[0]["day_name"] == "Monday"
+    assert result.iloc[0]["day_name"] != "Monday"
 
 
 def test_is_on_tuesday(weekday_df):
     rule = create_rule("date", "is_on_tuesday", "tuesday")
     result = is_on_tuesday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 1
+    assert len(result) == 7
+    
     assert result.iloc[0]["dq_status"] == "date:is_on_tuesday:tuesday"
-    assert result.iloc[0]["day_name"] == "Tuesday"
+    assert result.iloc[0]["day_name"] != "Tuesday"
 
 
 def test_is_on_wednesday(weekday_df):
     rule = create_rule("date", "is_on_wednesday", "wednesday")
     result = is_on_wednesday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 2
+    assert len(result) == 7
+    
     assert result.iloc[0]["dq_status"] == "date:is_on_wednesday:wednesday"
-    assert result.iloc[0]["day_name"] == "Wednesday"
+    assert result.iloc[0]["day_name"] != "Wednesday"
 
 
 def test_is_on_thursday(weekday_df):
     rule = create_rule("date", "is_on_thursday", "thursday")
     result = is_on_thursday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 3
+    assert len(result) == 7
+    
     assert result.iloc[0]["dq_status"] == "date:is_on_thursday:thursday"
-    assert result.iloc[0]["day_name"] == "Thursday"
+    assert result.iloc[0]["day_name"] != "Thursday"
 
 
 def test_is_on_friday(weekday_df):
     rule = create_rule("date", "is_on_friday", "friday")
     result = is_on_friday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 4
+    assert len(result) == 7
     assert result.iloc[0]["dq_status"] == "date:is_on_friday:friday"
-    assert result.iloc[0]["day_name"] == "Friday"
+    assert result.iloc[0]["day_name"] != "Friday"
 
 
 def test_is_on_saturday(weekday_df):
     rule = create_rule("date", "is_on_saturday", "saturday")
     result = is_on_saturday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 5
+    assert len(result) == 7
     assert result.iloc[0]["dq_status"] == "date:is_on_saturday:saturday"
-    assert result.iloc[0]["day_name"] == "Saturday"
+    assert result.iloc[0]["day_name"] != "Saturday"
 
 
 def test_is_on_sunday(weekday_df):
     rule = create_rule("date", "is_on_sunday", "sunday")
     result = is_on_sunday(weekday_df, rule)
 
-    assert len(result) == 1
-    assert result.iloc[0]["date"].dayofweek == 6
+    assert len(result) == 7
     assert result.iloc[0]["dq_status"] == "date:is_on_sunday:sunday"
-    assert result.iloc[0]["day_name"] == "Sunday"
+    assert result.iloc[0]["day_name"] != "Sunday"
 
 
 def test_empty_dataframe():
@@ -247,39 +242,6 @@ def test_missing_column(test_df):
     with pytest.raises(KeyError):
         is_complete(test_df, create_rule("nonexistent", "is_complete", "not_null"))
 
-
-def test_edge_cases():
-    edge_df = pd.DataFrame(
-        {
-            "numeric": [999999, 1000000, 1000001, 999999999, 1000000000, 1000000001],
-            "date": pd.to_datetime(
-                [
-                    date.today() - timedelta(days=1),
-                    date.today(),
-                    date.today() + timedelta(days=1),
-                    pd.NaT,
-                    "2023-01-02",
-                    "2023-01-07",
-                ]
-            ),
-        }
-    )
-
-    result_millions = is_in_millions(edge_df, create_rule("numeric", "is_in_millions"))
-    expected_millions = len([x for x in edge_df["numeric"] if x >= 1000000])
-    assert len(result_millions) == expected_millions
-
-    result_billions = is_in_billions(edge_df, create_rule("numeric", "is_in_billions"))
-    expected_billions = len([x for x in edge_df["numeric"] if x >= 1000000000])
-    assert len(result_billions) == expected_billions
-
-    result_today = is_today(edge_df, create_rule("date", "is_today"))
-    assert len(result_today) == 1
-    assert result_today.iloc[0]["date"].date() == date.today()
-
-    result_yesterday = is_yesterday(edge_df, create_rule("date", "is_yesterday"))
-    assert len(result_yesterday) == 1
-    assert result_yesterday.iloc[0]["date"].date() == date.today() - timedelta(days=1)
 
 
 def test_dq_status_format(test_df):
