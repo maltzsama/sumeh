@@ -19,7 +19,7 @@ Functions:
 
     - is_t_minus_1(df: DataFrame, rule: dict) -> DataFrame:
         Retains rows where the date field equals yesterday (T-1) and flags them with dq_status.
-
+   
     - is_t_minus_2(df: DataFrame, rule: dict) -> DataFrame:
         Retains rows where the date field equals two days ago (T-2) and flags them with dq_status.
 
@@ -255,7 +255,7 @@ def is_in_millions(df, rule: dict):
         rule and an additional "dq_status" column describing the rule applied.
     """
     field, check, value = __extract_params(rule)
-    return df.filter(col(field) >= lit(1_000_000)).withColumn(
+    return df.filter(col(field) < lit(1_000_000)).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -278,7 +278,7 @@ def is_in_billions(df, rule: dict):
         additional "dq_status" column.
     """
     field, check, value = __extract_params(rule)
-    return df.filter(col(field) >= lit(1_000_000_000)).withColumn(
+    return df.filter(col(field) < lit(1_000_000_000)).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1115,7 +1115,7 @@ def is_t_minus_1(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     target = date_sub(current_date(), 1)
-    return df.filter(col(field) == target).withColumn(
+    return df.filter(col(field) != target).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1139,7 +1139,7 @@ def is_t_minus_2(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     target = date_sub(current_date(), 2)
-    return df.filter(col(field) == target).withColumn(
+    return df.filter(col(field) != target).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1163,7 +1163,7 @@ def is_t_minus_3(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     target = date_sub(current_date(), 3)
-    return df.filter(col(field) == target).withColumn(
+    return df.filter(col(field) != target).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1187,7 +1187,7 @@ def is_today(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     today = current_date()
-    return df.filter(col(field) == today).withColumn(
+    return df.filter(col(field) != today).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1209,7 +1209,7 @@ def is_yesterday(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     yesterday = date_sub(current_date(), 1)
-    return df.filter(col(field) == yesterday).withColumn(
+    return df.filter(col(field) != yesterday).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1235,7 +1235,7 @@ def is_on_weekday(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     return df.filter(
-        (dayofweek(col(field)) >= 2) & (dayofweek(col(field)) <= 6)
+        (dayofweek(col(field)) == 1) | (dayofweek(col(field)) == 7)
     ).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
@@ -1261,7 +1261,7 @@ def is_on_weekend(df, rule: dict):
     """
     field, check, value = __extract_params(rule)
     return df.filter(
-        (dayofweek(col(field)) == 1) | (dayofweek(col(field)) == 7)
+        (dayofweek(col(field)) != 1) | (dayofweek(col(field)) != 7)
     ).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
@@ -1284,7 +1284,7 @@ def is_on_monday(df, rule: dict):
         containing a concatenated string of the field, check, and value.
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 2).withColumn(
+    return df.filter(dayofweek(col(field)) != 2).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1309,7 +1309,7 @@ def is_on_tuesday(df, rule: dict):
         'dq_status' column describing the validation status.
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 3).withColumn(
+    return df.filter(dayofweek(col(field)) != 3).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1330,7 +1330,7 @@ def is_on_wednesday(df, rule: dict):
         Additionally, a new column 'dq_status' is added, which contains a string in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 4).withColumn(
+    return df.filter(dayofweek(col(field)) != 4).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1351,7 +1351,7 @@ def is_on_thursday(df, rule: dict):
                    Additionally, a new column "dq_status" is added, containing a concatenated string of the field, check, and value.
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 5).withColumn(
+    return df.filter(dayofweek(col(field)) != 5).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1373,7 +1373,7 @@ def is_on_friday(df, rule: dict):
         representation of the rule applied in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 6).withColumn(
+    return df.filter(dayofweek(col(field)) != 6).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1394,7 +1394,7 @@ def is_on_saturday(df, rule: dict):
         Additionally, a new column "dq_status" is added, containing a string in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 7).withColumn(
+    return df.filter(dayofweek(col(field)) != 7).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1416,7 +1416,7 @@ def is_on_sunday(df, rule: dict):
         DataFrame, containing a string in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    return df.filter(dayofweek(col(field)) == 1).withColumn(
+    return df.filter(dayofweek(col(field)) != 1).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 

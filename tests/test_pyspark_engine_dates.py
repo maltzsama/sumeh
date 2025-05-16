@@ -44,16 +44,16 @@ def test_is_in_millions(df_dates):
     df = is_in_millions(
         df_dates, {"field": "in_millions", "check_type": "is_in_millions", "value": ""}
     )
-    assert df.filter(col("in_millions") < 1_000_000).count() == 0
-    assert df.filter(col("in_millions") >= 1_000_000).count() == 1
+    assert df.filter(col("in_millions") >= 1_000_000).count() == 0
+    assert df.filter(col("in_millions") < 1_000_000).count() == 1
 
 
 def test_is_in_billions(df_dates):
     df = is_in_billions(
         df_dates, {"field": "in_billions", "check_type": "is_in_billions", "value": ""}
     )
-    assert df.filter(col("in_billions") < 1_000_000_000).count() == 0
-    assert df.filter(col("in_billions") >= 1_000_000_000).count() == 1
+    assert df.filter(col("in_billions") >= 1_000_000_000).count() == 0
+    assert df.filter(col("in_billions") < 1_000_000_000).count() == 1
 
 
 @pytest.fixture
@@ -72,7 +72,7 @@ def test_is_t_minus_1(df_relatives):
         df_relatives, {"field": "dt", "check_type": "is_t_minus_1", "value": ""}
     )
     target = date.today() - timedelta(days=1)
-    assert df.filter(col("dt") == target).count() == 1
+    assert df.filter(col("dt") == target).count() == 0
 
 
 def test_is_t_minus_2(df_relatives):
@@ -80,7 +80,7 @@ def test_is_t_minus_2(df_relatives):
         df_relatives, {"field": "dt", "check_type": "is_t_minus_2", "value": ""}
     )
     target = date.today() - timedelta(days=2)
-    assert df.filter(col("dt") == target).count() == 1
+    assert df.filter(col("dt") == target).count() == 0
 
 
 def test_is_t_minus_3(df_relatives):
@@ -88,19 +88,19 @@ def test_is_t_minus_3(df_relatives):
         df_relatives, {"field": "dt", "check_type": "is_t_minus_3", "value": ""}
     )
     target = date.today() - timedelta(days=3)
-    assert df.filter(col("dt") == target).count() == 1
+    assert df.filter(col("dt") == target).count() == 0
 
 
 def test_is_today_and_yesterday(df_relatives):
     df_today = is_today(
         df_relatives, {"field": "dt", "check_type": "is_today", "value": ""}
     )
-    assert df_today.filter(col("dt") == date.today()).count() == 1
+    assert df_today.filter(col("dt") == date.today()).count() == 0
 
     df_yes = is_yesterday(
         df_relatives, {"field": "dt", "check_type": "is_yesterday", "value": ""}
     )
-    assert df_yes.filter(col("dt") == date.today() - timedelta(days=1)).count() == 1
+    assert df_yes.filter(col("dt") == date.today() - timedelta(days=1)).count() == 0
 
 
 def test_weekday_and_weekend(df_relatives):
@@ -108,12 +108,12 @@ def test_weekday_and_weekend(df_relatives):
         df_relatives, {"field": "dt", "check_type": "is_on_weekday", "value": ""}
     )
     wd_count = df_wd.count()
-    assert wd_count >= 4
+    assert wd_count == 1
 
     df_we = is_on_weekend(
         df_relatives, {"field": "dt", "check_type": "is_on_weekend", "value": ""}
     )
-    assert df_we.count() <= 2
+    assert df_we.count() == 5
 
 
 @pytest.mark.parametrize(
@@ -131,4 +131,4 @@ def test_weekday_and_weekend(df_relatives):
 def test_each_weekday(df_relatives, fn, weekday):
     df = fn(df_relatives, {"field": "dt", "check_type": fn.__name__, "value": ""})
     vals = [row.dt.weekday() for row in df.collect()]
-    assert all(v == weekday for v in vals)
+    assert all(v != weekday for v in vals)
