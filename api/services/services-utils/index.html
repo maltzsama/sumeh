@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../../img/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
@@ -544,6 +544,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#sumeh.services.utils.__transform_date_format_in_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      __transform_date_format_in_pattern
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -795,6 +804,15 @@
   <a href="#sumeh.services.utils.__parse_databricks_uri" class="md-nav__link">
     <span class="md-ellipsis">
       __parse_databricks_uri
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.services.utils.__transform_date_format_in_pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      __transform_date_format_in_pattern
     </span>
   </a>
   
@@ -1454,6 +1472,55 @@ will be used.</p>
 
 </div>
 
+<div class="doc doc-object doc-function">
+
+
+<h2 id="sumeh.services.utils.__transform_date_format_in_pattern" class="doc doc-heading">
+            <code class=" language-python"><span class="n">__transform_date_format_in_pattern</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span></code>
+
+<a href="#sumeh.services.utils.__transform_date_format_in_pattern" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+
+
+            <details class="quote">
+              <summary>Source code in <code>sumeh/services/utils.py</code></summary>
+              <div class="codehilite"><table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__transform_date_format_in_pattern</span><span class="p">(</span><span class="n">date_format</span><span class="p">):</span>
+    <span class="n">date_patterns</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;DD&#39;</span><span class="p">:</span> <span class="s1">&#39;(0[1-9]|[12][0-9]|3[01])&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;MM&#39;</span><span class="p">:</span> <span class="s1">&#39;(0[1-9]|1[012])&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;YYYY&#39;</span><span class="p">:</span> <span class="s1">&#39;(19|20)\d\d&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;YY&#39;</span><span class="p">:</span> <span class="s1">&#39;\d\d&#39;</span><span class="p">,</span>
+        <span class="s1">&#39; &#39;</span><span class="p">:</span> <span class="s1">&#39;\s&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.&#39;</span><span class="p">:</span> <span class="s1">&#39;\.&#39;</span>
+    <span class="p">}</span>
+
+    <span class="n">date_pattern</span> <span class="o">=</span> <span class="n">date_format</span>
+    <span class="k">for</span> <span class="n">single_format</span><span class="p">,</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">date_patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">date_pattern</span> <span class="o">=</span> <span class="n">date_pattern</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">single_format</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">date_pattern</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
 
 
   </div>
@@ -1509,10 +1576,10 @@ will be used.</p>
     
     
       
-      <script id="__config" type="application/json">{"base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.13a4f30d.min.js"></script>
       
     
   </body>

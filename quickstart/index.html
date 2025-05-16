@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../img/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -76,6 +76,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#quickstart" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -257,6 +262,21 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    quickstart
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -269,6 +289,79 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Installation 💻
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-loading-rules-and-schema-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Loading Rules and Schema Configuration ⚙️
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-schema-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Schema Validation 📐
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Data Validation 🔍
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-summarization" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Summarization 📊
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-one-step-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. One-Step Reporting 📝
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -658,6 +751,70 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Installation 💻
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-loading-rules-and-schema-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Loading Rules and Schema Configuration ⚙️
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-schema-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Schema Validation 📐
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Data Validation 🔍
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-summarization" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Summarization 📊
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-one-step-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. One-Step Reporting 📝
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -673,9 +830,100 @@
 
 
 
-  <h1>quickstart</h1>
+<h1 id="quickstart">Quickstart 🚀<a class="headerlink" href="#quickstart" title="Permanent link">&para;</a></h1>
+<p>A concise guide to get started with Sumeh’s unified data quality framework.</p>
+<h2 id="1-installation">1. Installation 💻<a class="headerlink" href="#1-installation" title="Permanent link">&para;</a></h2>
+<p>Install Sumeh via pip (recommended) or conda:</p>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>sumeh
+<span class="c1"># or</span>
+conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>sumeh
+</code></pre></div>
 
+<h2 id="2-loading-rules-and-schema-configuration">2. Loading Rules and Schema Configuration ⚙️<a class="headerlink" href="#2-loading-rules-and-schema-configuration" title="Permanent link">&para;</a></h2>
+<p>Use <strong><code>get_rules_config</code></strong> and <strong><code>get_schema_config</code></strong> to fetch your validation rules and expected schema from various sources.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sumeh</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_rules_config</span><span class="p">,</span> <span class="n">get_schema_config</span>
 
+<span class="c1"># Load rules from CSV</span>
+<span class="n">rules</span> <span class="o">=</span> <span class="n">get_rules_config</span><span class="p">(</span><span class="s2">&quot;path/to/rules.csv&quot;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Load expected schema from Glue Data Catalog</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">get_schema_config</span><span class="p">(</span>
+    <span class="s2">&quot;glue&quot;</span><span class="p">,</span>
+    <span class="n">catalog_name</span><span class="o">=</span><span class="s2">&quot;my_catalog&quot;</span><span class="p">,</span>
+    <span class="n">database_name</span><span class="o">=</span><span class="s2">&quot;my_db&quot;</span><span class="p">,</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;my_table&quot;</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>Supported rule/schema sources include:</p>
+<ul>
+<li><code>bigquery://project.dataset.table</code> 🌐</li>
+<li><code>s3://bucket/path</code> ☁️</li>
+<li>Local CSV (<code>*.csv</code>) 📄</li>
+<li>Relational ("mysql", "postgresql") via kwargs 🗄️</li>
+<li>AWS Glue (<code>"glue"</code>) 🔥</li>
+<li>DuckDB (<code>duckdb://db_path.table</code>) 🦆</li>
+<li>Databricks (<code>databricks://catalog.schema.table</code>) 💎</li>
+</ul>
+<h2 id="3-schema-validation">3. Schema Validation 📐<a class="headerlink" href="#3-schema-validation" title="Permanent link">&para;</a></h2>
+<p>Before validating data, ensure your DataFrame or connection matches the expected schema:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sumeh</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_schema</span>
+
+<span class="c1"># For a Spark DataFrame:</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyspark.sql</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparkSession</span>
+<span class="n">spark</span> <span class="o">=</span> <span class="n">SparkSession</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">getOrCreate</span><span class="p">()</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">parquet</span><span class="p">(</span><span class="s2">&quot;data.parquet&quot;</span><span class="p">)</span>
+
+<span class="n">is_valid</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">validate_schema</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">expected</span><span class="o">=</span><span class="n">schema</span><span class="p">,</span>
+    <span class="n">engine</span><span class="o">=</span><span class="s2">&quot;pyspark_engine&quot;</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Schema mismatches:&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="4-data-validation">4. Data Validation 🔍<a class="headerlink" href="#4-data-validation" title="Permanent link">&para;</a></h2>
+<p>Apply your loaded rules to any supported DataFrame using <strong><code>validate</code></strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sumeh</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate</span>
+
+<span class="c1"># Example with Pandas:</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data.csv&quot;</span><span class="p">)</span>
+
+<span class="c1"># Validate (detects engine automatically)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rules</span><span class="p">)</span>
+<span class="c1"># `result` structure depends on engine (e.g., CheckResult for cuallee engines)</span>
+</code></pre></div>
+
+<h2 id="5-summarization">5. Summarization 📊<a class="headerlink" href="#5-summarization" title="Permanent link">&para;</a></h2>
+<p>Generate a tabular summary of violations and pass rates with <strong><code>summarize</code></strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sumeh</span><span class="w"> </span><span class="kn">import</span> <span class="n">summarize</span>
+
+<span class="c1"># For DataFrames requiring manual total_rows (e.g., Pandas):</span>
+<span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="n">summary_df</span> <span class="o">=</span> <span class="n">summarize</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>       <span class="c1"># could be validation output or raw DataFrame</span>
+    <span class="n">rules</span><span class="o">=</span><span class="n">rules</span><span class="p">,</span>
+    <span class="n">total_rows</span><span class="o">=</span><span class="n">total</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary_df</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="6-one-step-reporting">6. One-Step Reporting 📝<a class="headerlink" href="#6-one-step-reporting" title="Permanent link">&para;</a></h2>
+<p>Use <strong><code>report</code></strong> for an end-to-end quality check and summary in one call:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sumeh</span><span class="w"> </span><span class="kn">import</span> <span class="n">report</span>
+
+<span class="n">report_df</span> <span class="o">=</span> <span class="n">report</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>              <span class="c1"># your DataFrame or connection</span>
+    <span class="n">rules</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Quality Check&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">report_df</span><span class="p">)</span>
+</code></pre></div>
+
+<hr />
+<p><em>For deeper customization and engine-specific options, explore the full API and examples in the <a href="https://github.com/maltzsama/sumeh">Sumeh repository</a>.</em></p>
 
 
 
@@ -724,10 +972,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../assets/javascripts/bundle.13a4f30d.min.js"></script>
       
     
   </body>

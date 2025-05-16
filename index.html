@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="img/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.342714a4.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
@@ -1032,6 +1032,166 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <span class="p">}</span>
 </code></pre></div>
 
+<p><strong>Supported Validation Rules</strong></p>
+<p>The following data quality checks are available:</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>is_positive</code></td>
+<td>Filters rows where the specified column is less than zero.</td>
+</tr>
+<tr>
+<td><code>is_negative</code></td>
+<td>Filters rows where the specified column is greater than or equal to zero.</td>
+</tr>
+<tr>
+<td><code>is_complete</code></td>
+<td>Filters rows where the specified column is null.</td>
+</tr>
+<tr>
+<td><code>validate_date_format</code></td>
+<td>Filters rows where the specified column does not match the expected date format or is null.</td>
+</tr>
+<tr>
+<td><code>is_future_date</code></td>
+<td>Filters rows where the specified date column is after today’s date.</td>
+</tr>
+<tr>
+<td><code>is_past_date</code></td>
+<td>Filters rows where the specified date column is before today’s date.</td>
+</tr>
+<tr>
+<td><code>is_date_between</code></td>
+<td>Filters rows where the specified date column is not within the given start–end range.</td>
+</tr>
+<tr>
+<td><code>is_date_after</code></td>
+<td>Filters rows where the specified date column is before the date provided in the rule.</td>
+</tr>
+<tr>
+<td><code>is_date_before</code></td>
+<td>Filters rows where the specified date column is after the date provided in the rule.</td>
+</tr>
+<tr>
+<td><code>is_unique</code></td>
+<td>Identifies rows with duplicate values in the specified column.</td>
+</tr>
+<tr>
+<td><code>are_complete</code></td>
+<td>Filters rows where any of the specified columns is null.</td>
+</tr>
+<tr>
+<td><code>are_unique</code></td>
+<td>Identifies rows with duplicate combinations of the specified columns.</td>
+</tr>
+<tr>
+<td><code>is_greater_than</code></td>
+<td>Filters rows where the specified column is less than or equal to the threshold value.</td>
+</tr>
+<tr>
+<td><code>is_greater_or_equal_than</code></td>
+<td>Filters rows where the specified column is less than the threshold value.</td>
+</tr>
+<tr>
+<td><code>is_less_than</code></td>
+<td>Filters rows where the specified column is greater than or equal to the threshold value.</td>
+</tr>
+<tr>
+<td><code>is_less_or_equal_than</code></td>
+<td>Filters rows where the specified column is greater than the threshold value.</td>
+</tr>
+<tr>
+<td><code>is_equal</code></td>
+<td>Filters rows where the specified column is not equal (null-safe) to the given value.</td>
+</tr>
+<tr>
+<td><code>is_equal_than</code></td>
+<td>Alias of <code>is_equal</code>.</td>
+</tr>
+<tr>
+<td><code>is_contained_in</code></td>
+<td>Filters rows where the specified column is not in the provided list of values.</td>
+</tr>
+<tr>
+<td><code>not_contained_in</code></td>
+<td>Filters rows where the specified column is in the provided list of values.</td>
+</tr>
+<tr>
+<td><code>is_between</code></td>
+<td>Filters rows where the specified column is not within the given numeric range.</td>
+</tr>
+<tr>
+<td><code>has_pattern</code></td>
+<td>Filters rows where the specified column does not match the given regular-expression pattern.</td>
+</tr>
+<tr>
+<td><code>is_legit</code></td>
+<td>Filters rows where the specified column is null or does not match a non-whitespace pattern (<code>\S*</code>).</td>
+</tr>
+<tr>
+<td><code>is_primary_key</code></td>
+<td>Alias of <code>is_unique</code> (checks uniqueness of a single column).</td>
+</tr>
+<tr>
+<td><code>is_composite_key</code></td>
+<td>Alias of <code>are_unique</code> (checks uniqueness across multiple columns).</td>
+</tr>
+<tr>
+<td><code>has_max</code></td>
+<td>Filters rows where the specified column exceeds the maximum threshold.</td>
+</tr>
+<tr>
+<td><code>has_min</code></td>
+<td>Filters rows where the specified column is below the minimum threshold.</td>
+</tr>
+<tr>
+<td><code>has_std</code></td>
+<td>Returns all rows if the standard deviation of the specified column exceeds the threshold; otherwise empty.</td>
+</tr>
+<tr>
+<td><code>has_mean</code></td>
+<td>Returns all rows if the mean of the specified column exceeds the threshold; otherwise empty.</td>
+</tr>
+<tr>
+<td><code>has_sum</code></td>
+<td>Returns all rows if the sum of the specified column exceeds the threshold; otherwise empty.</td>
+</tr>
+<tr>
+<td><code>has_cardinality</code></td>
+<td>Returns all rows if the distinct count of the specified column exceeds the threshold; otherwise empty.</td>
+</tr>
+<tr>
+<td><code>has_infogain</code></td>
+<td>Uses distinct-count as a proxy for information gain; returns all rows if it exceeds the threshold; otherwise empty.</td>
+</tr>
+<tr>
+<td><code>has_entropy</code></td>
+<td>Uses distinct-count as a proxy for entropy; returns all rows if it exceeds the threshold; otherwise empty.</td>
+</tr>
+<tr>
+<td><code>all_date_checks</code></td>
+<td>Filters rows where the specified date column is before today’s date (similar to <code>is_past_date</code>).</td>
+</tr>
+<tr>
+<td><code>satisfies</code></td>
+<td>Filters rows where the given SQL expression (via <code>expr(value)</code>) is not satisfied.</td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td>Applies a list of named validation rules and returns aggregated and raw result DataFrames.</td>
+</tr>
+<tr>
+<td><code>validate_schema</code></td>
+<td>Compares the actual schema of a DataFrame against an expected schema and returns a match flag and errors.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="supported-validation-rules">Supported Validation Rules<a class="headerlink" href="#supported-validation-rules" title="Permanent link">&para;</a></h2>
 <p>Sumeh supports a wide variety of validation checks including:
 - Completeness checks (<code>is_complete</code>, <code>are_complete</code>)
@@ -1140,10 +1300,10 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
     
     
       
-      <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="assets/javascripts/bundle.13a4f30d.min.js"></script>
       
     
   </body>
