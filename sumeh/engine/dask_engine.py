@@ -409,6 +409,21 @@ def is_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df[~df[field].isin(lst)]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
+def is_in(df: dd.Dataframe, rule: dict) -> dd.DataFrame:
+    """
+    Checks if the specified rule is contained within the given Dask DataFrame.
+
+    This function acts as a wrapper for the `is_contained_in` function, 
+    passing the provided DataFrame and rule to it.
+    
+    Args:
+        df (dd.DataFrame): The Dask DataFrame to evaluate.
+        rule (dict): A dictionary representing the rule to check against the DataFrame.
+
+    Returns:
+        dd.DataFrame: A Dask DataFrame resulting from the evaluation of the rule.
+    """
+    return is_contained_in(df, rule)
 
 def not_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
@@ -433,6 +448,22 @@ def not_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df[df[field].isin(lst)]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
+def not_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame by excluding rows where the specified rule is satisfied.
+
+    This function delegates the filtering logic to the `not_contained_in` function.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to be filtered.
+        rule (dict): A dictionary defining the filtering rule. The structure and 
+                     interpretation of this rule depend on the implementation of 
+                     `not_contained_in`.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame with rows excluded based on the rule.
+    """
+    return not_contained_in(df, rule)
 
 def is_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """

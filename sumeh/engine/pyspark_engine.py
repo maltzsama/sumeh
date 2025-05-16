@@ -607,6 +607,19 @@ def is_contained_in(df: DataFrame, rule: dict) -> DataFrame:
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
+def is_in(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Checks if the values in the specified column of a DataFrame are contained within a given set of values.
+
+    Args:
+        df (DataFrame): The input DataFrame to evaluate.
+        rule (dict): A dictionary containing the rule for the check. It should specify the column name
+                     and the set of values to check against.
+
+    Returns:
+        DataFrame: A DataFrame with the applied rule, typically filtered or modified based on the check.
+    """
+    return is_contained_in(df, rule)
 
 def not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
     """
@@ -632,6 +645,20 @@ def not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
+def not_in(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters rows in a DataFrame where the specified rule is not contained.
+
+    This function delegates the operation to the `not_contained_in` function.
+
+    Args:
+        df (DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary specifying the rule to apply for filtering.
+
+    Returns:
+        DataFrame: A new DataFrame with rows that do not match the specified rule.
+    """
+    return not_contained_in(df, rule)
 
 def is_between(df: DataFrame, rule: dict) -> DataFrame:
     """

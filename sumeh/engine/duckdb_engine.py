@@ -345,6 +345,17 @@ def _is_contained_in(r: __RuleCtx) -> str:
     """
     return f"{r.column} IN {__format_sequence(r.value)}"
 
+def _is_in(r: __RuleCtx) -> str:
+    """
+    Determines if a rule context is contained within a specific condition.
+
+    Args:
+        r (__RuleCtx): The rule context to evaluate.
+
+    Returns:
+        str: A string indicating whether the rule context is contained.
+    """
+    return is_contained_in(r)
 
 def _not_contained_in(r: __RuleCtx) -> str:
     """
@@ -360,6 +371,17 @@ def _not_contained_in(r: __RuleCtx) -> str:
     """
     return f"{r.column} NOT IN {__format_sequence(r.value)}"
 
+def _not_in(r: __RuleCtx) -> str:
+    """
+    Generates a string representation for a "not in" rule context.
+
+    Args:
+        r (__RuleCtx): The rule context to be evaluated.
+
+    Returns:
+        str: A string representation indicating the "not in" condition.
+    """
+    return not_contained_in(r)
 
 def _satisfies(r: __RuleCtx) -> str:
     """

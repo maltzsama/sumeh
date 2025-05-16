@@ -467,6 +467,12 @@ def is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
 
+def is_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Alias for is_contained_in function.
+    """
+    return is_contained_in(df, rule)
+
 
 def not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
@@ -489,6 +495,12 @@ def not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return df.filter(pl.col(field).is_in(lst)).with_columns(
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
+
+def not_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Alias for not_contained_in function.
+    """
+    return not_contained_in(df, rule)
 
 
 def is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
