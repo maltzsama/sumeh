@@ -97,6 +97,51 @@ report = report(df, rules, name="My Check")
 }
 ```
 
+**Supported Validation Rules**
+
+The following data quality checks are available:
+
+| Test                       | Description                                                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `is_positive`              | Filters rows where the specified column is less than zero.                                                          |
+| `is_negative`              | Filters rows where the specified column is greater than or equal to zero.                                           |
+| `is_complete`              | Filters rows where the specified column is null.                                                                    |
+| `validate_date_format`     | Filters rows where the specified column does not match the expected date format or is null.                         |
+| `is_future_date`           | Filters rows where the specified date column is after today’s date.                                                 |
+| `is_past_date`             | Filters rows where the specified date column is before today’s date.                                                |
+| `is_date_between`          | Filters rows where the specified date column is not within the given start–end range.                               |
+| `is_date_after`            | Filters rows where the specified date column is before the date provided in the rule.                               |
+| `is_date_before`           | Filters rows where the specified date column is after the date provided in the rule.                                |
+| `is_unique`                | Identifies rows with duplicate values in the specified column.                                                      |
+| `are_complete`             | Filters rows where any of the specified columns is null.                                                            |
+| `are_unique`               | Identifies rows with duplicate combinations of the specified columns.                                               |
+| `is_greater_than`          | Filters rows where the specified column is less than or equal to the threshold value.                               |
+| `is_greater_or_equal_than` | Filters rows where the specified column is less than the threshold value.                                           |
+| `is_less_than`             | Filters rows where the specified column is greater than or equal to the threshold value.                            |
+| `is_less_or_equal_than`    | Filters rows where the specified column is greater than the threshold value.                                        |
+| `is_equal`                 | Filters rows where the specified column is not equal (null-safe) to the given value.                                |
+| `is_equal_than`            | Alias of `is_equal`.                                                                                                |
+| `is_contained_in`          | Filters rows where the specified column is not in the provided list of values.                                      |
+| `not_contained_in`         | Filters rows where the specified column is in the provided list of values.                                          |
+| `is_between`               | Filters rows where the specified column is not within the given numeric range.                                      |
+| `has_pattern`              | Filters rows where the specified column does not match the given regular-expression pattern.                        |
+| `is_legit`                 | Filters rows where the specified column is null or does not match a non-whitespace pattern (`\S*`).                 |
+| `is_primary_key`           | Alias of `is_unique` (checks uniqueness of a single column).                                                        |
+| `is_composite_key`         | Alias of `are_unique` (checks uniqueness across multiple columns).                                                  |
+| `has_max`                  | Filters rows where the specified column exceeds the maximum threshold.                                              |
+| `has_min`                  | Filters rows where the specified column is below the minimum threshold.                                             |
+| `has_std`                  | Returns all rows if the standard deviation of the specified column exceeds the threshold; otherwise empty.          |
+| `has_mean`                 | Returns all rows if the mean of the specified column exceeds the threshold; otherwise empty.                        |
+| `has_sum`                  | Returns all rows if the sum of the specified column exceeds the threshold; otherwise empty.                         |
+| `has_cardinality`          | Returns all rows if the distinct count of the specified column exceeds the threshold; otherwise empty.              |
+| `has_infogain`             | Uses distinct-count as a proxy for information gain; returns all rows if it exceeds the threshold; otherwise empty. |
+| `has_entropy`              | Uses distinct-count as a proxy for entropy; returns all rows if it exceeds the threshold; otherwise empty.          |
+| `all_date_checks`          | Filters rows where the specified date column is before today’s date (similar to `is_past_date`).                    |
+| `satisfies`                | Filters rows where the given SQL expression (via `expr(value)`) is not satisfied.                                   |
+| `validate`                 | Applies a list of named validation rules and returns aggregated and raw result DataFrames.                          |
+| `validate_schema`          | Compares the actual schema of a DataFrame against an expected schema and returns a match flag and errors.           |
+
+
 ## Supported Validation Rules
 
 Sumeh supports a wide variety of validation checks including:
