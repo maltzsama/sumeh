@@ -1502,12 +1502,12 @@ will be used.</p>
 <span class="normal">159</span>
 <span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">__transform_date_format_in_pattern</span><span class="p">(</span><span class="n">date_format</span><span class="p">):</span>
     <span class="n">date_patterns</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;DD&#39;</span><span class="p">:</span> <span class="s1">&#39;(0[1-9]|[12][0-9]|3[01])&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;MM&#39;</span><span class="p">:</span> <span class="s1">&#39;(0[1-9]|1[012])&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;YYYY&#39;</span><span class="p">:</span> <span class="s1">&#39;(19|20)\d\d&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;YY&#39;</span><span class="p">:</span> <span class="s1">&#39;\d\d&#39;</span><span class="p">,</span>
-        <span class="s1">&#39; &#39;</span><span class="p">:</span> <span class="s1">&#39;\s&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;.&#39;</span><span class="p">:</span> <span class="s1">&#39;\.&#39;</span>
+        <span class="s1">&#39;DD&#39;</span><span class="p">:</span>   <span class="s1">&#39;(0[1-9]|[12][0-9]|3[01])&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;MM&#39;</span><span class="p">:</span>   <span class="s1">&#39;(0[1-9]|1[012])&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;YYYY&#39;</span><span class="p">:</span> <span class="s1">&#39;(19|20)</span><span class="se">\\</span><span class="s1">d</span><span class="se">\\</span><span class="s1">d&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;YY&#39;</span><span class="p">:</span>   <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">d</span><span class="se">\\</span><span class="s1">d&#39;</span><span class="p">,</span>
+        <span class="s1">&#39; &#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">s&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;.&#39;</span><span class="p">:</span>    <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">.&#39;</span>
     <span class="p">}</span>
 
     <span class="n">date_pattern</span> <span class="o">=</span> <span class="n">date_format</span>
