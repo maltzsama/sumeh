@@ -109,6 +109,7 @@ import pandas as pd
 import dask.dataframe as dd
 import numpy as np
 from datetime import datetime
+from datetime import date
 from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 from typing import List, Dict, Any, Tuple
 
@@ -761,6 +762,53 @@ def satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     meta = df._meta
     viol = df.map_partitions(_filter_viol, meta=meta)
     return viol.assign(dq_status=f"{field}:{check}:{value}")
+    
+    
+def validate_date_format(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    field, check, fmt = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], format=fmt, errors="coerce")
+    viol = df[col_dt.isna()]
+    return viol.assign(dq_status=f"{field}:{check}:{fmt}")
+
+def is_future_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    field, check, _ = __extract_params(rule)
+    today = pd.Timestamp(date.today())
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt > today]
+    return viol.assign(dq_status=f"{field}:{check}:{today.date().isoformat()}")
+
+def is_past_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    field, check, _ = __extract_params(rule)
+    today = pd.Timestamp(date.today())
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt < today]
+    return viol.assign(dq_status=f"{field}:{check}:{today.date().isoformat()}")
+
+def is_date_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    field, check, val = __extract_params(rule)
+    start, end = [pd.Timestamp(v.strip()) for v in val.strip("[]").split(",")]
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    mask = (col_dt >= start) & (col_dt <= end)
+    viol = df[~mask]
+    return viol.assign(dq_status=f"{field}:{check}:{val}")
+
+def is_date_after(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    field, check, date_str = __extract_params(rule)
+    ref = pd.Timestamp(date_str)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt < ref]
+    return viol.assign(dq_status=f"{field}:{check}:{date_str}")
+
+def is_date_before(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    field, check, date_str = __extract_params(rule)
+    ref = pd.Timestamp(date_str)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt > ref]
+    return viol.assign(dq_status=f"{field}:{check}:{date_str}")
+
+def all_date_checks(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    # é só alias para is_past_date
+    return is_past_date(df, rule)
 
 
 def validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
