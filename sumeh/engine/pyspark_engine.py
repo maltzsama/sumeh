@@ -19,7 +19,7 @@ Functions:
 
     - is_t_minus_1(df: DataFrame, rule: dict) -> DataFrame:
         Retains rows where the date field equals yesterday (T-1) and flags them with dq_status.
-   
+
     - is_t_minus_2(df: DataFrame, rule: dict) -> DataFrame:
         Retains rows where the date field equals two days ago (T-2) and flags them with dq_status.
 

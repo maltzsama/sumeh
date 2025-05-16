@@ -156,7 +156,7 @@ def test_is_on_monday(weekday_df):
     result = is_on_monday(weekday_df, rule)
 
     assert len(result) == 7
-    
+
     assert result.iloc[0]["dq_status"] == "date:is_on_monday:monday"
     assert result.iloc[0]["day_name"] != "Monday"
 
@@ -166,7 +166,7 @@ def test_is_on_tuesday(weekday_df):
     result = is_on_tuesday(weekday_df, rule)
 
     assert len(result) == 7
-    
+
     assert result.iloc[0]["dq_status"] == "date:is_on_tuesday:tuesday"
     assert result.iloc[0]["day_name"] != "Tuesday"
 
@@ -176,7 +176,7 @@ def test_is_on_wednesday(weekday_df):
     result = is_on_wednesday(weekday_df, rule)
 
     assert len(result) == 7
-    
+
     assert result.iloc[0]["dq_status"] == "date:is_on_wednesday:wednesday"
     assert result.iloc[0]["day_name"] != "Wednesday"
 
@@ -186,7 +186,7 @@ def test_is_on_thursday(weekday_df):
     result = is_on_thursday(weekday_df, rule)
 
     assert len(result) == 7
-    
+
     assert result.iloc[0]["dq_status"] == "date:is_on_thursday:thursday"
     assert result.iloc[0]["day_name"] != "Thursday"
 
@@ -241,7 +241,6 @@ def test_missing_column(test_df):
 
     with pytest.raises(KeyError):
         is_complete(test_df, create_rule("nonexistent", "is_complete", "not_null"))
-
 
 
 def test_dq_status_format(test_df):
