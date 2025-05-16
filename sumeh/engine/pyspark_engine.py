@@ -11,6 +11,54 @@ Functions:
     - is_negative(df: DataFrame, rule: dict) -> DataFrame:
         Filters rows where the specified field is non-negative and adds a data quality status column.
 
+    - is_in_millions(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the field value is at least 1,000,000 and flags them with dq_status.
+
+    - is_in_billions(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the field value is at least 1,000,000,000 and flags them with dq_status.
+
+    - is_t_minus_1(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field equals yesterday (T-1) and flags them with dq_status.
+
+    - is_t_minus_2(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field equals two days ago (T-2) and flags them with dq_status.
+
+    - is_t_minus_3(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field equals three days ago (T-3) and flags them with dq_status.
+
+    - is_today(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field equals today and flags them with dq_status.
+
+    - is_yesterday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field equals yesterday and flags them with dq_status.
+
+    - is_on_weekday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field falls on a weekday (Mon-Fri) and flags them with dq_status.
+
+    - is_on_weekend(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on a weekend (Sat-Sun) and flags them with dq_status.
+
+    - is_on_monday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Monday and flags them with dq_status.
+
+    - is_on_tuesday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Tuesday and flags them with dq_status.
+
+    - is_on_wednesday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Wednesday and flags them with dq_status.
+
+    - is_on_thursday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Thursday and flags them with dq_status.
+
+    - is_on_friday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Friday and flags them with dq_status.
+
+    - is_on_saturday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Saturday and flags them with dq_status.
+
+    - is_on_sunday(df: DataFrame, rule: dict) -> DataFrame:
+        Retains rows where the date field is on Sunday and flags them with dq_status.
+
     - is_complete(df: DataFrame, rule: dict) -> DataFrame:
         Filters rows where the specified field is null and adds a data quality status column.
 
@@ -130,7 +178,11 @@ from pyspark.sql.functions import (
     trim,
     split,
     expr,
+    date_sub,
+    dayofweek,
 )
+
+
 from typing import List, Dict, Any, Tuple
 import operator
 from functools import reduce
@@ -183,6 +235,50 @@ def is_negative(df: DataFrame, rule: dict) -> DataFrame:
     """
     field, check, value = __extract_params(rule)
     return df.filter(col(field) >= 0).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_in_millions(df, rule: dict):
+    """
+    Filters a DataFrame to include only rows where the specified field's value
+    is greater than or equal to 1,000,000 and adds a "dq_status" column with
+    a formatted string indicating the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter and modify.
+        rule (dict): A dictionary containing the rule parameters. It should
+                     include the field to check, the check type, and the value.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame with rows filtered based on the
+        rule and an additional "dq_status" column describing the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) >= lit(1_000_000)).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_in_billions(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified field's value
+    is greater than or equal to one billion, and adds a "dq_status" column with a
+    formatted string indicating the field, check, and value.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to check.
+            - 'check': The type of check being performed (e.g., "greater_than").
+            - 'value': The threshold value for the check.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an
+        additional "dq_status" column.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) >= lit(1_000_000_000)).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -998,6 +1094,329 @@ def all_date_checks(df: DataFrame, rule: dict) -> DataFrame:
     """
     field, check, value = __extract_params(rule)
     return df.filter((col(field) < current_date())).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_t_minus_1(df, rule: dict):
+    """
+    Filters the input DataFrame to include only rows where the specified field matches the date
+    corresponding to "T-1" (yesterday). Adds a new column "dq_status" to indicate the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to be checked.
+            - 'check': The type of check being performed (not used in filtering but included in "dq_status").
+            - 'value': The value associated with the check (not used in filtering but included in "dq_status").
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an additional "dq_status" column.
+    """
+    field, check, value = __extract_params(rule)
+    target = date_sub(current_date(), 1)
+    return df.filter(col(field) == target).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_t_minus_2(df, rule: dict):
+    """
+    Filters the input DataFrame to include only rows where the specified field matches the date
+    that is two days prior to the current date. Adds a new column 'dq_status' to indicate the
+    data quality status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to be checked.
+            - 'check': A string representing the type of check (not used in filtering).
+            - 'value': A value associated with the check (not used in filtering).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an additional
+        'dq_status' column indicating the field, check, and value.
+    """
+    field, check, value = __extract_params(rule)
+    target = date_sub(current_date(), 2)
+    return df.filter(col(field) == target).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_t_minus_3(df, rule: dict):
+    """
+    Filters the input DataFrame to include only rows where the specified field matches
+    the date that is three days prior to the current date. Adds a new column 'dq_status'
+    to indicate the data quality status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to be checked.
+            - 'check': A string representing the type of check (not used in filtering).
+            - 'value': A value associated with the rule (not used in filtering).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an
+        additional 'dq_status' column.
+    """
+    field, check, value = __extract_params(rule)
+    target = date_sub(current_date(), 3)
+    return df.filter(col(field) == target).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_today(df, rule: dict):
+    """
+    Filters a DataFrame to include only rows where the specified field matches the current date.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have
+                     the following keys:
+                     - 'field': The name of the column to check.
+                     - 'check': A string representing the type of check (not used in this function).
+                     - 'value': A value associated with the rule (not used in this function).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the current date and with an additional
+                               column "dq_status" indicating the rule applied in the format
+                               "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    today = current_date()
+    return df.filter(col(field) == today).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_yesterday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified field matches yesterday's date.
+    Adds a new column 'dq_status' to indicate the data quality status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to check.
+            - 'check': The type of check being performed (used for status message).
+            - 'value': Additional value information (used for status message).
+
+    Returns:
+        pyspark.sql.DataFrame: A filtered DataFrame with an additional 'dq_status' column.
+    """
+    field, check, value = __extract_params(rule)
+    yesterday = date_sub(current_date(), 1)
+    return df.filter(col(field) == yesterday).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_weekday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field
+    falls on a weekday (Monday to Friday). Adds a new column 'dq_status' to indicate
+    the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected to
+            include the following keys:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (used for logging).
+            - 'value': A value associated with the rule (used for logging).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where
+        the specified date field is a weekday, with an additional 'dq_status' column
+        describing the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        (dayofweek(col(field)) >= 2) & (dayofweek(col(field)) <= 6)
+    ).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_weekend(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field
+    falls on a weekend (Saturday or Sunday). Additionally, adds a new column
+    'dq_status' to indicate the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+                     to have the following keys:
+                     - 'field': The name of the date column to check.
+                     - 'check': A string representing the type of check (not used in logic).
+                     - 'value': A string representing the value to include in the 'dq_status' column.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where
+        the specified date field is on a weekend, with an additional 'dq_status' column.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        (dayofweek(col(field)) == 1) | (dayofweek(col(field)) == 7)
+    ).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_monday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Monday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing rule parameters. It is expected to include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (not used in this function).
+            - 'value': A value associated with the rule (not used in this function).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified
+        date field corresponds to a Monday. Additionally, a new column "dq_status" is added,
+        containing a concatenated string of the field, check, and value.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 2).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_tuesday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the day of the week
+    for a specified date column is Tuesday. Adds a new column 'dq_status' to
+    indicate the validation status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+            to include:
+            - 'field': The name of the column to check.
+            - 'check': A string describing the check being performed.
+            - 'value': A value associated with the check.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows
+        where the specified column corresponds to Tuesday, with an additional
+        'dq_status' column describing the validation status.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 3).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_wednesday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Wednesday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have the following keys:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (not used in the logic but included for status reporting).
+            - 'value': A value associated with the rule (not used in the logic but included for status reporting).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified field corresponds to a Wednesday.
+        Additionally, a new column 'dq_status' is added, which contains a string in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 4).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_thursday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date column falls on a Thursday.
+
+    Args:
+        df (DataFrame): The PySpark DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (not used in the filtering logic).
+            - 'value': A value associated with the rule (not used in the filtering logic).
+
+    Returns:
+        DataFrame: A new PySpark DataFrame filtered to include only rows where the specified column's day of the week is Thursday.
+                   Additionally, a new column "dq_status" is added, containing a concatenated string of the field, check, and value.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 5).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_friday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Friday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have the following keys:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (not used in this function but included for consistency).
+            - 'value': A value associated with the rule (not used in this function but included for consistency).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified date field
+        corresponds to a Friday. Additionally, a new column `dq_status` is added, which contains a string
+        representation of the rule applied in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 6).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_saturday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Saturday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing rule parameters. The function expects the rule to include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the check being performed (not used in logic, but included in the output column).
+            - 'value': A value to include in the output column (not used in logic, but included in the output column).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified field falls on a Saturday.
+        Additionally, a new column "dq_status" is added, containing a string in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 7).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_sunday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Sunday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field (str): The name of the column to check.
+            - check (str): A descriptive string for the check being performed.
+            - value (str): A value to include in the "dq_status" column for context.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified
+        date field corresponds to a Sunday. Additionally, a "dq_status" column is added to the
+        DataFrame, containing a string in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) == 1).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
