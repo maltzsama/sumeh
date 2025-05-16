@@ -113,6 +113,7 @@ from datetime import date
 from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 from typing import List, Dict, Any, Tuple
 
+
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Checks if the values in a specified field of a Dask DataFrame are positive.
@@ -125,8 +126,8 @@ def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value': The expected value or condition (e.g., "0").
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows where the specified field has 
-        negative values, with an additional column `dq_status` indicating the 
+        dd.DataFrame: A DataFrame containing rows where the specified field has
+        negative values, with an additional column `dq_status` indicating the
         field, check, and value that failed.
     """
     field, check, value = __extract_params(rule)
@@ -174,8 +175,8 @@ def is_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value': Additional value associated with the rule (not used in this function).
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows where the specified field is null, 
-        with an additional column `dq_status` indicating the data quality status in the format 
+        dd.DataFrame: A DataFrame containing rows where the specified field is null,
+        with an additional column `dq_status` indicating the data quality status in the format
         "{field}:{check}:{value}".
     """
     field, check, value = __extract_params(rule)
@@ -195,8 +196,8 @@ def is_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value': Additional value or metadata related to the check.
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that violate the uniqueness rule, 
-        with an additional column `dq_status` indicating the rule that was violated 
+        dd.DataFrame: A DataFrame containing rows that violate the uniqueness rule,
+        with an additional column `dq_status` indicating the rule that was violated
         in the format "{field}:{check}:{value}".
     """
     field, check, value = __extract_params(rule)
@@ -206,20 +207,19 @@ def is_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
-
 def are_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Checks if the specified fields in a Dask DataFrame are complete (non-null) 
+    Checks if the specified fields in a Dask DataFrame are complete (non-null)
     based on the provided rule and returns a DataFrame of violations.
 
     Args:
         df (dd.DataFrame): The input Dask DataFrame to check for completeness.
-        rule (dict): A dictionary containing the rule parameters. It should 
+        rule (dict): A dictionary containing the rule parameters. It should
             include the fields to check, the type of check, and the expected value.
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that violate the completeness 
-        rule, with an additional column `dq_status` indicating the rule details 
+        dd.DataFrame: A DataFrame containing rows that violate the completeness
+        rule, with an additional column `dq_status` indicating the rule details
         in the format "{fields}:{check}:{value}".
     """
     fields, check, value = __extract_params(rule)
@@ -240,7 +240,7 @@ def are_unique(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value': A value associated with the rule (used for status reporting).
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that violate the uniqueness rule, 
+        dd.DataFrame: A DataFrame containing rows that violate the uniqueness rule,
         with an additional column `dq_status` indicating the rule that was violated.
     """
     fields, check, value = __extract_params(rule)
@@ -279,21 +279,21 @@ def is_greater_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
 def is_greater_or_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Filters a Dask DataFrame to identify rows where a specified field's value 
-    is less than a given threshold, and annotates the resulting rows with a 
+    Filters a Dask DataFrame to identify rows where a specified field's value
+    is less than a given threshold, and annotates the resulting rows with a
     data quality status.
 
     Args:
         df (dd.DataFrame): The input Dask DataFrame to be checked.
-        rule (dict): A dictionary containing the rule parameters. It should 
+        rule (dict): A dictionary containing the rule parameters. It should
                      include the following keys:
                      - 'field': The column name in the DataFrame to check.
                      - 'check': The type of check being performed (e.g., 'greater_or_equal').
                      - 'value': The threshold value to compare against.
 
     Returns:
-        dd.DataFrame: A new Dask DataFrame containing only the rows that 
-                      violate the rule, with an additional column `dq_status` 
+        dd.DataFrame: A new Dask DataFrame containing only the rows that
+                      violate the rule, with an additional column `dq_status`
                       indicating the field, check type, and threshold value.
     """
     field, check, value = __extract_params(rule)
@@ -378,8 +378,8 @@ def is_equal_than(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value': The value to compare against.
 
     Returns:
-        dd.DataFrame: A new DataFrame containing rows that violate the equality rule. 
-                      An additional column `dq_status` is added, indicating the rule details 
+        dd.DataFrame: A new DataFrame containing rows that violate the equality rule.
+                      An additional column `dq_status` is added, indicating the rule details
                       in the format "{field}:{check}:{value}".
     """
     field, check, value = __extract_params(rule)
@@ -409,13 +409,14 @@ def is_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df[~df[field].isin(lst)]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
+
 def is_in(df: dd.Dataframe, rule: dict) -> dd.DataFrame:
     """
     Checks if the specified rule is contained within the given Dask DataFrame.
 
-    This function acts as a wrapper for the `is_contained_in` function, 
+    This function acts as a wrapper for the `is_contained_in` function,
     passing the provided DataFrame and rule to it.
-    
+
     Args:
         df (dd.DataFrame): The Dask DataFrame to evaluate.
         rule (dict): A dictionary representing the rule to check against the DataFrame.
@@ -425,9 +426,10 @@ def is_in(df: dd.Dataframe, rule: dict) -> dd.DataFrame:
     """
     return is_contained_in(df, rule)
 
+
 def not_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Filters a Dask DataFrame to identify rows where the specified field's value is 
+    Filters a Dask DataFrame to identify rows where the specified field's value is
     contained in a given list, and assigns a data quality status to the resulting rows.
 
     Args:
@@ -435,18 +437,19 @@ def not_contained_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
         rule (dict): A dictionary containing the rule parameters. It should include:
             - 'field': The column name in the DataFrame to check.
             - 'check': The type of check being performed (e.g., "not_contained_in").
-            - 'value': A string representation of a list of values to check against, 
+            - 'value': A string representation of a list of values to check against,
               formatted as "[value1, value2, ...]".
 
     Returns:
-        dd.DataFrame: A new DataFrame containing only the rows where the specified 
-        field's value is in the provided list, with an additional column `dq_status` 
+        dd.DataFrame: A new DataFrame containing only the rows where the specified
+        field's value is in the provided list, with an additional column `dq_status`
         indicating the rule applied in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
     lst = [v.strip() for v in value.strip("[]").split(",")]
     viol = df[df[field].isin(lst)]
     return viol.assign(dq_status=f"{field}:{check}:{value}")
+
 
 def not_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
@@ -456,8 +459,8 @@ def not_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
     Args:
         df (dd.DataFrame): The input Dask DataFrame to be filtered.
-        rule (dict): A dictionary defining the filtering rule. The structure and 
-                     interpretation of this rule depend on the implementation of 
+        rule (dict): A dictionary defining the filtering rule. The structure and
+                     interpretation of this rule depend on the implementation of
                      `not_contained_in`.
 
     Returns:
@@ -465,22 +468,23 @@ def not_in(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     return not_contained_in(df, rule)
 
+
 def is_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Filters a Dask DataFrame to identify rows where a specified field's value 
+    Filters a Dask DataFrame to identify rows where a specified field's value
     does not fall within a given range.
 
     Args:
         df (dd.DataFrame): The input Dask DataFrame to be checked.
-        rule (dict): A dictionary containing the rule parameters. It should 
+        rule (dict): A dictionary containing the rule parameters. It should
             include:
             - 'field': The column name in the DataFrame to check.
             - 'check': The type of check being performed (e.g., "between").
             - 'value': A string representing the range in the format "[lo,hi]".
 
     Returns:
-        dd.DataFrame: A new DataFrame containing only the rows that violate 
-        the specified range condition. An additional column `dq_status` is 
+        dd.DataFrame: A new DataFrame containing only the rows that violate
+        the specified range condition. An additional column `dq_status` is
         added to indicate the field, check, and value that caused the violation.
     """
     field, check, value = __extract_params(rule)
@@ -587,8 +591,8 @@ def has_max(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
 def has_min(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Checks if the values in a specified field of a Dask DataFrame are greater than 
-    or equal to a given minimum value. Returns a DataFrame containing rows that 
+    Checks if the values in a specified field of a Dask DataFrame are greater than
+    or equal to a given minimum value. Returns a DataFrame containing rows that
     violate this rule, with an additional column indicating the data quality status.
 
     Args:
@@ -599,8 +603,8 @@ def has_min(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value': The minimum value to compare against.
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that do not meet the minimum value 
-        requirement, with an additional column `dq_status` indicating the rule 
+        dd.DataFrame: A DataFrame containing rows that do not meet the minimum value
+        requirement, with an additional column `dq_status` indicating the rule
         violation in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
@@ -620,8 +624,8 @@ def has_std(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value' (float): The threshold value for the standard deviation.
 
     Returns:
-        dd.DataFrame: 
-            - If the standard deviation of the specified field exceeds the given value, 
+        dd.DataFrame:
+            - If the standard deviation of the specified field exceeds the given value,
               returns the original DataFrame with an additional column `dq_status` indicating the rule details.
             - If the standard deviation does not exceed the value, returns an empty DataFrame with the same structure.
     """
@@ -656,7 +660,7 @@ def has_mean(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
 def has_sum(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Checks if the sum of a specified field in a Dask DataFrame exceeds a given value 
+    Checks if the sum of a specified field in a Dask DataFrame exceeds a given value
     and returns a modified DataFrame with a status column if the condition is met.
 
     Args:
@@ -667,8 +671,8 @@ def has_sum(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value' (float): The threshold value to compare the sum against.
 
     Returns:
-        dd.DataFrame: A new Dask DataFrame. If the sum exceeds the threshold, the DataFrame 
-        will include a `dq_status` column with a status message. Otherwise, an empty 
+        dd.DataFrame: A new Dask DataFrame. If the sum exceeds the threshold, the DataFrame
+        will include a `dq_status` column with a status message. Otherwise, an empty
         DataFrame with the same structure as the input is returned.
     """
     field, check, value = __extract_params(rule)
@@ -691,9 +695,9 @@ def has_cardinality(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value' (int): The maximum allowed cardinality.
 
     Returns:
-        dd.DataFrame: If the cardinality of the specified field exceeds the given value, 
-        returns the original DataFrame with an additional column `dq_status` indicating 
-        the rule violation. Otherwise, returns an empty DataFrame with the same structure 
+        dd.DataFrame: If the cardinality of the specified field exceeds the given value,
+        returns the original DataFrame with an additional column `dq_status` indicating
+        the rule violation. Otherwise, returns an empty DataFrame with the same structure
         as the input DataFrame.
     """
     field, check, value = __extract_params(rule)
@@ -706,7 +710,7 @@ def has_cardinality(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 def has_infogain(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Evaluates whether a given field in a Dask DataFrame satisfies an information gain condition
-    based on the specified rule. If the condition is met, the DataFrame is updated with a 
+    based on the specified rule. If the condition is met, the DataFrame is updated with a
     `dq_status` column indicating the rule applied. Otherwise, an empty DataFrame is returned.
 
     Args:
@@ -717,7 +721,7 @@ def has_infogain(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
             - 'value' (float): The threshold value for the information gain.
 
     Returns:
-        dd.DataFrame: The original DataFrame with an added `dq_status` column if the condition 
+        dd.DataFrame: The original DataFrame with an added `dq_status` column if the condition
         is met, or an empty DataFrame if the condition is not satisfied.
     """
     field, check, value = __extract_params(rule)
@@ -793,34 +797,35 @@ def satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     meta = df._meta
     viol = df.map_partitions(_filter_viol, meta=meta)
     return viol.assign(dq_status=f"{field}:{check}:{value}")
-    
+
 
 def validate_date_format(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Validates the date format of a specified column in a Dask DataFrame.
 
-    This function checks whether the values in a specified column of the 
-    DataFrame conform to a given date format. Rows with invalid date formats 
+    This function checks whether the values in a specified column of the
+    DataFrame conform to a given date format. Rows with invalid date formats
     are returned with an additional column indicating the validation status.
 
     Args:
         df (dd.DataFrame): The Dask DataFrame to validate.
-        rule (dict): A dictionary containing the validation rule. It should 
+        rule (dict): A dictionary containing the validation rule. It should
                      include the following keys:
                      - 'field': The name of the column to validate.
                      - 'check': A string describing the validation check.
                      - 'fmt': The expected date format (e.g., '%Y-%m-%d').
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows where the date format 
-                      validation failed. An additional column `dq_status` 
-                      is added, which contains a string describing the 
+        dd.DataFrame: A DataFrame containing rows where the date format
+                      validation failed. An additional column `dq_status`
+                      is added, which contains a string describing the
                       validation status in the format "{field}:{check}:{fmt}".
     """
     field, check, fmt = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], format=fmt, errors="coerce")
     viol = df[col_dt.isna()]
     return viol.assign(dq_status=f"{field}:{check}:{fmt}")
+
 
 def is_future_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
@@ -850,6 +855,7 @@ def is_future_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df[col_dt > today]
     return viol.assign(dq_status=f"{field}:{check}:{today.date().isoformat()}")
 
+
 def is_past_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Checks if the values in a specified date column of a Dask DataFrame are in the past.
@@ -870,6 +876,7 @@ def is_past_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     col_dt = dd.to_datetime(df[field], errors="coerce")
     viol = df[col_dt < today]
     return viol.assign(dq_status=f"{field}:{check}:{today.date().isoformat()}")
+
 
 def is_date_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
@@ -894,25 +901,26 @@ def is_date_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df[~mask]
     return viol.assign(dq_status=f"{field}:{check}:{val}")
 
+
 def is_date_after(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
-    Filters a Dask DataFrame to identify rows where a specified date field is 
+    Filters a Dask DataFrame to identify rows where a specified date field is
     earlier than a given reference date.
 
     Args:
         df (dd.DataFrame): The input Dask DataFrame to be checked.
-        rule (dict): A dictionary containing the rule parameters. It should 
+        rule (dict): A dictionary containing the rule parameters. It should
             include:
             - field (str): The name of the column to check.
-            - check (str): A descriptive label for the check (used in the 
+            - check (str): A descriptive label for the check (used in the
               output status).
-            - date_str (str): The reference date as a string in a format 
+            - date_str (str): The reference date as a string in a format
               compatible with `pd.Timestamp`.
 
     Returns:
-        dd.DataFrame: A new Dask DataFrame containing only the rows where the 
-        specified date field is earlier than the reference date. An additional 
-        column `dq_status` is added, which contains a string describing the 
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the
+        specified date field is earlier than the reference date. An additional
+        column `dq_status` is added, which contains a string describing the
         rule violation in the format `field:check:date_str`.
 
     Raises:
@@ -923,6 +931,7 @@ def is_date_after(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     col_dt = dd.to_datetime(df[field], errors="coerce")
     viol = df[col_dt < ref]
     return viol.assign(dq_status=f"{field}:{check}:{date_str}")
+
 
 def is_date_before(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
@@ -946,6 +955,7 @@ def is_date_before(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df[col_dt > ref]
     return viol.assign(dq_status=f"{field}:{check}:{date_str}")
 
+
 def all_date_checks(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Applies date validation checks on a Dask DataFrame based on the provided rule.
@@ -965,20 +975,20 @@ def all_date_checks(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
 
 def validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
     """
-    Validate a Dask DataFrame against a set of rules and return the aggregated results 
+    Validate a Dask DataFrame against a set of rules and return the aggregated results
     and raw violations.
 
     Args:
         df (dd.DataFrame): The input Dask DataFrame to validate.
-        rules (list[dict]): A list of validation rules. Each rule is a dictionary 
+        rules (list[dict]): A list of validation rules. Each rule is a dictionary
             containing the following keys:
             - "check_type" (str): The name of the validation function to execute.
             - "value" (optional): The value to be used in the validation function.
             - "execute" (optional, bool): Whether to execute the rule. Defaults to True.
 
     Returns:
-        tuple[dd.DataFrame, dd.DataFrame]: 
-            - The first DataFrame contains the aggregated validation results, 
+        tuple[dd.DataFrame, dd.DataFrame]:
+            - The first DataFrame contains the aggregated validation results,
               with a concatenated "dq_status" column indicating the validation status.
             - The second DataFrame contains the raw violations for each rule.
     """
@@ -1068,11 +1078,11 @@ def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.Da
     Summarizes quality check results by evaluating rules against a Dask DataFrame.
 
     Args:
-        qc_ddf (dd.DataFrame): A Dask DataFrame containing quality check results. 
-            The DataFrame must include a "dq_status" column with rule violations 
+        qc_ddf (dd.DataFrame): A Dask DataFrame containing quality check results.
+            The DataFrame must include a "dq_status" column with rule violations
             in the format "column:rule:value".
-        rules (list[dict]): A list of dictionaries representing the rules to be 
-            evaluated. Each dictionary should include keys such as "column", 
+        rules (list[dict]): A list of dictionaries representing the rules to be
+            evaluated. Each dictionary should include keys such as "column",
             "rule", "value", and "pass_threshold".
         total_rows (int): The total number of rows in the original dataset.
 
@@ -1174,7 +1184,9 @@ def __dask_schema_to_list(df: dd.DataFrame) -> List[Dict[str, Any]]:
     ]
 
 
-def validate_schema(df: dd.DataFrame, expected: List[Dict[str, Any]]) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(
+    df: dd.DataFrame, expected: List[Dict[str, Any]]
+) -> Tuple[bool, List[Tuple[str, str]]]:
     """
     Validates the schema of a Dask DataFrame against an expected schema.
 

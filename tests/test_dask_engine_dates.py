@@ -12,22 +12,25 @@ from sumeh.engine.dask_engine import (
     all_date_checks,
 )
 import re
+
+
 @pytest.fixture
 def date_df():
     today = date.today()
     data = {
         "d": [
-            "2023-01-01",             # valid past
-            "2025-12-31",             # valid future
-            "not-a-date",             # invalid
-            None,                     # null
+            "2023-01-01",  # valid past
+            "2025-12-31",  # valid future
+            "not-a-date",  # invalid
+            None,  # null
             (today - timedelta(days=1)).isoformat(),  # yesterday
-            today.isoformat(),        # today
+            today.isoformat(),  # today
             (today + timedelta(days=1)).isoformat(),  # tomorrow
         ]
     }
     pdf = pd.DataFrame(data)
     return dd.from_pandas(pdf, npartitions=2)
+
 
 def test_validate_date_format(date_df):
     rule = {"field": "d", "check_type": "validate_date_format", "value": "%Y-%m-%d"}
@@ -37,6 +40,7 @@ def test_validate_date_format(date_df):
     assert "not-a-date" in vals
     # detect pandas NA for None
     assert result["d"].isna().any()
+
 
 def test_is_future_date(date_df):
     rule = {"field": "d", "check_type": "is_future_date", "value": ""}
@@ -51,6 +55,7 @@ def test_is_future_date(date_df):
     today_str = date.today().isoformat()
     assert all(today_str in s for s in result["dq_status"])
 
+
 def test_is_past_date(date_df):
     rule = {"field": "d", "check_type": "is_past_date", "value": ""}
     result = is_past_date(date_df, rule).compute()
@@ -58,6 +63,7 @@ def test_is_past_date(date_df):
     vals = set(result["d"].dropna().tolist())
     yesterday = (date.today() - timedelta(days=1)).isoformat()
     assert {"2023-01-01", yesterday}.issubset(vals)
+
 
 def test_is_date_between(date_df):
     start = "2023-01-01"
@@ -71,12 +77,14 @@ def test_is_date_between(date_df):
     # null rows: detect NA
     assert result["d"].isna().any()
 
+
 def test_is_date_after(date_df):
     ref = "2023-01-02"
     rule = {"field": "d", "check_type": "is_date_after", "value": ref}
     result = is_date_after(date_df, rule).compute()
     # only rows strictly before ref and parseable
     assert set(result["d"].tolist()) == {"2023-01-01"}
+
 
 def test_is_date_before(date_df):
     ref = "2025-05-17"
@@ -92,6 +100,7 @@ def test_is_date_before(date_df):
         # ISO‐date format
         assert re.match(r"^\d{4}-\d{2}-\d{2}$", v), f"Invalid date format: {v}"
         assert pd.to_datetime(v) > pd.to_datetime(ref), f"{v} is not after {ref}"
+
 
 def test_all_date_checks_alias(date_df):
     r = {"field": "d", "check_type": "all_date_checks", "value": ""}

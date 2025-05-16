@@ -62,17 +62,6 @@ from sumeh.services.config import (
     get_config_from_databricks,
 )
 
-from sumeh.services.config import (
-    get_schema_from_s3,
-    get_schema_from_csv,
-    get_schema_from_mysql,
-    get_schema_from_postgresql,
-    get_schema_from_bigquery,
-    get_schema_from_glue,
-    get_schema_from_duckdb,
-    get_schema_from_databricks,
-)
-
 _CONFIG_DISPATCH = {
     "mysql": get_config_from_mysql,
     "postgresql": get_config_from_postgresql,

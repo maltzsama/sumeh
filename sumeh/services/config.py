@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module provides a set of utility functions to retrieve and parse configuration data 
-from various data sources, including S3, MySQL, PostgreSQL, BigQuery, CSV files, AWS Glue 
-Data Catalog, DuckDB, and Databricks. Additionally, it includes functions to infer schema 
+This module provides a set of utility functions to retrieve and parse configuration data
+from various data sources, including S3, MySQL, PostgreSQL, BigQuery, CSV files, AWS Glue
+Data Catalog, DuckDB, and Databricks. Additionally, it includes functions to infer schema
 information from these sources.
 
 Functions:
@@ -69,7 +69,6 @@ Functions:
 from io import StringIO
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
-
 
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
@@ -361,7 +360,9 @@ def get_config_from_glue_data_catalog(
         ) from e
 
 
-def get_config_from_duckdb(db_path: str, table: str = None, query: str = None, conn=None) -> List[Dict[str, Any]]:
+def get_config_from_duckdb(
+    db_path: str, table: str = None, query: str = None, conn=None
+) -> List[Dict[str, Any]]:
     """
     Retrieve configuration data from a DuckDB database.
 
@@ -402,7 +403,9 @@ def get_config_from_duckdb(db_path: str, table: str = None, query: str = None, c
     return __parse_data(df.to_dict(orient="records"))
 
 
-def get_config_from_databricks(catalog: Optional[str], schema: Optional[str], table: str, **kwargs) -> List[Dict[str, Any]]:
+def get_config_from_databricks(
+    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
+) -> List[Dict[str, Any]]:
     """
     Retrieves configuration data from a Databricks table and returns it as a list of dictionaries.
 
@@ -424,7 +427,7 @@ def get_config_from_databricks(catalog: Optional[str], schema: Optional[str], ta
         full = f"{schema}.{table}"
     else:
         full = table
-    if 'query' in kwargs.keys():
+    if "query" in kwargs.keys():
         df = spark.sql(f"select * from {full} where {kwargs['query']}")
     else:
         df = spark.table(full)

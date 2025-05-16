@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides a set of data quality validation functions using the Polars library. 
-It includes various checks for data validation, such as completeness, uniqueness, range checks, 
+This module provides a set of data quality validation functions using the Polars library.
+It includes various checks for data validation, such as completeness, uniqueness, range checks,
 pattern matching, and schema validation.
 
 Functions:
@@ -106,7 +106,7 @@ Functions:
     Alias for `is_past_date` (checks date against today).
 
     validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame, pl.DataFrame]:
-    Validates a DataFrame against a list of rules and returns the original DataFrame with 
+    Validates a DataFrame against a list of rules and returns the original DataFrame with
     data quality status and a DataFrame of violations.
 
     __build_rules_df(rules: list[dict]) -> pl.DataFrame:
@@ -119,14 +119,19 @@ Functions:
     Converts a Polars DataFrame schema into a list of dictionaries.
 
     validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
-    Validates the schema of a DataFrame against an expected schema and returns a boolean 
+    Validates the schema of a DataFrame against an expected schema and returns a boolean
     result and a list of errors.
 """
 
 import warnings
 from functools import reduce
 import polars as pl
-from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas, __transform_date_format_in_pattern
+from sumeh.services.utils import (
+    __convert_value,
+    __extract_params,
+    __compare_schemas,
+    __transform_date_format_in_pattern,
+)
 import operator
 from datetime import datetime
 from datetime import date as _dt
@@ -135,21 +140,21 @@ from typing import List, Dict, Any, Tuple
 
 def is_positive(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to identify rows where the specified field 
-    contains negative values and appends a new column indicating the data 
+    Filters a Polars DataFrame to identify rows where the specified field
+    contains negative values and appends a new column indicating the data
     quality status.
 
     Args:
         df (pl.DataFrame): The input Polars DataFrame to be filtered.
-        rule (dict): A dictionary containing the rule parameters. It is 
+        rule (dict): A dictionary containing the rule parameters. It is
             expected to include the following keys:
             - 'field': The name of the column to check.
             - 'check': The type of check being performed (e.g., "is_positive").
             - 'value': The reference value for the check.
 
     Returns:
-        pl.DataFrame: A new Polars DataFrame containing only the rows where 
-        the specified field has negative values, with an additional column 
+        pl.DataFrame: A new Polars DataFrame containing only the rows where
+        the specified field has negative values, with an additional column
         named "dq_status" that describes the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -204,20 +209,20 @@ def is_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Checks for duplicate values in a specified field of a Polars DataFrame and 
-    returns a filtered DataFrame containing only the rows with duplicate values. 
-    Additionally, it adds a new column 'dq_status' with a formatted string 
+    Checks for duplicate values in a specified field of a Polars DataFrame and
+    returns a filtered DataFrame containing only the rows with duplicate values.
+    Additionally, it adds a new column 'dq_status' with a formatted string
     indicating the field, check type, and value.
 
     Args:
         df (pl.DataFrame): The input Polars DataFrame to check for duplicates.
-        rule (dict): A dictionary containing the rule parameters. It is expected 
-                     to have keys that allow extraction of the field to check, 
+        rule (dict): A dictionary containing the rule parameters. It is expected
+                     to have keys that allow extraction of the field to check,
                      the type of check, and a value.
 
     Returns:
-        pl.DataFrame: A filtered DataFrame containing rows with duplicate values 
-                      in the specified field, along with an additional column 
+        pl.DataFrame: A filtered DataFrame containing rows with duplicate values
+                      in the specified field, along with an additional column
                       'dq_status' describing the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -233,8 +238,9 @@ def is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
 
+
 def is_primary_key(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    return is_unique(df, rule)  
+    return is_unique(df, rule)
 
 
 def are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -263,22 +269,22 @@ def are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Checks for duplicate combinations of specified fields in a Polars DataFrame 
-    and returns a DataFrame containing the rows with duplicates along with a 
+    Checks for duplicate combinations of specified fields in a Polars DataFrame
+    and returns a DataFrame containing the rows with duplicates along with a
     data quality status column.
 
     Args:
         df (pl.DataFrame): The input Polars DataFrame to check for duplicates.
-        rule (dict): A dictionary containing the rule parameters. It is expected 
+        rule (dict): A dictionary containing the rule parameters. It is expected
                      to include the following keys:
                      - 'fields': A list of column names to check for uniqueness.
                      - 'check': A string representing the type of check (e.g., "unique").
                      - 'value': A value associated with the check (e.g., "True").
 
     Returns:
-        pl.DataFrame: A DataFrame containing rows with duplicate combinations of 
-                      the specified fields. An additional column, "dq_status", 
-                      is added to indicate the data quality status in the format 
+        pl.DataFrame: A DataFrame containing rows with duplicate combinations of
+                      the specified fields. An additional column, "dq_status",
+                      is added to indicate the data quality status in the format
                       "{fields}:{check}:{value}".
     """
     fields, check, value = __extract_params(rule)
@@ -301,14 +307,15 @@ def are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         .with_columns(pl.lit(f"{fields}:{check}:{value}").alias("dq_status"))
     )
 
+
 def is_composite_key(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return are_unique(df, rule)
 
 
 def is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to include only rows where the specified field's value 
-    is less than or equal to a given value, and adds a new column indicating the 
+    Filters a Polars DataFrame to include only rows where the specified field's value
+    is less than or equal to a given value, and adds a new column indicating the
     data quality status.
 
     Args:
@@ -319,7 +326,7 @@ def is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value': The value to compare against.
 
     Returns:
-        pl.DataFrame: A new DataFrame with rows filtered based on the rule and an 
+        pl.DataFrame: A new DataFrame with rows filtered based on the rule and an
         additional column named "dq_status" indicating the applied rule.
     """
     field, check, value = __extract_params(rule)
@@ -330,21 +337,21 @@ def is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_greater_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to include only rows where the specified field 
-    is greater than or equal to a given value, and adds a new column indicating 
+    Filters a Polars DataFrame to include only rows where the specified field
+    is greater than or equal to a given value, and adds a new column indicating
     the data quality status.
 
     Args:
         df (pl.DataFrame): The input Polars DataFrame to be filtered.
-        rule (dict): A dictionary containing the filtering rule. It should 
+        rule (dict): A dictionary containing the filtering rule. It should
             include the following keys:
             - 'field': The name of the column to be checked.
             - 'check': The type of check being performed (e.g., "greater_or_equal").
             - 'value': The threshold value for the comparison.
 
     Returns:
-        pl.DataFrame: A new Polars DataFrame with rows filtered based on the 
-        specified rule and an additional column named "dq_status" indicating 
+        pl.DataFrame: A new Polars DataFrame with rows filtered based on the
+        specified rule and an additional column named "dq_status" indicating
         the data quality status in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
@@ -380,7 +387,7 @@ def is_less_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_less_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to include only rows where the specified field's value 
+    Filters a Polars DataFrame to include only rows where the specified field's value
     is greater than the given value, and adds a new column indicating the rule applied.
 
     Args:
@@ -391,7 +398,7 @@ def is_less_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value': The value to compare against.
 
     Returns:
-        pl.DataFrame: A new DataFrame with rows filtered based on the rule and an 
+        pl.DataFrame: A new DataFrame with rows filtered based on the rule and an
         additional column named "dq_status" indicating the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -446,7 +453,7 @@ def is_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to exclude rows where the specified field's value is 
+    Filters a Polars DataFrame to exclude rows where the specified field's value is
     contained in a given list of values, and adds a new column indicating the rule applied.
 
     Args:
@@ -454,11 +461,11 @@ def is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         rule (dict): A dictionary containing the rule parameters. It should include:
             - 'field': The column name to check.
             - 'check': The type of check being performed (e.g., "is_contained_in").
-            - 'value': A string representation of a list of values to check against, 
+            - 'value': A string representation of a list of values to check against,
               e.g., "[value1, value2, value3]".
 
     Returns:
-        pl.DataFrame: A new DataFrame with rows filtered based on the rule and an 
+        pl.DataFrame: A new DataFrame with rows filtered based on the rule and an
         additional column "dq_status" indicating the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -466,6 +473,7 @@ def is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return df.filter(~pl.col(field).is_in(lst)).with_columns(
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
+
 
 def is_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
@@ -476,7 +484,7 @@ def is_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to include only rows where the specified field's value 
+    Filters a Polars DataFrame to include only rows where the specified field's value
     is in a given list, and adds a new column indicating the data quality status.
 
     Args:
@@ -487,7 +495,7 @@ def not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value': A string representation of a list of values (e.g., "[value1, value2]").
 
     Returns:
-        pl.DataFrame: A new Polars DataFrame with rows filtered based on the rule and 
+        pl.DataFrame: A new Polars DataFrame with rows filtered based on the rule and
         an additional column "dq_status" indicating the applied rule.
     """
     field, check, value = __extract_params(rule)
@@ -495,6 +503,7 @@ def not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return df.filter(pl.col(field).is_in(lst)).with_columns(
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
+
 
 def not_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
@@ -505,7 +514,7 @@ def not_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to exclude rows where the specified field's value 
+    Filters a Polars DataFrame to exclude rows where the specified field's value
     falls within a given range, and adds a column indicating the data quality status.
 
     Args:
@@ -516,7 +525,7 @@ def is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value': A string representing the range in the format "[lo,hi]".
 
     Returns:
-        pl.DataFrame: A new Polars DataFrame with rows outside the specified range 
+        pl.DataFrame: A new Polars DataFrame with rows outside the specified range
         and an additional column named "dq_status" indicating the rule applied.
 
     Raises:
@@ -575,7 +584,7 @@ def is_legit(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to include only rows where the value in a specified 
+    Filters a Polars DataFrame to include only rows where the value in a specified
     column exceeds a given threshold, and adds a new column indicating the rule applied.
 
     Args:
@@ -586,7 +595,7 @@ def has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value' (numeric): The threshold value to compare against.
 
     Returns:
-        pl.DataFrame: A new DataFrame containing only the rows that satisfy the condition, 
+        pl.DataFrame: A new DataFrame containing only the rows that satisfy the condition,
         with an additional column named "dq_status" that describes the applied rule.
     """
     field, check, value = __extract_params(rule)
@@ -597,8 +606,8 @@ def has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def has_min(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Filters a Polars DataFrame to include only rows where the value of a specified 
-    column is less than a given threshold and adds a new column indicating the 
+    Filters a Polars DataFrame to include only rows where the value of a specified
+    column is less than a given threshold and adds a new column indicating the
     data quality status.
 
     Args:
@@ -609,8 +618,8 @@ def has_min(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value': The threshold value for the filter.
 
     Returns:
-        pl.DataFrame: A new Polars DataFrame containing only the rows that satisfy 
-        the condition, with an additional column named "dq_status" indicating the 
+        pl.DataFrame: A new Polars DataFrame containing only the rows that satisfy
+        the condition, with an additional column named "dq_status" indicating the
         applied rule in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
@@ -655,9 +664,9 @@ def has_mean(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value' (float): The threshold value to compare the mean against.
 
     Returns:
-        pl.DataFrame: 
-            - If the mean value of the specified column is greater than the threshold value, 
-              returns the original DataFrame with an additional column "dq_status" containing 
+        pl.DataFrame:
+            - If the mean value of the specified column is greater than the threshold value,
+              returns the original DataFrame with an additional column "dq_status" containing
               a string in the format "{field}:{check}:{value}".
             - If the condition is not met, returns an empty DataFrame with the same schema as the input.
     """
@@ -680,8 +689,8 @@ def has_sum(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value': The threshold value to compare the sum against.
 
     Returns:
-        pl.DataFrame: If the sum of the specified column exceeds the given value, 
-        returns the original DataFrame with an additional column `dq_status` containing 
+        pl.DataFrame: If the sum of the specified column exceeds the given value,
+        returns the original DataFrame with an additional column `dq_status` containing
         a string in the format "{field}:{check}:{value}". Otherwise, returns an empty DataFrame.
     """
     field, check, value = __extract_params(rule)
@@ -694,8 +703,8 @@ def has_sum(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 def has_cardinality(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
     Checks if the cardinality (number of unique values) of a specified field in the given DataFrame
-    satisfies a condition defined in the rule. If the cardinality exceeds the specified value, 
-    a new column "dq_status" is added to the DataFrame with a string indicating the rule violation. 
+    satisfies a condition defined in the rule. If the cardinality exceeds the specified value,
+    a new column "dq_status" is added to the DataFrame with a string indicating the rule violation.
     Otherwise, an empty DataFrame is returned.
 
     Args:
@@ -718,21 +727,21 @@ def has_cardinality(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
 def has_infogain(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
-    Evaluates whether a given DataFrame satisfies an information gain condition 
-    based on a specified rule. If the condition is met, a new column indicating 
+    Evaluates whether a given DataFrame satisfies an information gain condition
+    based on a specified rule. If the condition is met, a new column indicating
     the rule is added; otherwise, an empty DataFrame is returned.
 
     Args:
         df (pl.DataFrame): The input DataFrame to evaluate.
-        rule (dict): A dictionary containing the rule parameters. It should 
+        rule (dict): A dictionary containing the rule parameters. It should
             include the following keys:
             - 'field': The column name to evaluate.
             - 'check': The type of check to perform (not used directly in this function).
             - 'value': The threshold value for the information gain.
 
     Returns:
-        pl.DataFrame: The original DataFrame with an additional column named 
-        "dq_status" if the condition is met, or an empty DataFrame if the 
+        pl.DataFrame: The original DataFrame with an additional column named
+        "dq_status" if the condition is met, or an empty DataFrame if the
         condition is not met.
     """
     field, check, value = __extract_params(rule)
@@ -754,11 +763,11 @@ def has_entropy(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
             - 'value' (float): The threshold value for entropy comparison.
 
     Returns:
-        pl.DataFrame: 
-            - If the entropy of the specified field exceeds the given threshold (`value`), 
-              returns the original DataFrame with an additional column `dq_status` indicating 
+        pl.DataFrame:
+            - If the entropy of the specified field exceeds the given threshold (`value`),
+              returns the original DataFrame with an additional column `dq_status` indicating
               the rule that was applied.
-            - If the entropy does not exceed the threshold, returns an empty DataFrame with 
+            - If the entropy does not exceed the threshold, returns an empty DataFrame with
               the same schema as the input DataFrame.
 
     Notes:
@@ -785,12 +794,12 @@ def validate_date_format(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
     Returns:
         pl.DataFrame: A new DataFrame containing only the rows where the specified field
-        does not match the expected date format or is null. An additional column 
-        "dq_status" is added to indicate the validation status in the format 
+        does not match the expected date format or is null. An additional column
+        "dq_status" is added to indicate the validation status in the format
         "{field}:{check}:{fmt}".
     """
     field, check, fmt = __extract_params(rule)
-    regex = __transform_date_format_in_pattern(fmt)  
+    regex = __transform_date_format_in_pattern(fmt)
     return df.filter(
         ~pl.col(field).str.contains(regex, literal=False) | pl.col(field).is_null()
     ).with_columns(pl.lit(f"{field}:{check}:{fmt}").alias("dq_status"))
@@ -841,9 +850,11 @@ def is_past_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") < pl.lit(today).cast(pl.Date)
     ).with_columns(pl.lit(f"{field}:{check}:{today}").alias("dq_status"))
 
+
 from datetime import date
 import polars as pl
 from sumeh.services.utils import __extract_params
+
 
 def is_date_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
@@ -866,18 +877,13 @@ def is_date_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
 
     # build literal date expressions
     start_expr = pl.lit(start_str).str.strptime(pl.Date, "%Y-%m-%d")
-    end_expr   = pl.lit(end_str).str.strptime(pl.Date, "%Y-%m-%d")
+    end_expr = pl.lit(end_str).str.strptime(pl.Date, "%Y-%m-%d")
 
-    return (
-        df.filter(
-            ~pl.col(field)
-              .str.strptime(pl.Date, "%Y-%m-%d")
-              .is_between(start_expr, end_expr)
-        )
-        .with_columns(
-            pl.lit(f"{field}:{check}:{raw}").alias("dq_status")
-        )
-    )
+    return df.filter(
+        ~pl.col(field)
+        .str.strptime(pl.Date, "%Y-%m-%d")
+        .is_between(start_expr, end_expr)
+    ).with_columns(pl.lit(f"{field}:{check}:{raw}").alias("dq_status"))
 
 
 def is_date_after(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -901,6 +907,7 @@ def is_date_after(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") < date_str
     ).with_columns(pl.lit(f"{field}:{check}:{date_str}").alias("dq_status"))
 
+
 def is_date_before(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
     Filters a Polars DataFrame to include only rows where the specified date field
@@ -921,6 +928,7 @@ def is_date_before(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return df.filter(
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") > date_str
     ).with_columns(pl.lit(f"{field}:{check}:{date_str}").alias("dq_status"))
+
 
 def all_date_checks(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
@@ -970,32 +978,32 @@ def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     return viol.with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
 
 
-def validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame,pl.DataFrame]:
+def validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame, pl.DataFrame]:
     """
-    Validates a Polars DataFrame against a set of rules and returns the updated DataFrame 
+    Validates a Polars DataFrame against a set of rules and returns the updated DataFrame
     with validation statuses and a DataFrame containing the validation violations.
 
     Args:
         df (pl.DataFrame): The input Polars DataFrame to validate.
-        rules (list[dict]): A list of dictionaries representing validation rules. Each rule 
+        rules (list[dict]): A list of dictionaries representing validation rules. Each rule
             should contain the following keys:
-            - "check_type" (str): The type of validation to perform (e.g., "is_primary_key", 
+            - "check_type" (str): The type of validation to perform (e.g., "is_primary_key",
                 "is_composite_key", "has_pattern", etc.).
             - "value" (optional): The value to validate against, depending on the rule type.
             - "execute" (bool, optional): Whether to execute the rule. Defaults to True.
 
     Returns:
         Tuple[pl.DataFrame, pl.DataFrame]: A tuple containing:
-            - The original DataFrame with an additional "dq_status" column indicating the 
+            - The original DataFrame with an additional "dq_status" column indicating the
                 validation status for each row.
-            - A DataFrame containing rows that violated the validation rules, including 
+            - A DataFrame containing rows that violated the validation rules, including
                 details of the violations.
 
     Notes:
-        - The function dynamically resolves validation functions based on the "check_type" 
+        - The function dynamically resolves validation functions based on the "check_type"
             specified in the rules.
         - If a rule's "check_type" is unknown, a warning is issued, and the rule is skipped.
-        - The "__id" column is temporarily added to the DataFrame for internal processing 
+        - The "__id" column is temporarily added to the DataFrame for internal processing
             and is removed in the final output.
     """
     df = df.with_columns(pl.arange(0, pl.len()).alias("__id"))
@@ -1047,11 +1055,11 @@ def __build_rules_df(rules: list[dict]) -> pl.DataFrame:
 
     This function processes a list of rule dictionaries, filters out rules
     that are not marked for execution, and constructs a DataFrame with the
-    relevant rule information. It ensures uniqueness of rows based on 
+    relevant rule information. It ensures uniqueness of rows based on
     specific columns and casts the data to appropriate types.
 
     Args:
-        rules (list[dict]): A list of dictionaries, where each dictionary 
+        rules (list[dict]): A list of dictionaries, where each dictionary
             represents a rule. Each rule dictionary may contain the following keys:
             - "field" (str or list): The column(s) the rule applies to.
             - "check_type" (str): The type of rule or check.
@@ -1098,16 +1106,16 @@ def __build_rules_df(rules: list[dict]) -> pl.DataFrame:
 
 def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.DataFrame:
     """
-    Summarizes quality check results by processing a DataFrame containing 
+    Summarizes quality check results by processing a DataFrame containing
     data quality statuses and comparing them against defined rules.
 
     Args:
-        qc_df (pl.DataFrame): A Polars DataFrame containing a column `dq_status` 
-            with semicolon-separated strings representing data quality statuses 
+        qc_df (pl.DataFrame): A Polars DataFrame containing a column `dq_status`
+            with semicolon-separated strings representing data quality statuses
             in the format "column:rule:value".
-        rules (list[dict]): A list of dictionaries where each dictionary defines 
+        rules (list[dict]): A list of dictionaries where each dictionary defines
             a rule with keys such as "column", "rule", "value", and "pass_threshold".
-        total_rows (int): The total number of rows in the original dataset, used 
+        total_rows (int): The total number of rows in the original dataset, used
             to calculate the pass rate.
 
     Returns:
@@ -1198,7 +1206,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
 
 def __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
     """
-    Converts the schema of a Polars DataFrame into a list of dictionaries, 
+    Converts the schema of a Polars DataFrame into a list of dictionaries,
     where each dictionary represents a field in the schema.
 
     Args:

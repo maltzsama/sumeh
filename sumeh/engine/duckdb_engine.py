@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides utilities for generating and validating SQL expressions 
-and data quality rules using DuckDB. It includes functions for building SQL 
-expressions, validating dataframes against rules, summarizing rule violations, 
+This module provides utilities for generating and validating SQL expressions
+and data quality rules using DuckDB. It includes functions for building SQL
+expressions, validating dataframes against rules, summarizing rule violations,
 and schema validation.
 
 Classes:
-    __RuleCtx: A dataclass representing the context required to generate SQL 
+    __RuleCtx: A dataclass representing the context required to generate SQL
               expressions for data quality rules.
 
 Functions:
@@ -15,7 +15,7 @@ Functions:
         Escapes single quotes in a string for SQL compatibility.
 
     __format_sequence(value: Any) -> str:
-        Formats a sequence (list, tuple, or string) into a SQL-compatible 
+        Formats a sequence (list, tuple, or string) into a SQL-compatible
         representation for IN/NOT IN clauses.
 
     _is_complete(r: __RuleCtx) -> str:
@@ -72,7 +72,7 @@ Functions:
         Summarizes rule violations and calculates pass rates for each rule.
 
     validate_schema(
-        expected: List[Dict[str, Any]], 
+        expected: List[Dict[str, Any]],
         table: str
         Validates the schema of a DuckDB table against an expected schema.
 """
@@ -84,6 +84,7 @@ import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
 from sumeh.services.utils import __compare_schemas
+
 
 def __escape_single_quotes(txt: str) -> str:
     """
@@ -146,11 +147,12 @@ class __RuleCtx:
     __RuleCtx is a context class used to define rules for processing data.
 
     Attributes:
-        column (Any): Represents the column(s) to which the rule applies. 
+        column (Any): Represents the column(s) to which the rule applies.
                       It can be a string (for a single column) or a list of strings (for multiple columns).
         value (Any): The value associated with the rule. The type of this value depends on the specific rule implementation.
         name (str): The name of the rule, typically used to indicate the type of check being performed.
     """
+
     column: Any  # str ou list[str]
     value: Any
     name: str  # check_type
@@ -345,6 +347,7 @@ def _is_contained_in(r: __RuleCtx) -> str:
     """
     return f"{r.column} IN {__format_sequence(r.value)}"
 
+
 def _is_in(r: __RuleCtx) -> str:
     """
     Determines if a rule context is contained within a specific condition.
@@ -357,19 +360,21 @@ def _is_in(r: __RuleCtx) -> str:
     """
     return is_contained_in(r)
 
+
 def _not_contained_in(r: __RuleCtx) -> str:
     """
-    Generates a SQL expression that checks if a column's value is not contained 
+    Generates a SQL expression that checks if a column's value is not contained
     within a specified sequence of values.
 
     Args:
-        r (__RuleCtx): A context object containing the column name and the sequence 
+        r (__RuleCtx): A context object containing the column name and the sequence
                        of values to check against.
 
     Returns:
         str: A SQL string in the format "<column> NOT IN (<value1>, <value2>, ...)".
     """
     return f"{r.column} NOT IN {__format_sequence(r.value)}"
+
 
 def _not_in(r: __RuleCtx) -> str:
     """
@@ -383,6 +388,7 @@ def _not_in(r: __RuleCtx) -> str:
     """
     return not_contained_in(r)
 
+
 def _satisfies(r: __RuleCtx) -> str:
     """
     Constructs a string representation of the given rule context.
@@ -394,6 +400,7 @@ def _satisfies(r: __RuleCtx) -> str:
         str: A string in the format "(value)" where 'value' is the value of the rule context.
     """
     return f"({r.value})"
+
 
 def _build_union_sql(rules: List[Dict]) -> str:
     """
@@ -451,6 +458,7 @@ def _build_union_sql(rules: List[Dict]) -> str:
 
     return "\nUNION ALL\n".join(pieces)
 
+
 def _validate_date_format(r: __RuleCtx) -> str:
     """
     Validates a date format string by translating tokens into a regular expression
@@ -483,7 +491,7 @@ def _validate_date_format(r: __RuleCtx) -> str:
 
 def _is_future_date(r: __RuleCtx) -> str:
     """
-    Constructs a SQL condition to check if the values in a specified column 
+    Constructs a SQL condition to check if the values in a specified column
     represent future dates relative to the current date.
 
     Args:
@@ -563,7 +571,10 @@ def _all_date_checks(r: __RuleCtx) -> str:
     """
     return is_past_date(r)
 
-def validate(df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection) -> dk.DuckDBPyRelation:
+
+def validate(
+    df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection
+) -> dk.DuckDBPyRelation:
     """
     Validates a DuckDB relation against a set of rules and returns the processed relation.
 
@@ -631,7 +642,7 @@ def __rules_to_duckdb_df(rules: List[Dict]) -> str:
     Returns:
         str: A DuckDB-compatible SQL query string representing the rules.
     """
-    
+
     parts: List[str] = []
 
     for r in rules:
@@ -685,7 +696,12 @@ def __rules_to_duckdb_df(rules: List[Dict]) -> str:
     )
 
 
-def summarize(df_rel: dk.DuckDBPyRelation,rules: List[Dict],conn: dk.DuckDBPyConnection,total_rows: Optional[int] = None) -> dk.DuckDBPyRelation:
+def summarize(
+    df_rel: dk.DuckDBPyRelation,
+    rules: List[Dict],
+    conn: dk.DuckDBPyConnection,
+    total_rows: Optional[int] = None,
+) -> dk.DuckDBPyRelation:
     """
     Summarizes data quality checks for a given DuckDB relation based on specified rules.
 
@@ -693,17 +709,17 @@ def summarize(df_rel: dk.DuckDBPyRelation,rules: List[Dict],conn: dk.DuckDBPyCon
         df_rel (dk.DuckDBPyRelation): The DuckDB relation containing the data to be analyzed.
         rules (List[Dict]): A list of dictionaries defining the data quality rules to be applied.
         conn (dk.DuckDBPyConnection): The DuckDB connection used to execute SQL queries.
-        total_rows (Optional[int]): The total number of rows in the dataset. If not provided, 
+        total_rows (Optional[int]): The total number of rows in the dataset. If not provided,
                                     it must be calculated externally.
 
     Returns:
-        dk.DuckDBPyRelation: A DuckDB relation containing the summary of data quality checks, 
+        dk.DuckDBPyRelation: A DuckDB relation containing the summary of data quality checks,
                                 including pass rates, violation counts, and statuses for each rule.
 
     Notes:
         - The function creates a temporary view named "violations_raw" from the input relation.
         - It uses SQL to compute violations, pass rates, and statuses based on the provided rules.
-        - The output includes metadata such as timestamps, rule thresholds, and overall status 
+        - The output includes metadata such as timestamps, rule thresholds, and overall status
             (PASS/FAIL) for each rule.
     """
     rules_sql = __rules_to_duckdb_df(rules)
@@ -751,7 +767,9 @@ def summarize(df_rel: dk.DuckDBPyRelation,rules: List[Dict],conn: dk.DuckDBPyCon
     return conn.sql(sql)
 
 
-def __duckdb_schema_to_list(conn: dk.DuckDBPyConnection, table: str) -> List[Dict[str, Any]]:
+def __duckdb_schema_to_list(
+    conn: dk.DuckDBPyConnection, table: str
+) -> List[Dict[str, Any]]:
     """
     Retrieve the schema of a DuckDB table as a list of dictionaries.
     This function queries the schema of the specified table in a DuckDB database
@@ -767,7 +785,7 @@ def __duckdb_schema_to_list(conn: dk.DuckDBPyConnection, table: str) -> List[Dic
             - "nullable" (bool): Whether the column allows NULL values.
             - "max_length" (None): Always None, as DuckDB does not provide maximum length information.
     """
-    
+
     df_info = conn.execute(f"PRAGMA table_info('{table}')").fetchdf()
     return [
         {
@@ -780,7 +798,9 @@ def __duckdb_schema_to_list(conn: dk.DuckDBPyConnection, table: str) -> List[Dic
     ]
 
 
-def validate_schema(conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(
+    conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
+) -> Tuple[bool, List[Tuple[str, str]]]:
     """
     Validates the schema of a DuckDB table against an expected schema.
 
@@ -801,25 +821,25 @@ def validate_schema(conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]],
 
 
 __RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
-    "is_complete":              _is_complete,
-    "are_complete":             _are_complete,
-    "is_unique":                _is_unique,
-    "are_unique":               _are_unique,
-    "is_greater_than":          _is_greater_than,
-    "is_less_than":             _is_less_than,
+    "is_complete": _is_complete,
+    "are_complete": _are_complete,
+    "is_unique": _is_unique,
+    "are_unique": _are_unique,
+    "is_greater_than": _is_greater_than,
+    "is_less_than": _is_less_than,
     "is_greater_or_equal_than": _is_greater_or_equal_than,
-    "is_less_or_equal_than":    _is_less_or_equal_than,
-    "is_equal_than":            _is_equal_than,
-    "is_between":               _is_between,
-    "has_pattern":              _has_pattern,
-    "is_contained_in":          _is_contained_in,
-    "not_contained_in":         _not_contained_in,
-    "satisfies":                _satisfies,
-    "validate_date_format":     _validate_date_format,
-    "is_future_date":           _is_future_date,
-    "is_past_date":             _is_past_date,
-    "is_date_after":            _is_date_after,
-    "is_date_before":           _is_date_before,
-    "is_date_between":          _is_date_between,
-    "all_date_checks":          _all_date_checks,
+    "is_less_or_equal_than": _is_less_or_equal_than,
+    "is_equal_than": _is_equal_than,
+    "is_between": _is_between,
+    "has_pattern": _has_pattern,
+    "is_contained_in": _is_contained_in,
+    "not_contained_in": _not_contained_in,
+    "satisfies": _satisfies,
+    "validate_date_format": _validate_date_format,
+    "is_future_date": _is_future_date,
+    "is_past_date": _is_past_date,
+    "is_date_after": _is_date_after,
+    "is_date_before": _is_date_before,
+    "is_date_between": _is_date_between,
+    "all_date_checks": _all_date_checks,
 }
