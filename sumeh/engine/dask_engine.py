@@ -13,6 +13,54 @@ Functions:
     is_negative(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains only negative values.
 
+    is_in_millions(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the field value is at least 1,000,000 and flags them with dq_status.
+
+    is_in_billions(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the field value is at least 1,000,000,000 and flags them with dq_status.
+
+    is_t_minus_1(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field equals yesterday (T-1) and flags them with dq_status.
+
+    is_t_minus_2(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field equals two days ago (T-2) and flags them with dq_status.
+
+    is_t_minus_3(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field equals three days ago (T-3) and flags them with dq_status.
+
+    is_today(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field equals today and flags them with dq_status.
+
+    is_yesterday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field equals yesterday and flags them with dq_status.
+
+    is_on_weekday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field falls on a weekday (Mon-Fri) and flags them with dq_status.
+
+    is_on_weekend(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on a weekend (Sat-Sun) and flags them with dq_status.
+
+    is_on_monday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Monday and flags them with dq_status.
+
+    is_on_tuesday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Tuesday and flags them with dq_status.
+
+    is_on_wednesday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Wednesday and flags them with dq_status.
+
+    is_on_thursday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Thursday and flags them with dq_status.
+
+    is_on_friday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Friday and flags them with dq_status.
+
+    is_on_saturday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Saturday and flags them with dq_status.
+
+    is_on_sunday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    Retains rows where the date field is on Sunday and flags them with dq_status.
+
     is_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     Checks if the specified field contains no null values.
 

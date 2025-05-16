@@ -6,169 +6,113 @@ It includes various checks for data validation, such as completeness, uniqueness
 pattern matching, and schema validation.
 
 Functions:
-    is_positive(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is less than zero.
+    is_positive: Filters rows where the specified field is less than zero.
 
-    is_negative(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is greater than or equal to zero.
+    is_negative: Filters rows where the specified field is greater than or equal to zero.
 
-    is_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is null.
+    is_complete: Filters rows where the specified field is null.
 
-    is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows with duplicate values in the specified field.
+    is_unique: Filters rows with duplicate values in the specified field.
 
-    are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where any of the specified fields are null.
+    are_complete: Filters rows where any of the specified fields are null.
 
-    are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows with duplicate combinations of the specified fields.
+    are_unique: Filters rows with duplicate combinations of the specified fields.
 
-    is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is less than or equal to the given value.
+    is_greater_than: Filters rows where the specified field is less than or equal to the given value.
 
-    is_greater_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is less than the given value.
+    is_greater_or_equal_than: Filters rows where the specified field is less than the given value.
 
-    is_less_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is greater than or equal to the given value.
+    is_less_than: Filters rows where the specified field is greater than or equal to the given value.
 
-    is_less_or_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is greater than the given value.
+    is_less_or_equal_than: Filters rows where the specified field is greater than the given value.
 
-    is_equal(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is not equal to the given value.
+    is_equal: Filters rows where the specified field is not equal to the given value.
 
-    is_equal_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Alias for `is_equal`.
+    is_equal_than: Alias for `is_equal`.
 
-    is_in_millions(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the field value is less than 1,000,000 and flags them with dq_status.
+    is_in_millions: Retains rows where the field value is less than 1,000,000 and flags them with dq_status.
 
-    is_in_billions(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the field value is less than 1,000,000,000 and flags them with dq_status.
+    is_in_billions: Retains rows where the field value is less than 1,000,000,000 and flags them with dq_status.
 
-    is_t_minus_1(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field not equals yesterday (T-1) and flags them with dq_status.
+    is_t_minus_1: Retains rows where the date field not equals yesterday (T-1) and flags them with dq_status.
 
-    is_t_minus_2(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field not equals two days ago (T-2) and flags them with dq_status.
+    is_t_minus_2: Retains rows where the date field not equals two days ago (T-2) and flags them with dq_status.
 
-    is_t_minus_3(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field not equals three days ago (T-3) and flags them with dq_status.
+    is_t_minus_3: Retains rows where the date field not equals three days ago (T-3) and flags them with dq_status.
 
-    is_today(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field not equals today and flags them with dq_status.
+    is_today: Retains rows where the date field not equals today and flags them with dq_status.
 
-    is_yesterday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field not equals yesterday and flags them with dq_status.
+    is_yesterday: Retains rows where the date field not equals yesterday and flags them with dq_status.
 
-    is_on_weekday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field not falls on a weekday (Mon-Fri) and flags them with dq_status.
+    is_on_weekday: Retains rows where the date field not falls on a weekday (Mon-Fri) and flags them with dq_status.
 
-    is_on_weekend(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on a weekend (Sat-Sun) and flags them with dq_status.
+    is_on_weekend: Retains rows where the date field is not on a weekend (Sat-Sun) and flags them with dq_status.
 
-    is_on_monday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Monday and flags them with dq_status.
+    is_on_monday: Retains rows where the date field is not on Monday and flags them with dq_status.
 
-    is_on_tuesday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Tuesday and flags them with dq_status.
+    is_on_tuesday: Retains rows where the date field is not on Tuesday and flags them with dq_status.
 
-    is_on_wednesday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Wednesday and flags them with dq_status.
+    is_on_wednesday: Retains rows where the date field is not on Wednesday and flags them with dq_status.
 
-    is_on_thursday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Thursday and flags them with dq_status.
+    is_on_thursday: Retains rows where the date field is not on Thursday and flags them with dq_status.
 
-    is_on_friday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Friday and flags them with dq_status.
+    is_on_friday: Retains rows where the date field is not on Friday and flags them with dq_status.
 
-    is_on_saturday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Saturday and flags them with dq_status.
+    is_on_saturday: Retains rows where the date field is not on Saturday and flags them with dq_status.
 
-    is_on_sunday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Retains rows where the date field is not on Sunday and flags them with dq_status. 
+    is_on_sunday: Retains rows where the date field is not on Sunday and flags them with dq_status. 
 
-    is_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is not in the given list of values.
+    is_contained_in: Filters rows where the specified field is not in the given list of values.
 
-    not_contained_in(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is in the given list of values.
+    not_contained_in: Filters rows where the specified field is in the given list of values.
 
-    is_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is not within the given range.
+    is_between: Filters rows where the specified field is not within the given range.
 
-    has_pattern(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field does not match the given regex pattern.
+    has_pattern: Filters rows where the specified field does not match the given regex pattern.
 
-    is_legit(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is null or contains whitespace.
+    is_legit: Filters rows where the specified field is null or contains whitespace.
 
-    has_max(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field exceeds the given maximum value.
+    has_max: Filters rows where the specified field exceeds the given maximum value.
 
-    has_min(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field is below the given minimum value.
+    has_min: Filters rows where the specified field is below the given minimum value.
 
-    has_std(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Checks if the standard deviation of the specified field exceeds the given value.
+    has_std: Checks if the standard deviation of the specified field exceeds the given value.
 
-    has_mean(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Checks if the mean of the specified field exceeds the given value.
+    has_mean: Checks if the mean of the specified field exceeds the given value.
 
-    has_sum(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Checks if the sum of the specified field exceeds the given value.
+    has_sum: Checks if the sum of the specified field exceeds the given value.
 
-    has_cardinality(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Checks if the cardinality (number of unique values) of the specified field exceeds the given value.
+    has_cardinality: Checks if the cardinality (number of unique values) of the specified field exceeds the given value.
 
-    has_infogain(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Placeholder for information gain validation (currently uses cardinality).
+    has_infogain: Placeholder for information gain validation (currently uses cardinality).
 
-    has_entropy(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Placeholder for entropy validation (currently uses cardinality).
+    has_entropy: Placeholder for entropy validation (currently uses cardinality).
 
-    satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows that do not satisfy the given SQL condition.
+    satisfies: Filters rows that do not satisfy the given SQL condition.
 
-    validate_date_format(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified field does not match the expected date format or is null.
+    validate_date_format: Filters rows where the specified field does not match the expected date format or is null.
 
-    is_future_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified date field is after today.
+    is_future_date: Filters rows where the specified date field is after today.
 
-    is_past_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified date field is before today.
+    is_past_date: Filters rows where the specified date field is before today.
 
-    is_date_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified date field is not within the given [start,end] range.
+    is_date_between: Filters rows where the specified date field is not within the given [start,end] range.
 
-    is_date_after(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified date field is before the given date.
+    is_date_after: Filters rows where the specified date field is before the given date.
 
-    is_date_before(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Filters rows where the specified date field is after the given date.
+    is_date_before: Filters rows where the specified date field is after the given date.
 
-    all_date_checks(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
-    Alias for `is_past_date` (checks date against today).
+    all_date_checks: Alias for `is_past_date` (checks date against today).
 
-    validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame, pl.DataFrame]:
-    Validates a DataFrame against a list of rules and returns the original DataFrame with
-    data quality status and a DataFrame of violations.
+    validate: Validates a DataFrame against a list of rules and returns the original DataFrame with data quality status and a DataFrame of violations.
 
-    __build_rules_df(rules: list[dict]) -> pl.DataFrame:
-    Converts a list of rules into a Polars DataFrame for summarization.
+    __build_rules_df: Converts a list of rules into a Polars DataFrame for summarization.
 
-    summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.DataFrame:
-    Summarizes the results of data quality checks, including pass rates and statuses.
+    summarize: Summarizes the results of data quality checks, including pass rates and statuses.
 
-    __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
-    Converts a Polars DataFrame schema into a list of dictionaries.
+    __polars_schema_to_list: Converts a Polars DataFrame schema into a list of dictionaries.
 
-    validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
-    Validates the schema of a DataFrame against an expected schema and returns a boolean
-    result and a list of errors.
+    validate_schema: Validates the schema of a DataFrame against an expected schema and returns a boolean result and a list of errors.
 """
 
 import warnings

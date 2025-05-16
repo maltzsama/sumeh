@@ -11,70 +11,45 @@ Classes:
               expressions for data quality rules.
 
 Functions:
-    __escape_single_quotes(txt: str) -> str:
-        Escapes single quotes in a string for SQL compatibility.
+    __escape_single_quotes: Escapes single quotes in a string for SQL compatibility.
 
-    __format_sequence(value: Any) -> str:
-        Formats a sequence (list, tuple, or string) into a SQL-compatible
-        representation for IN/NOT IN clauses.
+    __format_sequence: Formats a sequence (list, tuple, or string) into a SQL-compatible representation for IN/NOT IN clauses.
 
-    _is_complete(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column is not NULL.
+    _is_complete: Generates a SQL expression to check if a column is not NULL.
 
-    _are_complete(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if all columns in a list are not NULL.
+    _are_complete: Generates a SQL expression to check if all columns in a list are not NULL.
 
-    _is_unique(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column has unique values.
+    _is_unique: Generates a SQL expression to check if a column has unique values.
 
-    _are_unique(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a combination of columns has unique values.
+    _are_unique: Generates a SQL expression to check if a combination of columns has unique values.
 
-    _is_greater_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is greater than a given value.
+    _is_greater_than: Generates a SQL expression to check if a column's value is greater than a given value.
 
-    _is_less_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is less than a given value.
+    _is_less_than: Generates a SQL expression to check if a column's value is less than a given value.
 
-    _is_greater_or_equal_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is greater than or equal to a given value.
+    _is_greater_or_equal_than: Generates a SQL expression to check if a column's value is greater than or equal to a given value.
 
-    _is_less_or_equal_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is less than or equal to a given value.
+    _is_less_or_equal_than: Generates a SQL expression to check if a column's value is less than or equal to a given value.
 
-    _is_equal_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is equal to a given value.
+    _is_equal_than: Generates a SQL expression to check if a column's value is equal to a given value.
 
-    _is_between(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is between two values.
+    _is_between: Generates a SQL expression to check if a column's value is between two values.
 
-    _has_pattern(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value matches a regular expression pattern.
+    _has_pattern: Generates a SQL expression to check if a column's value matches a regular expression pattern.
 
-    _is_contained_in(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is in a given sequence.
+    _is_contained_in: Generates a SQL expression to check if a column's value is in a given sequence.
 
-    _not_contained_in(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is not in a given sequence.
+    _not_contained_in: Generates a SQL expression to check if a column's value is not in a given sequence.
 
-    _satisfies(r: __RuleCtx) -> str:
-        Generates a SQL expression based on a custom condition provided as a string.
+    _satisfies: Generates a SQL expression based on a custom condition provided as a string.
 
-    _build_union_sql(rules: List[Dict]) -> str:
-        Builds a SQL query that combines multiple rule-based conditions into a UNION ALL query.
+    _build_union_sql: Builds a SQL query that combines multiple rule-based conditions into a UNION ALL query.
 
-    validate(
-        conn: dk.DuckDBPyConnection
-        Validates a DuckDB dataframe against a set of rules and returns the results.
+    validate: Validates a DuckDB dataframe against a set of rules and returns the results.
 
-    summarize(
-        total_rows: Optional[int] = None
-        Summarizes rule violations and calculates pass rates for each rule.
+    summarize: Summarizes rule violations and calculates pass rates for each rule.
 
-    validate_schema(
-        expected: List[Dict[str, Any]],
-        table: str
-        Validates the schema of a DuckDB table against an expected schema.
+    validate_schema: Validates the schema of a DuckDB table against an expected schema.
 """
 
 from __future__ import annotations
