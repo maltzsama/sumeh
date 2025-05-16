@@ -431,8 +431,17 @@ def _build_union_sql(rules: List[Dict]) -> str:
 
 def _validate_date_format(r: __RuleCtx) -> str:
     """
-    Filters rows where the specified column does not match the expected date format
-    or is NULL. We build a simple regexp from the format string, then flag non‐matches.
+    Validates a date format string by translating tokens into a regular expression
+    and generating a validation condition.
+
+    Args:
+        r (__RuleCtx): A context object containing the `value` attribute, which is
+        the date format string to validate, and the `column` attribute, which is
+        the name of the column to validate.
+
+    Returns:
+        str: A string representing a validation condition that checks if the column
+        is either NULL or does not match the expected date format.
     """
     fmt = r.value
     # translate tokens to regex
@@ -452,38 +461,69 @@ def _validate_date_format(r: __RuleCtx) -> str:
 
 def _is_future_date(r: __RuleCtx) -> str:
     """
-    Filters rows where the date column is after today's date.
+    Constructs a SQL condition to check if the values in a specified column 
+    represent future dates relative to the current date.
+
+    Args:
+        r (__RuleCtx): A context object containing metadata, including the column name.
+
+    Returns:
+        str: A SQL condition string in the format "<column> > CURRENT_DATE".
     """
     return f"{r.column} > CURRENT_DATE"
 
 
 def _is_past_date(r: __RuleCtx) -> str:
     """
-    Filters rows where the date column is before today's date.
+    Generates a SQL condition to check if the values in a specified column are earlier than the current date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL condition string in the format "<column> < CURRENT_DATE".
     """
     return f"{r.column} < CURRENT_DATE"
 
 
 def _is_date_after(r: __RuleCtx) -> str:
     """
-    Filters rows where the date column is before the given date in r.value.
-    (i.e. column < value)
+    Generates a SQL condition to check if a column's date value is earlier than a specified date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column name and the date value to compare.
+
+    Returns:
+        str: A SQL condition string in the format "<column> < DATE '<value>'".
     """
     return f"{r.column} < DATE '{r.value}'"
 
 
 def _is_date_before(r: __RuleCtx) -> str:
     """
-    Filters rows where the date column is after the given date in r.value.
-    (i.e. column > value)
+    Generates a SQL condition to check if a column's date is after a specified date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column name and the date value.
+
+    Returns:
+        str: A SQL condition string in the format "<column> > DATE '<value>'".
     """
     return f"{r.column} > DATE '{r.value}'"
 
 
 def _is_date_between(r: __RuleCtx) -> str:
     """
-    Filters rows where the date column is NOT within [start, end].
-    r.value must be a string "[YYYY-MM-DD,YYYY-MM-DD]".
+    Constructs a SQL condition to check if a column's date value is not within a specified range.
+
+    Args:
+        r (__RuleCtx): A rule context object containing:
+            - r.value (str): A string representation of the date range in the format "[start_date, end_date]".
+            - r.column (str): The name of the column to be checked.
+
+    Returns:
+        str: A SQL condition string in the format:
+             "NOT (column BETWEEN DATE 'start_date' AND DATE 'end_date')".
     """
     start, end = [d.strip() for d in r.value.strip("[]").split(",")]
     return f"NOT ({r.column} BETWEEN DATE '{start}' AND DATE '{end}')"
@@ -491,7 +531,13 @@ def _is_date_between(r: __RuleCtx) -> str:
 
 def _all_date_checks(r: __RuleCtx) -> str:
     """
-    Alias for is_past_date (i.e. before today).
+    Perform all date-related checks on the given rule context.
+
+    Args:
+        r (__RuleCtx): The rule context containing the data to be checked.
+
+    Returns:
+        str: The result of the date check, typically indicating whether the date is in the past.
     """
     return is_past_date(r)
 

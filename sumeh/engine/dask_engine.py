@@ -763,14 +763,56 @@ def satisfies(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     viol = df.map_partitions(_filter_viol, meta=meta)
     return viol.assign(dq_status=f"{field}:{check}:{value}")
     
-    
+
 def validate_date_format(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Validates the date format of a specified column in a Dask DataFrame.
+
+    This function checks whether the values in a specified column of the 
+    DataFrame conform to a given date format. Rows with invalid date formats 
+    are returned with an additional column indicating the validation status.
+
+    Args:
+        df (dd.DataFrame): The Dask DataFrame to validate.
+        rule (dict): A dictionary containing the validation rule. It should 
+                     include the following keys:
+                     - 'field': The name of the column to validate.
+                     - 'check': A string describing the validation check.
+                     - 'fmt': The expected date format (e.g., '%Y-%m-%d').
+
+    Returns:
+        dd.DataFrame: A DataFrame containing rows where the date format 
+                      validation failed. An additional column `dq_status` 
+                      is added, which contains a string describing the 
+                      validation status in the format "{field}:{check}:{fmt}".
+    """
     field, check, fmt = __extract_params(rule)
     col_dt = dd.to_datetime(df[field], format=fmt, errors="coerce")
     viol = df[col_dt.isna()]
     return viol.assign(dq_status=f"{field}:{check}:{fmt}")
 
 def is_future_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Checks for rows in a Dask DataFrame where the specified date field contains a future date.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to validate.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field: The name of the column to check.
+            - check: A descriptive label for the check (used in the output).
+            - _: Additional parameters (ignored in this function).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified
+        field is in the future. An additional column `dq_status` is added to indicate the status
+        of the validation in the format: "<field>:<check>:<current_date>".
+
+    Notes:
+        - The function coerces the specified column to datetime format, and invalid parsing results
+          in NaT (Not a Time).
+        - Rows with NaT in the specified column are excluded from the output.
+        - The current date is determined using the system's local date.
+    """
     field, check, _ = __extract_params(rule)
     today = pd.Timestamp(date.today())
     col_dt = dd.to_datetime(df[field], errors="coerce")
@@ -778,6 +820,20 @@ def is_future_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{today.date().isoformat()}")
 
 def is_past_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Checks if the values in a specified date column of a Dask DataFrame are in the past.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include
+                     the field name to check, the check type, and additional parameters.
+
+    Returns:
+        dd.DataFrame: A Dask DataFrame containing rows where the date in the specified column
+                      is in the past. An additional column `dq_status` is added to indicate
+                      the field, check type, and the date of the check in the format
+                      "field:check:YYYY-MM-DD".
+    """
     field, check, _ = __extract_params(rule)
     today = pd.Timestamp(date.today())
     col_dt = dd.to_datetime(df[field], errors="coerce")
@@ -785,6 +841,21 @@ def is_past_date(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{today.date().isoformat()}")
 
 def is_date_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where a date field does not fall within a specified range.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (used for status annotation).
+            - 'val': A string representing the date range in the format "[start_date, end_date]".
+
+    Returns:
+        dd.DataFrame: A DataFrame containing rows where the date field does not fall within the specified range.
+                      An additional column 'dq_status' is added to indicate the rule violation in the format
+                      "{field}:{check}:{val}".
+    """
     field, check, val = __extract_params(rule)
     start, end = [pd.Timestamp(v.strip()) for v in val.strip("[]").split(",")]
     col_dt = dd.to_datetime(df[field], errors="coerce")
@@ -793,6 +864,29 @@ def is_date_between(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{val}")
 
 def is_date_after(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where a specified date field is 
+    earlier than a given reference date.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to be checked.
+        rule (dict): A dictionary containing the rule parameters. It should 
+            include:
+            - field (str): The name of the column to check.
+            - check (str): A descriptive label for the check (used in the 
+              output status).
+            - date_str (str): The reference date as a string in a format 
+              compatible with `pd.Timestamp`.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the 
+        specified date field is earlier than the reference date. An additional 
+        column `dq_status` is added, which contains a string describing the 
+        rule violation in the format `field:check:date_str`.
+
+    Raises:
+        ValueError: If the `rule` dictionary does not contain the required keys.
+    """
     field, check, date_str = __extract_params(rule)
     ref = pd.Timestamp(date_str)
     col_dt = dd.to_datetime(df[field], errors="coerce")
@@ -800,6 +894,21 @@ def is_date_after(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{date_str}")
 
 def is_date_before(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Checks if the values in a specified date column of a Dask DataFrame are before a given reference date.
+
+    Parameters:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be validated.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to check.
+            - 'check': A descriptive string for the check (e.g., "is_date_before").
+            - 'date_str': The reference date as a string in a format parsable by pandas.Timestamp.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified column
+        is after the reference date. An additional column 'dq_status' is added to indicate the validation
+        status in the format "{field}:{check}:{date_str}".
+    """
     field, check, date_str = __extract_params(rule)
     ref = pd.Timestamp(date_str)
     col_dt = dd.to_datetime(df[field], errors="coerce")
@@ -807,7 +916,19 @@ def is_date_before(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{date_str}")
 
 def all_date_checks(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
-    # é só alias para is_past_date
+    """
+    Applies date validation checks on a Dask DataFrame based on the provided rule.
+
+    This function serves as an alias for the `is_past_date` function, which performs
+    checks to determine if dates in the DataFrame meet the specified criteria.
+
+    Args:
+        df (dd.DataFrame): The Dask DataFrame containing the data to be validated.
+        rule (dict): A dictionary specifying the validation rules to be applied.
+
+    Returns:
+        dd.DataFrame: A Dask DataFrame with the results of the date validation checks.
+    """
     return is_past_date(df, rule)
 
 
