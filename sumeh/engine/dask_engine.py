@@ -160,6 +160,48 @@ def is_negative(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
+def is_in_millions(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Checks if the values in a specified field of a Dask DataFrame are in the millions
+    (greater than or equal to 1,000,000) and returns a DataFrame of violations.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to check.
+        rule (dict): A dictionary containing the rule parameters. It is expected to
+                     include the field name, check type, and value.
+
+    Returns:
+        dd.DataFrame: A DataFrame containing rows where the specified field's value
+                      is greater than or equal to 1,000,000. An additional column
+                      `dq_status` is added to indicate the field, check, and value
+                      that triggered the violation.
+    """
+    field, check, value = __extract_params(rule)
+    viol = df[df[field] >= 1_000_000]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_in_billions(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Identifies rows in a Dask DataFrame where the value in a specified field
+    is greater than or equal to one billion and marks them with a data quality status.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+                     to include the field name, check type, and value.
+
+    Returns:
+        dd.DataFrame: A Dask DataFrame containing only the rows where the specified
+                      field's value is greater than or equal to one billion. An
+                      additional column `dq_status` is added, indicating the field,
+                      check type, and value that triggered the rule.
+    """
+    field, check, value = __extract_params(rule)
+    viol = df[df[field] >= 1_000_000_000]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
 def is_complete(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Checks for completeness of a specified field in a Dask DataFrame based on a given rule.
@@ -971,6 +1013,327 @@ def all_date_checks(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
         dd.DataFrame: A Dask DataFrame with the results of the date validation checks.
     """
     return is_past_date(df, rule)
+
+
+def is_t_minus_1(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where a specified datetime column
+    matches the date of "T-1" (yesterday) and assigns a data quality status.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+            to include the following keys:
+            - 'field': The name of the column to check.
+            - 'check': A string describing the check being performed.
+            - 'value': Additional value or metadata related to the check.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the
+        specified column matches "T-1". An additional column `dq_status` is added
+        to indicate the data quality status in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today() - pd.Timedelta(days=1))
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt == target]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_t_minus_2(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where a specified datetime column
+    matches the date two days prior to the current date.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It is expected to
+            include the following keys:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (used for metadata).
+            - 'value': A value associated with the rule (used for metadata).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the specified
+        column matches the target date (two days prior to the current date). An additional
+        column `dq_status` is added to indicate the rule applied in the format
+        "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today() - pd.Timedelta(days=2))
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt == target]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_t_minus_3(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the specified date field matches
+    exactly three days prior to the current date.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing rule parameters. It is expected to include
+                     the field name to check, the type of check, and the value (unused in this function).
+
+    Returns:
+        dd.DataFrame: A filtered Dask DataFrame containing only the rows where the specified
+                      date field matches three days prior to the current date. An additional
+                      column `dq_status` is added to indicate the rule applied in the format
+                      "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today() - pd.Timedelta(days=3))
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt == target]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_today(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the specified field matches today's date.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have
+            the following keys:
+            - field (str): The name of the column in the DataFrame to check.
+            - check (str): A descriptive label for the type of check being performed.
+            - value (str): A descriptive label for the expected value.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the specified
+        field matches today's date. An additional column `dq_status` is added to indicate
+        the rule applied in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today())
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt == target]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_yesterday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Determines if the rows in a Dask DataFrame correspond to "yesterday"
+    based on a given rule.
+
+    This function acts as a wrapper for the `is_t_minus_1` function,
+    applying the same logic to check if the data corresponds to the
+    previous day.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame to evaluate.
+        rule (dict): A dictionary containing the rule or criteria
+                     to determine "yesterday".
+
+    Returns:
+        dd.DataFrame: A Dask DataFrame with the evaluation results.
+    """
+    return is_t_minus_1(df, rule)
+
+
+def is_on_weekday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to include only rows where the date in the specified field falls on a weekday
+    (Monday to Friday) and assigns a data quality status column.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have the following keys:
+            - field (str): The name of the column in the DataFrame containing date values.
+            - check (str): A descriptive string for the check being performed.
+            - value (str): A value associated with the rule, used for constructing the `dq_status` column.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified field
+        falls on a weekday. An additional column `dq_status` is added to indicate the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    dow = col_dt.dt.weekday  # 0=Mon … 6=Sun
+    viol = df[(dow >= 0) & (dow <= 4)]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_weekend(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Identifies rows in a Dask DataFrame where the date in a specified column falls on a weekend.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have
+                     the following keys:
+                     - 'field': The name of the column in the DataFrame to check.
+                     - 'check': A string representing the type of check (used for status annotation).
+                     - 'value': A value associated with the rule (used for status annotation).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified
+                      column falls on a weekend (Saturday or Sunday). An additional column `dq_status`
+                      is added to indicate the rule applied in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    dow = col_dt.dt.weekday
+    viol = df[(dow >= 5) & (dow <= 6)]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_monday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the date in a specified column falls on a Monday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (used for status assignment).
+            - 'value': A value associated with the rule (used for status assignment).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified
+        column falls on a Monday. An additional column `dq_status` is added to indicate the rule
+        applied in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 0]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_tuesday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the specified date field falls on a Tuesday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (used for status annotation).
+            - 'value': A value associated with the rule (used for status annotation).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the specified date field
+        falls on a Tuesday. An additional column `dq_status` is added to indicate the rule applied
+        in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 1]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_wednesday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the date in a specified column falls on a Wednesday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - `field` (str): The name of the column in the DataFrame to check.
+            - `check` (str): A descriptive string for the check being performed.
+            - `value` (str): A value associated with the rule (not directly used in the function).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified column
+        falls on a Wednesday. An additional column `dq_status` is added to indicate the rule applied in the
+        format `{field}:{check}:{value}`.
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 2]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_thursday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the specified date field falls on a Thursday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field (str): The name of the column in the DataFrame to check.
+            - check (str): A descriptive string for the type of check being performed.
+            - value (str): A value associated with the rule (not used in the logic but included in the output).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the specified date field
+        falls on a Thursday. An additional column `dq_status` is added to indicate the rule applied
+        in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 3]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_friday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where a specified date field falls on a Friday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have
+            the following keys:
+            - field (str): The name of the column in the DataFrame to check.
+            - check (str): A descriptive string for the check being performed.
+            - value (str): A value associated with the rule, used for status annotation.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the specified
+        date field falls on a Friday. An additional column `dq_status` is added to the
+        DataFrame, containing a string in the format "{field}:{check}:{value}" to indicate
+        the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 4]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_saturday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where the date in a specified column falls on a Saturday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (used for status assignment).
+            - 'value': A value associated with the rule (used for status assignment).
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the date in the specified
+        column falls on a Saturday. An additional column `dq_status` is added to indicate the rule
+        applied in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 5]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
+
+def is_on_sunday(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
+    """
+    Filters a Dask DataFrame to identify rows where a specified date field falls on a Sunday.
+
+    Args:
+        df (dd.DataFrame): The input Dask DataFrame containing the data to be checked.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field (str): The name of the column in the DataFrame to check.
+            - check (str): A descriptive string for the check being performed.
+            - value (str): A value associated with the rule, used for status annotation.
+
+    Returns:
+        dd.DataFrame: A new Dask DataFrame containing only the rows where the specified
+        date field falls on a Sunday. An additional column `dq_status` is added to indicate
+        the rule applied in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    col_dt = dd.to_datetime(df[field], errors="coerce")
+    viol = df[col_dt.dt.weekday == 6]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
 def validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
