@@ -5,107 +5,113 @@ This module provides a set of functions for performing data quality checks on Py
 It includes various validation rules, schema validation, and summarization utilities.
 
 Functions:
-    - is_positive(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is negative and adds a data quality status column.
+    is_positive: Filters rows where the specified field is negative and adds a data quality status column.
 
-    - is_negative(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is non-negative and adds a data quality status column.
+    is_negative: Filters rows where the specified field is non-negative and adds a data quality status column.
 
-    - is_complete(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is null and adds a data quality status column.
+    is_in_millions: Retains rows where the field value is at least 1,000,000 and flags them with dq_status.
 
-    - is_unique(df: DataFrame, rule: dict) -> DataFrame:
-        Identifies duplicate rows based on the specified field and adds a data quality status column.
+    is_positive: Filters rows where the specified field is negative and adds a data quality status column.
 
-    - are_complete(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where any of the specified fields are null and adds a data quality status column.
+    is_negative: Filters rows where the specified field is non-negative and adds a data quality status column.
 
-    - are_unique(df: DataFrame, rule: dict) -> DataFrame:
-        Identifies duplicate rows based on a combination of specified fields and adds a data quality status column.
+    is_in_millions: Retains rows where the field value is at least 1,000,000 and flags them with dq_status.
 
-    - is_greater_than(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is less than or equal to the given value.
+    is_in_billions: Retains rows where the field value is at least 1,000,000,000 and flags them with dq_status.
 
-    - is_greater_or_equal_than(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is less than the given value.
+    is_t_minus_1: Retains rows where the date field equals yesterday (T-1) and flags them with dq_status.
 
-    - is_less_than(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is greater than or equal to the given value.
+    is_t_minus_2: Retains rows where the date field equals two days ago (T-2) and flags them with dq_status.
 
-    - is_less_or_equal_than(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is greater than the given value.
+    is_t_minus_3: Retains rows where the date field equals three days ago (T-3) and flags them with dq_status.
 
-    - is_equal(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is not equal to the given value.
+    is_today: Retains rows where the date field equals today and flags them with dq_status.
 
-    - is_equal_than(df: DataFrame, rule: dict) -> DataFrame:
-        Alias for `is_equal`.
+    is_yesterday: Retains rows where the date field equals yesterday and flags them with dq_status.
 
-    - is_contained_in(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is not in the given list of values.
+    is_on_weekday: Retains rows where the date field falls on a weekday (Mon-Fri) and flags them with dq_status.
 
-    - not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is in the given list of values.
+    is_on_weekend: Retains rows where the date field is on a weekend (Sat-Sun) and flags them with dq_status.
 
-    - is_between(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is not within the given range.
+    is_on_monday: Retains rows where the date field is on Monday and flags them with dq_status.
 
-    - has_pattern(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field does not match the given regex pattern.
+    is_on_tuesday: Retains rows where the date field is on Tuesday and flags them with dq_status.
 
-    - is_legit(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is null or does not match a non-whitespace pattern.
+    is_on_wednesday: Retains rows where the date field is on Wednesday and flags them with dq_status.
 
-    - is_primary_key(df: DataFrame, rule: dict):
-        Checks if the specified field is unique (alias for `is_unique`).
+    is_on_thursday: Retains rows where the date field is on Thursday and flags them with dq_status.
 
-    - is_composite_key(df: DataFrame, rule: dict):
-        Checks if the combination of specified fields is unique (alias for `are_unique`).
+    is_on_friday: Retains rows where the date field is on Friday and flags them with dq_status.
 
-    - has_max(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field exceeds the given maximum value.
+    is_on_saturday: Retains rows where the date field is on Saturday and flags them with dq_status.
 
-    - has_min(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field is below the given minimum value.
+    is_on_sunday: Retains rows where the date field is on Sunday and flags them with dq_status.
 
-    - has_std(df: DataFrame, rule: dict) -> DataFrame:
-        Checks if the standard deviation of the specified field exceeds the given value.
+    is_complete: Filters rows where the specified field is null and adds a data quality status column.
 
-    - has_mean(df: DataFrame, rule: dict) -> DataFrame:
-        Checks if the mean of the specified field exceeds the given value.
+    is_unique: Identifies duplicate rows based on the specified field and adds a data quality status column.
 
-    - has_sum(df: DataFrame, rule: dict) -> DataFrame:
-        Checks if the sum of the specified field exceeds the given value.
+    are_complete: Filters rows where any of the specified fields are null and adds a data quality status column.
 
-    - has_cardinality(df: DataFrame, rule: dict) -> DataFrame:
-        Checks if the cardinality (distinct count) of the specified field exceeds the given value.
+    are_unique: Identifies duplicate rows based on a combination of specified fields and adds a data quality status column.
 
-    - has_infogain(df: DataFrame, rule: dict) -> DataFrame:
-        Checks if the information gain (distinct count) of the specified field exceeds the given value.
+    is_greater_than: Filters rows where the specified field is less than or equal to the given value.
 
-    - has_entropy(df: DataFrame, rule: dict) -> DataFrame:
-        Checks if the entropy (distinct count) of the specified field exceeds the given value.
+    is_greater_or_equal_than: Filters rows where the specified field is less than the given value.
 
-    - all_date_checks(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified date field is earlier than the current date.
+    is_less_than: Filters rows where the specified field is greater than or equal to the given value.
 
-    - satisfies(df: DataFrame, rule: dict) -> DataFrame:
-        Filters rows where the specified field matches the given regex pattern.
+    is_less_or_equal_than: Filters rows where the specified field is greater than the given value.
 
-    - validate(df: DataFrame, rules: list[dict]) -> Tuple[DataFrame, DataFrame]:
-        Applies a list of validation rules to the DataFrame and returns the results.
+    is_equal: Filters rows where the specified field is not equal to the given value.
 
-    - summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
-        Summarizes the results of data quality checks, including pass rates and violations.
+    is_equal_than: Alias for `is_equal`.
 
-    - validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]]]:
-        Validates the schema of the DataFrame against the expected schema.
+    is_contained_in: Filters rows where the specified field is not in the given list of values.
 
-    - __rules_to_df(rules: List[Dict]) -> DataFrame:
-        Converts a list of rules into a DataFrame for further processing.
+    not_contained_in: Filters rows where the specified field is in the given list of values.
 
-    - __pyspark_schema_to_list(df: DataFrame) -> List[Dict[str, Any]]:
-        Converts the schema of a DataFrame into a list of dictionaries for comparison.
+    is_between: Filters rows where the specified field is not within the given range.
+
+    has_pattern: Filters rows where the specified field does not match the given regex pattern.
+
+    is_legit: Filters rows where the specified field is null or does not match a non-whitespace pattern.
+
+    is_primary_key(df: DataFrame, rule: dict):
+    Checks if the specified field is unique (alias for `is_unique`).
+
+    is_composite_key(df: DataFrame, rule: dict):
+    Checks if the combination of specified fields is unique (alias for `are_unique`).
+
+    has_max: Filters rows where the specified field exceeds the given maximum value.
+
+    has_min: Filters rows where the specified field is below the given minimum value.
+
+    has_std: Checks if the standard deviation of the specified field exceeds the given value.
+
+    has_mean: Checks if the mean of the specified field exceeds the given value.
+
+    has_sum: Checks if the sum of the specified field exceeds the given value.
+
+    has_cardinality: Checks if the cardinality (distinct count) of the specified field exceeds the given value.
+
+    has_infogain: Checks if the information gain (distinct count) of the specified field exceeds the given value.
+
+    has_entropy: Checks if the entropy (distinct count) of the specified field exceeds the given value.
+
+    all_date_checks: Filters rows where the specified date field is earlier than the current date.
+
+    satisfies: Filters rows where the specified field matches the given regex pattern.
+
+    validate: Applies a list of validation rules to the DataFrame and returns the results.
+
+    summarize: Summarizes the results of data quality checks, including pass rates and violations.
+
+    validate_schema: Validates the schema of the DataFrame against the expected schema.
+
+    __rules_to_df: Converts a list of rules into a DataFrame for further processing.
+
+    __pyspark_schema_to_list: Converts the schema of a DataFrame into a list of dictionaries for comparison.
 """
 
 import warnings
@@ -129,13 +135,22 @@ from pyspark.sql.functions import (
     when,
     trim,
     split,
-    expr
+    expr,
+    date_sub,
+    dayofweek,
 )
+
+
 from typing import List, Dict, Any, Tuple
 import operator
 from functools import reduce
 
-from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas, __transform_date_format_in_pattern
+from sumeh.services.utils import (
+    __convert_value,
+    __extract_params,
+    __compare_schemas,
+    __transform_date_format_in_pattern,
+)
 
 
 def is_positive(df: DataFrame, rule: dict) -> DataFrame:
@@ -159,6 +174,7 @@ def is_positive(df: DataFrame, rule: dict) -> DataFrame:
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
+
 def is_negative(df: DataFrame, rule: dict) -> DataFrame:
     """
     Filters rows in the given DataFrame where the specified field is non-negative
@@ -181,9 +197,53 @@ def is_negative(df: DataFrame, rule: dict) -> DataFrame:
     )
 
 
+def is_in_millions(df, rule: dict):
+    """
+    Filters a DataFrame to include only rows where the specified field's value
+    is greater than or equal to 1,000,000 and adds a "dq_status" column with
+    a formatted string indicating the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter and modify.
+        rule (dict): A dictionary containing the rule parameters. It should
+                     include the field to check, the check type, and the value.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame with rows filtered based on the
+        rule and an additional "dq_status" column describing the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) < lit(1_000_000)).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_in_billions(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified field's value
+    is greater than or equal to one billion, and adds a "dq_status" column with a
+    formatted string indicating the field, check, and value.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to check.
+            - 'check': The type of check being performed (e.g., "greater_than").
+            - 'value': The threshold value for the check.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an
+        additional "dq_status" column.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(col(field) < lit(1_000_000_000)).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
 def is_complete(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters a DataFrame to identify rows where a specified field is null and adds a 
+    Filters a DataFrame to identify rows where a specified field is null and adds a
     "dq_status" column indicating the data quality rule applied.
 
     Args:
@@ -194,7 +254,7 @@ def is_complete(df: DataFrame, rule: dict) -> DataFrame:
             - "value" (str): Additional information about the rule.
 
     Returns:
-        DataFrame: A new DataFrame filtered to include only rows where the specified 
+        DataFrame: A new DataFrame filtered to include only rows where the specified
         field is null, with an additional "dq_status" column describing the rule.
     """
     field, check, value = __extract_params(rule)
@@ -230,7 +290,8 @@ def validate_date_format(df: DataFrame, rule: dict) -> DataFrame:
     date_regex = __transform_date_format_in_pattern(date_format)
 
     return df.filter(~col(field).rlike(date_regex) | col(field).isNull()).withColumn(
-        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(date_format))
+        "dq_status",
+        concat(lit(field), lit(":"), lit(check), lit(":"), lit(date_format)),
     )
 
 
@@ -398,7 +459,7 @@ def are_complete(df: DataFrame, rule: dict) -> DataFrame:
             - "value" (str): A descriptive value associated with the check.
 
     Returns:
-        DataFrame: A new DataFrame containing only the rows that fail the completeness check, 
+        DataFrame: A new DataFrame containing only the rows that fail the completeness check,
         with an additional column "dq_status" describing the failed rule.
     """
     fields, check, value = __extract_params(rule)
@@ -421,14 +482,14 @@ def are_unique(df: DataFrame, rule: dict) -> DataFrame:
             - 'value': A value associated with the rule for logging or identification.
 
     Returns:
-        DataFrame: A DataFrame containing rows that violate the uniqueness rule. 
-        The resulting DataFrame includes an additional column `dq_status` that 
+        DataFrame: A DataFrame containing rows that violate the uniqueness rule.
+        The resulting DataFrame includes an additional column `dq_status` that
         describes the rule violation in the format: "[fields]:[check]:[value]".
 
     Notes:
-        - The function concatenates the specified fields into a single column 
+        - The function concatenates the specified fields into a single column
           and checks for duplicate values within that column.
-        - Rows that do not meet the uniqueness criteria are returned, while 
+        - Rows that do not meet the uniqueness criteria are returned, while
           rows that satisfy the criteria are excluded from the result.
     """
     fields, check, value = __extract_params(rule)
@@ -448,7 +509,7 @@ def are_unique(df: DataFrame, rule: dict) -> DataFrame:
 
 def is_greater_than(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters rows in a DataFrame where the value of a specified field is less than 
+    Filters rows in a DataFrame where the value of a specified field is less than
     or equal to a given threshold and adds a new column indicating the rule applied.
 
     Args:
@@ -459,7 +520,7 @@ def is_greater_than(df: DataFrame, rule: dict) -> DataFrame:
             - 'value' (int or float): The threshold value for the comparison.
 
     Returns:
-        DataFrame: A new DataFrame with rows filtered based on the rule and an 
+        DataFrame: A new DataFrame with rows filtered based on the rule and an
         additional column "dq_status" describing the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -492,7 +553,7 @@ def is_greater_or_equal_than(df: DataFrame, rule: dict) -> DataFrame:
 
 def is_less_than(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters rows in a PySpark DataFrame where the specified field is greater than 
+    Filters rows in a PySpark DataFrame where the specified field is greater than
     or equal to a given value and adds a new column indicating the rule applied.
 
     Args:
@@ -503,7 +564,7 @@ def is_less_than(df: DataFrame, rule: dict) -> DataFrame:
             - 'value' (int, float, or str): The value to compare the column against.
 
     Returns:
-        DataFrame: A new DataFrame with rows filtered based on the rule and an 
+        DataFrame: A new DataFrame with rows filtered based on the rule and an
         additional column "dq_status" describing the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -537,7 +598,7 @@ def is_less_or_equal_than(df: DataFrame, rule: dict) -> DataFrame:
 def is_equal(df: DataFrame, rule: dict) -> DataFrame:
     """
     Filters a PySpark DataFrame based on a rule that checks for equality between a specified field
-    and a given value. Rows that do not satisfy the equality condition are retained, and a new 
+    and a given value. Rows that do not satisfy the equality condition are retained, and a new
     column "dq_status" is added to indicate the rule applied.
 
     Args:
@@ -548,7 +609,7 @@ def is_equal(df: DataFrame, rule: dict) -> DataFrame:
             - "value" (Any): The value to compare against.
 
     Returns:
-        DataFrame: A new DataFrame with rows that do not satisfy the equality condition and an 
+        DataFrame: A new DataFrame with rows that do not satisfy the equality condition and an
         additional "dq_status" column describing the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -559,8 +620,8 @@ def is_equal(df: DataFrame, rule: dict) -> DataFrame:
 
 def is_equal_than(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters rows in a PySpark DataFrame that do not satisfy an equality condition 
-    specified in the rule dictionary and adds a "dq_status" column with details 
+    Filters rows in a PySpark DataFrame that do not satisfy an equality condition
+    specified in the rule dictionary and adds a "dq_status" column with details
     about the rule applied.
 
     Args:
@@ -571,7 +632,7 @@ def is_equal_than(df: DataFrame, rule: dict) -> DataFrame:
             - "value" (Any): The value to compare against.
 
     Returns:
-        DataFrame: A new DataFrame with rows filtered based on the rule and an 
+        DataFrame: A new DataFrame with rows filtered based on the rule and an
         additional "dq_status" column describing the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -582,8 +643,8 @@ def is_equal_than(df: DataFrame, rule: dict) -> DataFrame:
 
 def is_contained_in(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters rows in a PySpark DataFrame based on whether a specified column's value 
-    is not contained in a given list of values. Adds a new column 'dq_status' to 
+    Filters rows in a PySpark DataFrame based on whether a specified column's value
+    is not contained in a given list of values. Adds a new column 'dq_status' to
     indicate the rule applied.
 
     Args:
@@ -594,7 +655,7 @@ def is_contained_in(df: DataFrame, rule: dict) -> DataFrame:
             - 'value': A string representation of a list of values (e.g., "[value1,value2]").
 
     Returns:
-        DataFrame: A new PySpark DataFrame with rows filtered based on the rule 
+        DataFrame: A new PySpark DataFrame with rows filtered based on the rule
         and an additional column 'dq_status' describing the rule applied.
 
     Example:
@@ -608,9 +669,24 @@ def is_contained_in(df: DataFrame, rule: dict) -> DataFrame:
     )
 
 
+def is_in(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Checks if the values in the specified column of a DataFrame are contained within a given set of values.
+
+    Args:
+        df (DataFrame): The input DataFrame to evaluate.
+        rule (dict): A dictionary containing the rule for the check. It should specify the column name
+                     and the set of values to check against.
+
+    Returns:
+        DataFrame: A DataFrame with the applied rule, typically filtered or modified based on the check.
+    """
+    return is_contained_in(df, rule)
+
+
 def not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters rows in a DataFrame where the specified field's value is in a given list 
+    Filters rows in a DataFrame where the specified field's value is in a given list
     and adds a column indicating the data quality status.
 
     Args:
@@ -618,12 +694,12 @@ def not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
         rule (dict): A dictionary containing the rule parameters. It should include:
             - 'field': The name of the column to check.
             - 'check': A string representing the type of check (e.g., "not_contained_in").
-            - 'value': A string representation of a list (e.g., "[value1,value2,...]") 
+            - 'value': A string representation of a list (e.g., "[value1,value2,...]")
               containing the values to check against.
 
     Returns:
-        DataFrame: A new DataFrame with rows filtered based on the rule and an 
-        additional column "dq_status" indicating the data quality status in the 
+        DataFrame: A new DataFrame with rows filtered based on the rule and an
+        additional column "dq_status" indicating the data quality status in the
         format "field:check:value".
     """
     field, check, value = __extract_params(rule)
@@ -631,6 +707,22 @@ def not_contained_in(df: DataFrame, rule: dict) -> DataFrame:
     return df.filter(col(field).isin(negative_list)).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
+
+
+def not_in(df: DataFrame, rule: dict) -> DataFrame:
+    """
+    Filters rows in a DataFrame where the specified rule is not contained.
+
+    This function delegates the operation to the `not_contained_in` function.
+
+    Args:
+        df (DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary specifying the rule to apply for filtering.
+
+    Returns:
+        DataFrame: A new DataFrame with rows that do not match the specified rule.
+    """
+    return not_contained_in(df, rule)
 
 
 def is_between(df: DataFrame, rule: dict) -> DataFrame:
@@ -680,7 +772,7 @@ def has_pattern(df: DataFrame, rule: dict) -> DataFrame:
 
 def is_legit(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters a PySpark DataFrame to identify rows that do not meet a specified rule 
+    Filters a PySpark DataFrame to identify rows that do not meet a specified rule
     and appends a column indicating the data quality status.
 
     Args:
@@ -691,8 +783,8 @@ def is_legit(df: DataFrame, rule: dict) -> DataFrame:
             - 'value': The expected value or condition for the validation.
 
     Returns:
-        DataFrame: A new DataFrame containing only the rows that fail the validation 
-        rule, with an additional column "dq_status" describing the validation status 
+        DataFrame: A new DataFrame containing only the rows that fail the validation
+        rule, with an additional column "dq_status" describing the validation status
         in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
@@ -761,7 +853,7 @@ def has_max(df: DataFrame, rule: dict) -> DataFrame:
 
 def has_min(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Filters rows in a DataFrame where the value of a specified field is less than a given threshold 
+    Filters rows in a DataFrame where the value of a specified field is less than a given threshold
     and adds a new column indicating the data quality status.
 
     Args:
@@ -772,7 +864,7 @@ def has_min(df: DataFrame, rule: dict) -> DataFrame:
             - 'value' (numeric): The threshold value for the check.
 
     Returns:
-        DataFrame: A new DataFrame with rows filtered based on the rule and an additional 
+        DataFrame: A new DataFrame with rows filtered based on the rule and an additional
         "dq_status" column containing a string representation of the rule applied.
     """
     field, check, value = __extract_params(rule)
@@ -820,8 +912,8 @@ def has_mean(df: DataFrame, rule: dict) -> DataFrame:
             - 'value' (float): The threshold value to compare the mean against.
 
     Returns:
-        DataFrame: If the mean value of the specified column exceeds the threshold, 
-        returns the original DataFrame with an additional column `dq_status` indicating 
+        DataFrame: If the mean value of the specified column exceeds the threshold,
+        returns the original DataFrame with an additional column `dq_status` indicating
         the rule violation. If the mean value satisfies the rule, returns an empty DataFrame.
     """
     field, check, value = __extract_params(rule)
@@ -891,21 +983,21 @@ def has_cardinality(df: DataFrame, rule: dict) -> DataFrame:
 
 def has_infogain(df: DataFrame, rule: dict) -> DataFrame:
     """
-    Evaluates whether a given DataFrame satisfies an information gain condition 
-    based on the provided rule. If the condition is met, it appends a column 
+    Evaluates whether a given DataFrame satisfies an information gain condition
+    based on the provided rule. If the condition is met, it appends a column
     indicating the status; otherwise, it returns an empty DataFrame.
 
     Args:
         df (DataFrame): The input PySpark DataFrame to evaluate.
-        rule (dict): A dictionary containing the rule parameters. It should 
+        rule (dict): A dictionary containing the rule parameters. It should
                      include the following keys:
                      - 'field': The column name to evaluate.
                      - 'check': The condition type (not used directly in the logic).
                      - 'value': The threshold value for information gain.
 
     Returns:
-        DataFrame: A DataFrame with an additional "dq_status" column if the 
-                   information gain condition is met, or an empty DataFrame 
+        DataFrame: A DataFrame with an additional "dq_status" column if the
+                   information gain condition is met, or an empty DataFrame
                    if the condition is not satisfied.
     """
     field, check, value = __extract_params(rule)
@@ -955,11 +1047,334 @@ def all_date_checks(df: DataFrame, rule: dict) -> DataFrame:
             - 'value': The value to be used in the check.
 
     Returns:
-        DataFrame: A new DataFrame filtered based on the rule, with an additional column 
+        DataFrame: A new DataFrame filtered based on the rule, with an additional column
         "dq_status" indicating the data quality status in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
     return df.filter((col(field) < current_date())).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_t_minus_1(df, rule: dict):
+    """
+    Filters the input DataFrame to include only rows where the specified field matches the date
+    corresponding to "T-1" (yesterday). Adds a new column "dq_status" to indicate the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to be checked.
+            - 'check': The type of check being performed (not used in filtering but included in "dq_status").
+            - 'value': The value associated with the check (not used in filtering but included in "dq_status").
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an additional "dq_status" column.
+    """
+    field, check, value = __extract_params(rule)
+    target = date_sub(current_date(), 1)
+    return df.filter(col(field) != target).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_t_minus_2(df, rule: dict):
+    """
+    Filters the input DataFrame to include only rows where the specified field matches the date
+    that is two days prior to the current date. Adds a new column 'dq_status' to indicate the
+    data quality status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to be checked.
+            - 'check': A string representing the type of check (not used in filtering).
+            - 'value': A value associated with the check (not used in filtering).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an additional
+        'dq_status' column indicating the field, check, and value.
+    """
+    field, check, value = __extract_params(rule)
+    target = date_sub(current_date(), 2)
+    return df.filter(col(field) != target).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_t_minus_3(df, rule: dict):
+    """
+    Filters the input DataFrame to include only rows where the specified field matches
+    the date that is three days prior to the current date. Adds a new column 'dq_status'
+    to indicate the data quality status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to be checked.
+            - 'check': A string representing the type of check (not used in filtering).
+            - 'value': A value associated with the rule (not used in filtering).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the rule and with an
+        additional 'dq_status' column.
+    """
+    field, check, value = __extract_params(rule)
+    target = date_sub(current_date(), 3)
+    return df.filter(col(field) != target).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_today(df, rule: dict):
+    """
+    Filters a DataFrame to include only rows where the specified field matches the current date.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have
+                     the following keys:
+                     - 'field': The name of the column to check.
+                     - 'check': A string representing the type of check (not used in this function).
+                     - 'value': A value associated with the rule (not used in this function).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered by the current date and with an additional
+                               column "dq_status" indicating the rule applied in the format
+                               "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    today = current_date()
+    return df.filter(col(field) != today).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_yesterday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified field matches yesterday's date.
+    Adds a new column 'dq_status' to indicate the data quality status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field': The name of the column to check.
+            - 'check': The type of check being performed (used for status message).
+            - 'value': Additional value information (used for status message).
+
+    Returns:
+        pyspark.sql.DataFrame: A filtered DataFrame with an additional 'dq_status' column.
+    """
+    field, check, value = __extract_params(rule)
+    yesterday = date_sub(current_date(), 1)
+    return df.filter(col(field) != yesterday).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_weekday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field
+    falls on a weekday (Monday to Friday). Adds a new column 'dq_status' to indicate
+    the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected to
+            include the following keys:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (used for logging).
+            - 'value': A value associated with the rule (used for logging).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where
+        the specified date field is a weekday, with an additional 'dq_status' column
+        describing the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        (dayofweek(col(field)) == 1) | (dayofweek(col(field)) == 7)
+    ).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_weekend(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field
+    falls on a weekend (Saturday or Sunday). Additionally, adds a new column
+    'dq_status' to indicate the rule applied.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+                     to have the following keys:
+                     - 'field': The name of the date column to check.
+                     - 'check': A string representing the type of check (not used in logic).
+                     - 'value': A string representing the value to include in the 'dq_status' column.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where
+        the specified date field is on a weekend, with an additional 'dq_status' column.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        (dayofweek(col(field)) != 1) | (dayofweek(col(field)) != 7)
+    ).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_monday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Monday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing rule parameters. It is expected to include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (not used in this function).
+            - 'value': A value associated with the rule (not used in this function).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified
+        date field corresponds to a Monday. Additionally, a new column "dq_status" is added,
+        containing a concatenated string of the field, check, and value.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 2).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_tuesday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the day of the week
+    for a specified date column is Tuesday. Adds a new column 'dq_status' to
+    indicate the validation status.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+            to include:
+            - 'field': The name of the column to check.
+            - 'check': A string describing the check being performed.
+            - 'value': A value associated with the check.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows
+        where the specified column corresponds to Tuesday, with an additional
+        'dq_status' column describing the validation status.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 3).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_wednesday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Wednesday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input PySpark DataFrame.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have the following keys:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (not used in the logic but included for status reporting).
+            - 'value': A value associated with the rule (not used in the logic but included for status reporting).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified field corresponds to a Wednesday.
+        Additionally, a new column 'dq_status' is added, which contains a string in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 4).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_thursday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date column falls on a Thursday.
+
+    Args:
+        df (DataFrame): The PySpark DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (not used in the filtering logic).
+            - 'value': A value associated with the rule (not used in the filtering logic).
+
+    Returns:
+        DataFrame: A new PySpark DataFrame filtered to include only rows where the specified column's day of the week is Thursday.
+                   Additionally, a new column "dq_status" is added, containing a concatenated string of the field, check, and value.
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 5).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_friday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Friday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have the following keys:
+            - 'field': The name of the column in the DataFrame to check.
+            - 'check': A string representing the type of check (not used in this function but included for consistency).
+            - 'value': A value associated with the rule (not used in this function but included for consistency).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified date field
+        corresponds to a Friday. Additionally, a new column `dq_status` is added, which contains a string
+        representation of the rule applied in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 6).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_saturday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Saturday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing rule parameters. The function expects the rule to include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the check being performed (not used in logic, but included in the output column).
+            - 'value': A value to include in the output column (not used in logic, but included in the output column).
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified field falls on a Saturday.
+        Additionally, a new column "dq_status" is added, containing a string in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 7).withColumn(
+        "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
+    )
+
+
+def is_on_sunday(df, rule: dict):
+    """
+    Filters a PySpark DataFrame to include only rows where the specified date field falls on a Sunday.
+
+    Args:
+        df (pyspark.sql.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field (str): The name of the column to check.
+            - check (str): A descriptive string for the check being performed.
+            - value (str): A value to include in the "dq_status" column for context.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame filtered to include only rows where the specified
+        date field corresponds to a Sunday. Additionally, a "dq_status" column is added to the
+        DataFrame, containing a string in the format "field:check:value".
+    """
+    field, check, value = __extract_params(rule)
+    return df.filter(dayofweek(col(field)) != 1).withColumn(
         "dq_status", concat(lit(field), lit(":"), lit(check), lit(":"), lit(value))
     )
 
@@ -1214,14 +1629,14 @@ def validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]
 
     Args:
         df (DataFrame): The PySpark DataFrame whose schema is to be validated.
-        expected (list): The expected schema represented as a list of tuples, 
+        expected (list): The expected schema represented as a list of tuples,
                          where each tuple contains the column name and its data type
                          and a boolean, if the column is nullable or not.
 
     Returns:
         Tuple[bool, List[Tuple[str, str]]]: A tuple containing:
             - A boolean indicating whether the schema matches the expected schema.
-            - A list of tuples representing the mismatched columns, where each tuple 
+            - A list of tuples representing the mismatched columns, where each tuple
               contains the column name and the reason for the mismatch.
     """
     actual = __pyspark_schema_to_list(df)

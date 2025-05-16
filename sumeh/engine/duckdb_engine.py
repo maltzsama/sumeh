@@ -1,80 +1,55 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides utilities for generating and validating SQL expressions 
-and data quality rules using DuckDB. It includes functions for building SQL 
-expressions, validating dataframes against rules, summarizing rule violations, 
+This module provides utilities for generating and validating SQL expressions
+and data quality rules using DuckDB. It includes functions for building SQL
+expressions, validating dataframes against rules, summarizing rule violations,
 and schema validation.
 
 Classes:
-    __RuleCtx: A dataclass representing the context required to generate SQL 
+    __RuleCtx: A dataclass representing the context required to generate SQL
               expressions for data quality rules.
 
 Functions:
-    __escape_single_quotes(txt: str) -> str:
-        Escapes single quotes in a string for SQL compatibility.
+    __escape_single_quotes: Escapes single quotes in a string for SQL compatibility.
 
-    __format_sequence(value: Any) -> str:
-        Formats a sequence (list, tuple, or string) into a SQL-compatible 
-        representation for IN/NOT IN clauses.
+    __format_sequence: Formats a sequence (list, tuple, or string) into a SQL-compatible representation for IN/NOT IN clauses.
 
-    _is_complete(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column is not NULL.
+    _is_complete: Generates a SQL expression to check if a column is not NULL.
 
-    _are_complete(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if all columns in a list are not NULL.
+    _are_complete: Generates a SQL expression to check if all columns in a list are not NULL.
 
-    _is_unique(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column has unique values.
+    _is_unique: Generates a SQL expression to check if a column has unique values.
 
-    _are_unique(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a combination of columns has unique values.
+    _are_unique: Generates a SQL expression to check if a combination of columns has unique values.
 
-    _is_greater_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is greater than a given value.
+    _is_greater_than: Generates a SQL expression to check if a column's value is greater than a given value.
 
-    _is_less_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is less than a given value.
+    _is_less_than: Generates a SQL expression to check if a column's value is less than a given value.
 
-    _is_greater_or_equal_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is greater than or equal to a given value.
+    _is_greater_or_equal_than: Generates a SQL expression to check if a column's value is greater than or equal to a given value.
 
-    _is_less_or_equal_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is less than or equal to a given value.
+    _is_less_or_equal_than: Generates a SQL expression to check if a column's value is less than or equal to a given value.
 
-    _is_equal_than(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is equal to a given value.
+    _is_equal_than: Generates a SQL expression to check if a column's value is equal to a given value.
 
-    _is_between(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is between two values.
+    _is_between: Generates a SQL expression to check if a column's value is between two values.
 
-    _has_pattern(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value matches a regular expression pattern.
+    _has_pattern: Generates a SQL expression to check if a column's value matches a regular expression pattern.
 
-    _is_contained_in(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is in a given sequence.
+    _is_contained_in: Generates a SQL expression to check if a column's value is in a given sequence.
 
-    _not_contained_in(r: __RuleCtx) -> str:
-        Generates a SQL expression to check if a column's value is not in a given sequence.
+    _not_contained_in: Generates a SQL expression to check if a column's value is not in a given sequence.
 
-    _satisfies(r: __RuleCtx) -> str:
-        Generates a SQL expression based on a custom condition provided as a string.
+    _satisfies: Generates a SQL expression based on a custom condition provided as a string.
 
-    _build_union_sql(rules: List[Dict]) -> str:
-        Builds a SQL query that combines multiple rule-based conditions into a UNION ALL query.
+    _build_union_sql: Builds a SQL query that combines multiple rule-based conditions into a UNION ALL query.
 
-    validate(
-        conn: dk.DuckDBPyConnection
-        Validates a DuckDB dataframe against a set of rules and returns the results.
+    validate: Validates a DuckDB dataframe against a set of rules and returns the results.
 
-    summarize(
-        total_rows: Optional[int] = None
-        Summarizes rule violations and calculates pass rates for each rule.
+    summarize: Summarizes rule violations and calculates pass rates for each rule.
 
-    validate_schema(
-        expected: List[Dict[str, Any]], 
-        table: str
-        Validates the schema of a DuckDB table against an expected schema.
+    validate_schema: Validates the schema of a DuckDB table against an expected schema.
 """
 
 from __future__ import annotations
@@ -84,6 +59,7 @@ import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
 from sumeh.services.utils import __compare_schemas
+
 
 def __escape_single_quotes(txt: str) -> str:
     """
@@ -146,11 +122,12 @@ class __RuleCtx:
     __RuleCtx is a context class used to define rules for processing data.
 
     Attributes:
-        column (Any): Represents the column(s) to which the rule applies. 
+        column (Any): Represents the column(s) to which the rule applies.
                       It can be a string (for a single column) or a list of strings (for multiple columns).
         value (Any): The value associated with the rule. The type of this value depends on the specific rule implementation.
         name (str): The name of the rule, typically used to indicate the type of check being performed.
     """
+
     column: Any  # str ou list[str]
     value: Any
     name: str  # check_type
@@ -290,6 +267,35 @@ def _is_equal_than(r: __RuleCtx) -> str:
     return f"{r.column} = {r.value}"
 
 
+def _is_in_millions(r: __RuleCtx) -> str:
+    """
+    Generates a condition string to check if the values in a specified column
+    are greater than or equal to one million.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A string representing the condition to check if the column values
+        are in the millions.
+    """
+    return f"{r.column} >= 1000000"
+
+
+def _is_in_billions(r: __RuleCtx) -> str:
+    """
+    Generates a condition string to check if a column's value is in the billions.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A string representing the condition where the column's value is
+        greater than or equal to 1 billion.
+    """
+    return f"{r.column} >= 1000000000"
+
+
 def _is_between(r: __RuleCtx) -> str:
     """
     Constructs a SQL BETWEEN clause for a given rule context.
@@ -346,19 +352,45 @@ def _is_contained_in(r: __RuleCtx) -> str:
     return f"{r.column} IN {__format_sequence(r.value)}"
 
 
+def _is_in(r: __RuleCtx) -> str:
+    """
+    Determines if a rule context is contained within a specific condition.
+
+    Args:
+        r (__RuleCtx): The rule context to evaluate.
+
+    Returns:
+        str: A string indicating whether the rule context is contained.
+    """
+    return is_contained_in(r)
+
+
 def _not_contained_in(r: __RuleCtx) -> str:
     """
-    Generates a SQL expression that checks if a column's value is not contained 
+    Generates a SQL expression that checks if a column's value is not contained
     within a specified sequence of values.
 
     Args:
-        r (__RuleCtx): A context object containing the column name and the sequence 
+        r (__RuleCtx): A context object containing the column name and the sequence
                        of values to check against.
 
     Returns:
         str: A SQL string in the format "<column> NOT IN (<value1>, <value2>, ...)".
     """
     return f"{r.column} NOT IN {__format_sequence(r.value)}"
+
+
+def _not_in(r: __RuleCtx) -> str:
+    """
+    Generates a string representation for a "not in" rule context.
+
+    Args:
+        r (__RuleCtx): The rule context to be evaluated.
+
+    Returns:
+        str: A string representation indicating the "not in" condition.
+    """
+    return not_contained_in(r)
 
 
 def _satisfies(r: __RuleCtx) -> str:
@@ -372,6 +404,7 @@ def _satisfies(r: __RuleCtx) -> str:
         str: A string in the format "(value)" where 'value' is the value of the rule context.
     """
     return f"({r.value})"
+
 
 def _build_union_sql(rules: List[Dict]) -> str:
     """
@@ -429,6 +462,7 @@ def _build_union_sql(rules: List[Dict]) -> str:
 
     return "\nUNION ALL\n".join(pieces)
 
+
 def _validate_date_format(r: __RuleCtx) -> str:
     """
     Validates a date format string by translating tokens into a regular expression
@@ -461,7 +495,7 @@ def _validate_date_format(r: __RuleCtx) -> str:
 
 def _is_future_date(r: __RuleCtx) -> str:
     """
-    Constructs a SQL condition to check if the values in a specified column 
+    Constructs a SQL condition to check if the values in a specified column
     represent future dates relative to the current date.
 
     Args:
@@ -541,7 +575,208 @@ def _all_date_checks(r: __RuleCtx) -> str:
     """
     return is_past_date(r)
 
-def validate(df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection) -> dk.DuckDBPyRelation:
+
+def _is_today(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition to check if the given column corresponds to the current date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be checked.
+
+    Returns:
+        str: A SQL condition string in the format "<column> = current_date".
+    """
+    return f"{r.column} = current_date"
+
+
+def _is_yesterday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition to check if the values in a specified column
+    correspond to yesterday's date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL condition string that checks if the column's value is equal
+        to the current date minus one day.
+    """
+    return f"{r.column} = current_date - 1"
+
+
+def _is_t_minus_1(r: __RuleCtx) -> str:
+    """
+    Determines if the given rule context corresponds to "T minus 1" (yesterday).
+    Args:
+        r (__RuleCtx): The rule context to evaluate.
+    Returns:
+        str: A string indicating whether the rule context matches "T minus 1".
+    """
+    return _is_yesterday(r)
+
+
+def _is_t_minus_2(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition string that checks if the given column equals the date two days prior to the current date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column name to be used in the condition.
+
+    Returns:
+        str: A SQL condition string in the format "<column> = current_date - 2".
+    """
+    return f"{r.column} = current_date - 2"
+
+
+def _is_t_minus_3(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition string that checks if a given column's value
+    is equal to the current date minus 3 days.
+
+    Args:
+        r (__RuleCtx): A context object containing the column name to be used
+                       in the SQL condition.
+
+    Returns:
+        str: A SQL condition string in the format
+             "<column_name> = current_date - 3".
+    """
+    return f"{r.column} = current_date - 3"
+
+
+def _is_on_weekday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the values in a specified column
+    correspond to weekdays (Monday to Friday).
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL expression that evaluates whether the day of the week
+             extracted from the column is between 1 (Monday) and 5 (Friday).
+    """
+    return f"EXTRACT(DOW FROM {r.column}) BETWEEN 1 AND 5"
+
+
+def _is_on_weekend(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to determine if a date column falls on a weekend.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to evaluate.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the date in the specified column
+             is on a Saturday (6) or Sunday (0), otherwise False.
+    """
+    return f"(EXTRACT(DOW FROM {r.column}) = 0 OR EXTRACT(DOW FROM {r.column}) = 6)"
+
+
+def _is_on_monday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the date in the specified column
+    falls on a Monday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the date in the column
+        is a Monday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 1"
+
+
+def _is_on_tuesday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the day of the week for a given column is Tuesday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the day of the week is Tuesday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 2"
+
+
+def _is_on_wednesday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the date in the specified column
+    falls on a Wednesday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the date in the column
+        is a Wednesday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 3"
+
+
+def _is_on_thursday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the day of the week for a given column is Thursday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to evaluate.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the day of the week is Thursday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 4"
+
+
+def _is_on_friday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the date in the specified column
+    falls on a Friday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the date in the column
+        is a Friday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 5"
+
+
+def _is_on_saturday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the date in the specified column
+    falls on a Saturday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to evaluate.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the date in the column
+        is a Saturday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 6"
+
+
+def _is_on_sunday(r: __RuleCtx) -> str:
+    """
+    Generates a SQL expression to check if the date in the specified column
+    falls on a Sunday.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to evaluate.
+
+    Returns:
+        str: A SQL expression that evaluates to True if the date in the column
+        is a Sunday, otherwise False.
+    """
+    return f"EXTRACT(DOW FROM {r.column}) = 0"
+
+
+def validate(
+    df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection
+) -> dk.DuckDBPyRelation:
     """
     Validates a DuckDB relation against a set of rules and returns the processed relation.
 
@@ -609,7 +844,7 @@ def __rules_to_duckdb_df(rules: List[Dict]) -> str:
     Returns:
         str: A DuckDB-compatible SQL query string representing the rules.
     """
-    
+
     parts: List[str] = []
 
     for r in rules:
@@ -663,7 +898,12 @@ def __rules_to_duckdb_df(rules: List[Dict]) -> str:
     )
 
 
-def summarize(df_rel: dk.DuckDBPyRelation,rules: List[Dict],conn: dk.DuckDBPyConnection,total_rows: Optional[int] = None) -> dk.DuckDBPyRelation:
+def summarize(
+    df_rel: dk.DuckDBPyRelation,
+    rules: List[Dict],
+    conn: dk.DuckDBPyConnection,
+    total_rows: Optional[int] = None,
+) -> dk.DuckDBPyRelation:
     """
     Summarizes data quality checks for a given DuckDB relation based on specified rules.
 
@@ -671,17 +911,17 @@ def summarize(df_rel: dk.DuckDBPyRelation,rules: List[Dict],conn: dk.DuckDBPyCon
         df_rel (dk.DuckDBPyRelation): The DuckDB relation containing the data to be analyzed.
         rules (List[Dict]): A list of dictionaries defining the data quality rules to be applied.
         conn (dk.DuckDBPyConnection): The DuckDB connection used to execute SQL queries.
-        total_rows (Optional[int]): The total number of rows in the dataset. If not provided, 
+        total_rows (Optional[int]): The total number of rows in the dataset. If not provided,
                                     it must be calculated externally.
 
     Returns:
-        dk.DuckDBPyRelation: A DuckDB relation containing the summary of data quality checks, 
+        dk.DuckDBPyRelation: A DuckDB relation containing the summary of data quality checks,
                                 including pass rates, violation counts, and statuses for each rule.
 
     Notes:
         - The function creates a temporary view named "violations_raw" from the input relation.
         - It uses SQL to compute violations, pass rates, and statuses based on the provided rules.
-        - The output includes metadata such as timestamps, rule thresholds, and overall status 
+        - The output includes metadata such as timestamps, rule thresholds, and overall status
             (PASS/FAIL) for each rule.
     """
     rules_sql = __rules_to_duckdb_df(rules)
@@ -729,7 +969,9 @@ def summarize(df_rel: dk.DuckDBPyRelation,rules: List[Dict],conn: dk.DuckDBPyCon
     return conn.sql(sql)
 
 
-def __duckdb_schema_to_list(conn: dk.DuckDBPyConnection, table: str) -> List[Dict[str, Any]]:
+def __duckdb_schema_to_list(
+    conn: dk.DuckDBPyConnection, table: str
+) -> List[Dict[str, Any]]:
     """
     Retrieve the schema of a DuckDB table as a list of dictionaries.
     This function queries the schema of the specified table in a DuckDB database
@@ -745,7 +987,7 @@ def __duckdb_schema_to_list(conn: dk.DuckDBPyConnection, table: str) -> List[Dic
             - "nullable" (bool): Whether the column allows NULL values.
             - "max_length" (None): Always None, as DuckDB does not provide maximum length information.
     """
-    
+
     df_info = conn.execute(f"PRAGMA table_info('{table}')").fetchdf()
     return [
         {
@@ -758,7 +1000,9 @@ def __duckdb_schema_to_list(conn: dk.DuckDBPyConnection, table: str) -> List[Dic
     ]
 
 
-def validate_schema(conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(
+    conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
+) -> Tuple[bool, List[Tuple[str, str]]]:
     """
     Validates the schema of a DuckDB table against an expected schema.
 
@@ -779,25 +1023,27 @@ def validate_schema(conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]],
 
 
 __RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
-    "is_complete":              _is_complete,
-    "are_complete":             _are_complete,
-    "is_unique":                _is_unique,
-    "are_unique":               _are_unique,
-    "is_greater_than":          _is_greater_than,
-    "is_less_than":             _is_less_than,
+    "is_complete": _is_complete,
+    "are_complete": _are_complete,
+    "is_unique": _is_unique,
+    "are_unique": _are_unique,
+    "is_greater_than": _is_greater_than,
+    "is_less_than": _is_less_than,
     "is_greater_or_equal_than": _is_greater_or_equal_than,
-    "is_less_or_equal_than":    _is_less_or_equal_than,
-    "is_equal_than":            _is_equal_than,
-    "is_between":               _is_between,
-    "has_pattern":              _has_pattern,
-    "is_contained_in":          _is_contained_in,
-    "not_contained_in":         _not_contained_in,
-    "satisfies":                _satisfies,
-    "validate_date_format":     _validate_date_format,
-    "is_future_date":           _is_future_date,
-    "is_past_date":             _is_past_date,
-    "is_date_after":            _is_date_after,
-    "is_date_before":           _is_date_before,
-    "is_date_between":          _is_date_between,
-    "all_date_checks":          _all_date_checks,
+    "is_less_or_equal_than": _is_less_or_equal_than,
+    "is_equal_than": _is_equal_than,
+    "is_in_millions": _is_in_millions,
+    "is_in_billions": _is_in_billions,
+    "is_between": _is_between,
+    "has_pattern": _has_pattern,
+    "is_contained_in": _is_contained_in,
+    "not_contained_in": _not_contained_in,
+    "satisfies": _satisfies,
+    "validate_date_format": _validate_date_format,
+    "is_future_date": _is_future_date,
+    "is_past_date": _is_past_date,
+    "is_date_after": _is_date_after,
+    "is_date_before": _is_date_before,
+    "is_date_between": _is_date_between,
+    "all_date_checks": _all_date_checks,
 }

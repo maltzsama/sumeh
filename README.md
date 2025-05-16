@@ -38,7 +38,7 @@ Each engine implements the `validate()` + `summarize()` pair:
 | Dask                  | `sumeh.engine.dask_engine`              | ✅ Fully implemented |
 | Polars                | `sumeh.engine.polars_engine`            | ✅ Fully implemented |
 | DuckDB                | `sumeh.engine.duckdb_engine`            | ✅ Fully implemented |
-| Pandas                | `sumeh.engine.pandas_engine`            | 🔧 Stub implementation |
+| Pandas                | `sumeh.engine.pandas_engine`            | ✅ Fully implemented |
 | BigQuery (SQL)        | `sumeh.engine.bigquery_engine`          | 🔧 Stub implementation |
 
 ## 🏗 Configuration Sources
@@ -97,56 +97,107 @@ report = report(df, rules, name="My Check")
 }
 ```
 
-**Supported Validation Rules**
+## Supported Validation Rules
 
-The following data quality checks are available:
+### Numeric checks
 
-| Test                             | Description                                                                                                         |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **is\_complete**                 | Filters rows where the specified column is null.                                                                    |
-| **are\_complete**                | Filters rows where any of the specified columns is null.                                                            |
-| **is\_unique**                   | Identifies rows with duplicate values in the specified column.                                                      |
-| **are\_unique**                  | Identifies rows with duplicate combinations of the specified columns.                                               |
-| **is\_primary\_key**             | Alias of `is_unique` (checks uniqueness of a single column).                                                        |
-| **is\_composite\_key**           | Alias of `are_unique` (checks uniqueness across multiple columns).                                                  |
-| **is\_equal**                    | Filters rows where the specified column is not equal (null-safe) to the given value.                                |
-| **is\_equal\_than**              | Alias of `is_equal`.                                                                                                |
-| **is\_between**                  | Filters rows where the specified column is not within the given numeric range.                                      |
-| **is\_greater\_than**            | Filters rows where the specified column is less than or equal to the threshold value.                               |
-| **is\_greater\_or\_equal\_than** | Filters rows where the specified column is less than the threshold value.                                           |
-| **is\_less\_than**               | Filters rows where the specified column is greater than or equal to the threshold value.                            |
-| **is\_less\_or\_equal\_than**    | Filters rows where the specified column is greater than the threshold value.                                        |
-| **is\_positive**                 | Filters rows where the specified column is less than zero.                                                          |
-| **is\_negative**                 | Filters rows where the specified column is greater than or equal to zero.                                           |
-| **is\_contained\_in**            | Filters rows where the specified column is not in the provided list of values.                                      |
-| **not\_contained\_in**           | Filters rows where the specified column is in the provided list of values.                                          |
-| **has\_pattern**                 | Filters rows where the specified column does not match the given regular-expression pattern.                        |
-| **is\_legit**                    | Filters rows where the specified column is null or does not match a non-whitespace pattern (`\S*`).                 |
-| **has\_min**                     | Filters rows where the specified column is below the minimum threshold.                                             |
-| **has\_max**                     | Filters rows where the specified column exceeds the maximum threshold.                                              |
-| **has\_mean**                    | Returns all rows if the mean of the specified column exceeds the threshold; otherwise empty.                        |
-| **has\_std**                     | Returns all rows if the standard deviation of the specified column exceeds the threshold; otherwise empty.          |
-| **has\_sum**                     | Returns all rows if the sum of the specified column exceeds the threshold; otherwise empty.                         |
-| **has\_cardinality**             | Returns all rows if the distinct count of the specified column exceeds the threshold; otherwise empty.              |
-| **has\_infogain**                | Uses distinct-count as a proxy for information gain; returns all rows if it exceeds the threshold; otherwise empty. |
-| **has\_entropy**                 | Uses distinct-count as a proxy for entropy; returns all rows if it exceeds the threshold; otherwise empty.          |
-| **satisfies**                    | Filters rows where the given SQL expression (via `expr(value)`) is not satisfied.                                   |
-| **validate\_schema**             | Compares the actual schema of a DataFrame against an expected schema and returns a match flag and errors.           |
-| **validate**                     | Applies a list of named validation rules and returns aggregated and raw result DataFrames.                          |
+| Test                 | Description                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| **is_in_millions**   | Retains rows where the column value is **less than** 1,000,000 (fails the "in millions" criteria).        |
+| **is_in_billions**   | Retains rows where the column value is **less than** 1,000,000,000 (fails the "in billions" criteria).    |
+
+---
+
+### Completeness & Uniqueness
+
+| Test                   | Description                                                                 |
+| ---------------------- | --------------------------------------------------------------------------- |
+| **is_complete**        | Filters rows where the column value is null.                                |
+| **are_complete**       | Filters rows where **any** of the specified columns are null.               |
+| **is_unique**          | Identifies rows with duplicate values in the specified column.              |
+| **are_unique**         | Identifies rows with duplicate combinations of the specified columns.       |
+| **is_primary_key**     | Alias for `is_unique` (checks uniqueness of a single column).               |
+| **is_composite_key**   | Alias for `are_unique` (checks combined uniqueness of multiple columns).    |
+
+---
+
+### Comparison & Range
+
+| Test                             | Description                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| **is_equal**                     | Filters rows where the column is not equal to the provided value (null-safe).           |
+| **is_equal_than**                | Alias for `is_equal`.                                                                   |
+| **is_between**                   | Filters rows where the column value is **outside** the numeric range `[min, max]`.       |
+| **is_greater_than**              | Filters rows where the column value is **≤** the threshold (fails "greater than").       |
+| **is_greater_or_equal_than**     | Filters rows where the column value is **<** the threshold (fails "greater or equal").   |
+| **is_less_than**                 | Filters rows where the column value is **≥** the threshold (fails "less than").          |
+| **is_less_or_equal_than**        | Filters rows where the column value is **>** the threshold (fails "less or equal").      |
+| **is_positive**                  | Filters rows where the column value is **< 0** (fails "positive").                       |
+| **is_negative**                  | Filters rows where the column value is **≥ 0** (fails "negative").                       |
+
+---
+
+### Membership & Pattern
+
+| Test                   | Description                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| **is_contained_in**    | Filters rows where the column value is **not** in the provided list.                       |
+| **not_contained_in**   | Filters rows where the column value **is** in the provided list.                           |
+| **has_pattern**        | Filters rows where the column value does **not** match the specified regex.                |
+| **is_legit**           | Filters rows where the column value is null or contains whitespace (i.e., not `\S+`).      |
+
+---
+
+### Aggregate checks
+
+| Test                 | Description                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **has_min**          | Returns all rows if the column's minimum value **causes failure** (value < threshold); otherwise returns empty.   |
+| **has_max**          | Returns all rows if the column's maximum value **causes failure** (value > threshold); otherwise returns empty.   |
+| **has_sum**          | Returns all rows if the column's sum **causes failure** (sum > threshold); otherwise returns empty.               |
+| **has_mean**         | Returns all rows if the column's mean **causes failure** (mean > threshold); otherwise returns empty.             |
+| **has_std**          | Returns all rows if the column's standard deviation **causes failure** (std > threshold); otherwise returns empty.|
+| **has_cardinality**  | Returns all rows if the number of distinct values **causes failure** (count > threshold); otherwise returns empty.|
+| **has_infogain**     | Same logic as `has_cardinality` (proxy for information gain).                                                    |
+| **has_entropy**      | Same logic as `has_cardinality` (proxy for entropy).                                                             |
+
+---
+
+### SQL & Schema
+
+| Test                 | Description                                                                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **satisfies**        | Filters rows where the SQL expression (based on `rule["value"]`) is **not** satisfied.                          |
+| **validate_schema**  | Compares the DataFrame's actual schema against the expected one and returns a match flag + error list.          |
+| **validate**         | Executes a list of named rules and returns two DataFrames: one with aggregated status and one with raw violations. |
 
 ---
 
 ### Date-related checks
 
-| Test                       | Description                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------ |
-| **validate\_date\_format** | Filters rows where the specified column does not match the expected date format or is null.      |
-| **is\_future\_date**       | Filters rows where the specified date column is after today’s date.                              |
-| **is\_past\_date**         | Filters rows where the specified date column is before today’s date.                             |
-| **is\_date\_after**        | Filters rows where the specified date column is before the date provided in the rule.            |
-| **is\_date\_before**       | Filters rows where the specified date column is after the date provided in the rule.             |
-| **is\_date\_between**      | Filters rows where the specified date column is not within the given start–end range.            |
-| **all\_date\_checks**      | Filters rows where the specified date column is before today’s date (similar to `is_past_date`). |
+| Test                       | Description                                                                                     |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| **is_t_minus_1**           | Retains rows where the date in the column is **not** equal to yesterday (T–1).                       |
+| **is_t_minus_2**           | Retains rows where the date in the column is **not** equal to two days ago (T–2).                    |
+| **is_t_minus_3**           | Retains rows where the date in the column is **not** equal to three days ago (T–3).                  |
+| **is_today**               | Retains rows where the date in the column is **not** equal to today.                                 |
+| **is_yesterday**           | Retains rows where the date in the column is **not** equal to yesterday.                             |
+| **is_on_weekday**          | Retains rows where the date in the column **NOT FALLS** on a weekend (fails "weekday").              |
+| **is_on_weekend**          | Retains rows where the date in the column **NOT FALLS** on a weekday (fails "weekend").              |
+| **is_on_monday**           | Retains rows where the date in the column is **not** Monday.                                         |
+| **is_on_tuesday**          | Retains rows where the date in the column is **not** Tuesday.                                        |
+| **is_on_wednesday**        | Retains rows where the date in the column is **not** Wednesday.                                      |
+| **is_on_thursday**         | Retains rows where the date in the column is **not** Thursday.                                       |
+| **is_on_friday**           | Retains rows where the date in the column is **not** Friday.                                         |
+| **is_on_saturday**         | Retains rows where the date in the column is **not** Saturday.                                       |
+| **is_on_sunday**           | Retains rows where the date in the column is **not** Sunday.                                         |
+| **validate_date_format**   | Filters rows where the date doesn't match the expected format or is null.                        |
+| **is_future_date**         | Filters rows where the date in the column is **not** after today.                                    |
+| **is_past_date**           | Filters rows where the date in the column is **not** before today.                                   |
+| **is_date_after**          | Filters rows where the date in the column is **not** before the date provided in the rule.           |
+| **is_date_before**         | Filters rows where the date in the column is **not** after the date provided in the rule.            |
+| **is_date_between**        | Filters rows where the date in the column is **not** outside the range `[start, end]`.               |
+| **all_date_checks**        | Alias for `is_past_date` (same logic: date before today).                                        |
 
 
 
@@ -157,40 +208,32 @@ sumeh/
 ├── poetry.lock
 ├── pyproject.toml
 ├── README.md
-├── sumeh
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── core.py
-│   ├── engine
-│   │   ├── __init__.py
-│   │   ├── bigquery_engine.py
-│   │   ├── dask_engine.py
-│   │   ├── duckdb_engine.py
-│   │   ├── polars_engine.py
-│   │   └── pyspark_engine.py
-│   └── services
-│       ├── __init__.py
-│       ├── config.py
-│       ├── index.html
-│       └── utils.py
-└── tests
+└── sumeh
     ├── __init__.py
-    ├── mock
-    │   ├── config.csv
-    │   └── data.csv
-    ├── test_dask_engine.py
-    ├── test_duckdb_engine.py
-    ├── test_polars_engine.py
-    ├── test_pyspark_engine.py
-    └── test_sumeh.py
+    ├── cli.py
+    ├── core.py
+    ├── engine
+    │   ├── __init__.py
+    │   ├── bigquery_engine.py
+    │   ├── dask_engine.py
+    │   ├── duckdb_engine.py
+    │   ├── pandas_engine.py
+    │   ├── polars_engine.py
+    │   └── pyspark_engine.py
+    └── services
+        ├── __init__.py
+        ├── config.py
+        ├── index.html
+        └── utils.py
+
 ```
 
 ## 📈 Roadmap
 
 - [ ] Complete BigQuery engine implementation
-- [ ] Complete Pandas engine implementation
+- ✅ Complete Pandas engine implementation
 - ✅ Enhanced documentation
-- [ ] More validation rule types
+- ✅ More validation rule types
 - [ ] Performance optimizations
 
 ## 🤝 Contributing

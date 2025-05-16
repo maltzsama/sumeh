@@ -46,7 +46,9 @@ def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:
     ]
 
 
-def validate_schema(client: bigquery.Client, expected: List[Dict[str, Any]], table_ref: str) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(
+    client: bigquery.Client, expected: List[Dict[str, Any]], table_ref: str
+) -> Tuple[bool, List[Tuple[str, str]]]:
     """
     Validates the schema of a BigQuery table against an expected schema.
 
