@@ -9,9 +9,16 @@ from sumeh.engine.polars_engine import (
     are_unique,
     is_between,
     has_pattern,
+    validate_date_format,
+    is_future_date,
+    is_past_date,
+    is_date_between,
+    is_date_after,
+    is_date_before,
+    all_date_checks,
     __build_rules_df,
 )
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 
 @pytest.fixture
@@ -188,3 +195,70 @@ def test_empty_input():
 
     summary = summarize(violations, rules, 0)
     assert summary.shape[0] == 1  # Should still produce a summary row
+
+def test_validate_date_format():
+    df = pl.DataFrame({
+        "dt": ["2025-05-16", "16-05-2025", None]
+    })
+    rule = {"field": "dt", "check_type": "validate_date_format", "value": "YYYY-MM-DD"}
+    result = validate_date_format(df, rule)
+    # should catch the bad format and the null
+    assert set(result["dt"].to_list()) == {"16-05-2025", None}
+
+
+def test_is_future_date_and_is_past_date():
+    today = date.today().isoformat()
+    past = (date.today() - timedelta(days=1)).isoformat()
+    future = (date.today() + timedelta(days=1)).isoformat()
+    df = pl.DataFrame({"d": [past, today, future]})
+
+    # future
+    rule_fut = {"field": "d", "check_type": "is_future_date", "value": ""}
+    fut = is_future_date(df, rule_fut)
+    assert fut["d"].to_list() == [future]
+
+    # past
+    rule_past = {"field": "d", "check_type": "is_past_date", "value": ""}
+    old = is_past_date(df, rule_past)
+    assert old["d"].to_list() == [past]
+
+
+def test_is_date_between():
+    today = date.today().isoformat()
+    past = (date.today() - timedelta(days=1)).isoformat()
+    future = (date.today() + timedelta(days=1)).isoformat()
+    df = pl.DataFrame({"d": [past, today, future]})
+
+    rule = {"field": "d", "check_type": "is_date_between", "value": f"[{past},{future}]"}
+    out = is_date_between(df, rule)
+    # all three are within the inclusive [past,future], so nothing should remain
+    assert out.is_empty()
+
+
+def test_is_date_after_and_before():
+    today = date.today().isoformat()
+    past = (date.today() - timedelta(days=1)).isoformat()
+    future = (date.today() + timedelta(days=1)).isoformat()
+    df = pl.DataFrame({"d": [past, today, future]})
+
+    # date_after: keep those before given date
+    rule_after = {"field": "d", "check_type": "is_date_after", "value": today}
+    aft = is_date_after(df, rule_after)
+    assert aft["d"].to_list() == [past]
+
+    # date_before: keep those after given date
+    rule_before = {"field": "d", "check_type": "is_date_before", "value": today}
+    bef = is_date_before(df, rule_before)
+    assert bef["d"].to_list() == [future]
+
+
+def test_all_date_checks_alias():
+    today = date.today().isoformat()
+    past = (date.today() - timedelta(days=1)).isoformat()
+    future = (date.today() + timedelta(days=1)).isoformat()
+    df = pl.DataFrame({"d": [past, today, future]})
+
+    rule = {"field": "d", "check_type": "all_date_checks", "value": ""}
+    out = all_date_checks(df, rule)
+    # all_date_checks is alias for is_past_date
+    assert out["d"].to_list() == [past]

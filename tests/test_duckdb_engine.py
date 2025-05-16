@@ -1,13 +1,20 @@
 import pytest
 import duckdb
 from sumeh.engine.duckdb_engine import (
-    _escape_single_quotes,
-    _format_sequence,
-    _RuleCtx,
+    __escape_single_quotes,
+    __format_sequence,
+    __RuleCtx,
+    _validate_date_format,
+    _is_future_date,
+    _is_past_date,
+    _is_date_after,
+    _is_date_before,
+    _is_date_between,
+    _all_date_checks,
     validate,
     summarize,
     _build_union_sql,
-    _rules_to_duckdb_df,
+    __rules_to_duckdb_df,
 )
 
 
@@ -35,22 +42,22 @@ def sample_data(test_conn):
 
 
 def test_escape_single_quotes():
-    assert _escape_single_quotes("test") == "test"
-    assert _escape_single_quotes("test's") == "test''s"
-    assert _escape_single_quotes("") == ""
+    assert __escape_single_quotes("test") == "test"
+    assert __escape_single_quotes("test's") == "test''s"
+    assert __escape_single_quotes("") == ""
 
 
 def test_format_sequence():
-    assert _format_sequence("BR,US") == "('BR','US')"
-    assert _format_sequence(["BR", "US"]) == "('BR','US')"
-    assert _format_sequence(("BR", "US")) == "('BR','US')"
+    assert __format_sequence("BR,US") == "('BR','US')"
+    assert __format_sequence(["BR", "US"]) == "('BR','US')"
+    assert __format_sequence(("BR", "US")) == "('BR','US')"
 
     with pytest.raises(ValueError):
-        _format_sequence(None)
+        __format_sequence(None)
 
 
 def test_rule_ctx_initialization():
-    ctx = _RuleCtx(column="name", value="test", name="is_complete")
+    ctx = __RuleCtx(column="name", value="test", name="is_complete")
     assert ctx.column == "name"
     assert ctx.value == "test"
     assert ctx.name == "is_complete"
@@ -88,7 +95,7 @@ def test_rules_to_duckdb_df():
         },
     ]
 
-    sql = _rules_to_duckdb_df(rules)
+    sql = __rules_to_duckdb_df(rules)
     assert "SELECT 'age' AS col" in sql
     assert "SELECT 'country, region' AS col" in sql
     assert "('BR','US') AS value" in sql
@@ -177,3 +184,13 @@ def test_empty_rules(sample_data, test_conn):
     # Summarize
     summary = summarize(raw, rules, test_conn, total_rows=4)
     assert summary.df().empty
+
+def test_validate_date_format_builder():
+    ctx = __RuleCtx(column="dt", value="YYYY-MM-DD", name="validate_date_format")
+    sql = _validate_date_format(ctx)
+    # should handle NULLs or regex‐mismatch
+    assert "dt IS NULL" in sql
+    assert "REGEXP_MATCHES(dt" in sql
+    # anchored pattern
+    assert sql.strip().startswith("dt IS NULL OR NOT REGEXP_MATCHES")
+    assert sql.count("^") == 1 and sql.count("$") == 1

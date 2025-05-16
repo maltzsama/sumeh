@@ -2,11 +2,9 @@
 
 __author__ = "Demetrius Albuquerque"
 __email__ = "demetrius.albuquerque@yahoo.com.br"
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
-from .core import report
-from .services.config import get_rules_config, get_schema_config
-from .engine import validate, summarize, validate_schema
+from .core import report, validate, summarize, validate_schema, get_rules_config, get_schema_config
 
 __all__ = [
     "report",
