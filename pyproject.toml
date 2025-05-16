@@ -1,25 +1,42 @@
 [tool.poetry]
-name = "sumeh"
-version = "0.3.0"
-description = "Quality Check and Config Management Tool"
-authors = [
-    "Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>",
-    "Otavio Lara <>"
+name                  = "sumeh"
+version               = "0.3.0"
+description           = "Quality Check and Config Management Tool"
+readme                = "README.md"
+long-description-content-type = "text/markdown"
+homepage              = "https://github.com/maltzsama/sumeh"
+repository            = "https://github.com/maltzsama/sumeh"
+license               = "Apache-2.0"
+license-files         = ["LICENSE"]
+keywords              = ["data-quality", "validation", "dq", "etl", "cli"]
+authors               = [
+  "Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>",
+  "Otavio Lara <otavio.lara@example.com>"
 ]
-license = "Apache-2.0"
-readme = "README.md"
-homepage = "https://github.com/maltzsama/sumeh"
-repository = "https://github.com/maltzsama/sumeh"
+
 packages = [ {include = "sumeh"} ]
 
-classifiers = [
-    "Development Status :: 3 - Alpha",
+
+classifiers = [   
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Environment :: Console",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
-    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Typing :: Typed",
     "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Utilities",
 ]
+
+[tool.poetry.urls]
+"Bug Tracker"   = "https://github.com/maltzsama/sumeh/issues"
+"Documentation" = "https://maltzsama.github.io/sumeh"
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
