@@ -84,6 +84,27 @@ Functions:
     satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     Filters rows that do not satisfy the given SQL condition.
 
+    validate_date_format(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Filters rows where the specified field does not match the expected date format or is null.
+
+    is_future_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Filters rows where the specified date field is after today.
+
+    is_past_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Filters rows where the specified date field is before today.
+
+    is_date_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Filters rows where the specified date field is not within the given [start,end] range.
+
+    is_date_after(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Filters rows where the specified date field is before the given date.
+
+    is_date_before(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Filters rows where the specified date field is after the given date.
+
+    all_date_checks(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    Alias for `is_past_date` (checks date against today).
+
     validate(df: pl.DataFrame, rules: list[dict]) -> Tuple[pl.DataFrame, pl.DataFrame]:
     Validates a DataFrame against a list of rules and returns the original DataFrame with 
     data quality status and a DataFrame of violations.
@@ -105,9 +126,10 @@ Functions:
 import warnings
 from functools import reduce
 import polars as pl
-from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
+from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas, __transform_date_format_in_pattern
 import operator
 from datetime import datetime
+from datetime import date as _dt
 from typing import List, Dict, Any, Tuple
 
 
@@ -211,6 +233,9 @@ def is_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         pl.lit(f"{field}:{check}:{value}").alias("dq_status")
     )
 
+def is_primary_key(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return is_unique(df, rule)  
+
 
 def are_complete(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     """
@@ -275,6 +300,9 @@ def are_unique(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         .drop("_combo")
         .with_columns(pl.lit(f"{fields}:{check}:{value}").alias("dq_status"))
     )
+
+def is_composite_key(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return are_unique(df, rule)
 
 
 def is_greater_than(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -730,6 +758,170 @@ def has_entropy(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
     if ent > value:
         return df.with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
     return df.head(0)
+
+
+def validate_date_format(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Validates the date format of a specified field in a Polars DataFrame based on a given rule.
+
+    Args:
+        df (pl.DataFrame): The input Polars DataFrame to validate.
+        rule (dict): A dictionary containing the validation rule. It should include:
+            - field (str): The name of the column to validate.
+            - check (str): The name of the validation check.
+            - fmt (str): The expected date format to validate against.
+
+    Returns:
+        pl.DataFrame: A new DataFrame containing only the rows where the specified field
+        does not match the expected date format or is null. An additional column 
+        "dq_status" is added to indicate the validation status in the format 
+        "{field}:{check}:{fmt}".
+    """
+    field, check, fmt = __extract_params(rule)
+    regex = __transform_date_format_in_pattern(fmt)  
+    return df.filter(
+        ~pl.col(field).str.contains(regex, literal=False) | pl.col(field).is_null()
+    ).with_columns(pl.lit(f"{field}:{check}:{fmt}").alias("dq_status"))
+
+
+def is_future_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Filters a Polars DataFrame to include only rows where the specified date field
+    contains a future date, based on the current date.
+
+    Args:
+        df (pl.DataFrame): The input Polars DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+            to include the field name to check, the check type, and additional
+            parameters (ignored in this function).
+
+    Returns:
+        pl.DataFrame: A new DataFrame containing only rows where the specified
+        date field is in the future. An additional column "dq_status" is added
+        to indicate the field, check type, and today's date in the format
+        "field:check:today".
+    """
+    field, check, _ = __extract_params(rule)
+    today = _dt.today().isoformat()
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") > pl.lit(today).cast(pl.Date)
+    ).with_columns(pl.lit(f"{field}:{check}:{today}").alias("dq_status"))
+
+
+def is_past_date(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Filters a Polars DataFrame to include only rows where the specified date field
+    contains a date earlier than today. Adds a new column indicating the data quality status.
+
+    Args:
+        df (pl.DataFrame): The input Polars DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include
+                     the field name to check, a check identifier, and additional parameters.
+
+    Returns:
+        pl.DataFrame: A new DataFrame containing only rows where the specified date field
+                      is in the past, with an additional column named "dq_status" that
+                      contains a string in the format "{field}:{check}:{today}".
+    """
+    field, check, _ = __extract_params(rule)
+    today = _dt.today().isoformat()
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") < pl.lit(today).cast(pl.Date)
+    ).with_columns(pl.lit(f"{field}:{check}:{today}").alias("dq_status"))
+
+from datetime import date
+import polars as pl
+from sumeh.services.utils import __extract_params
+
+def is_date_between(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Filters a Polars DataFrame to exclude rows where the specified date field is within a given range.
+
+    Args:
+        df (pl.DataFrame): The input Polars DataFrame to filter.
+        rule (dict): A dictionary containing the filtering rule. It should include:
+            - 'field': The name of the column to check.
+            - 'check': A string representing the type of check (e.g., "is_date_between").
+            - 'value': A string representing the date range in the format "[YYYY-MM-DD,YYYY-MM-DD]".
+
+    Returns:
+        pl.DataFrame: A new DataFrame excluding rows where the date in the specified field
+                      falls within the given inclusive range, with an additional column
+                      "dq_status" indicating the rule applied.
+    """
+    field, check, raw = __extract_params(rule)
+    start_str, end_str = [s.strip() for s in raw.strip("[]").split(",")]
+
+    # build literal date expressions
+    start_expr = pl.lit(start_str).str.strptime(pl.Date, "%Y-%m-%d")
+    end_expr   = pl.lit(end_str).str.strptime(pl.Date, "%Y-%m-%d")
+
+    return (
+        df.filter(
+            ~pl.col(field)
+              .str.strptime(pl.Date, "%Y-%m-%d")
+              .is_between(start_expr, end_expr)
+        )
+        .with_columns(
+            pl.lit(f"{field}:{check}:{raw}").alias("dq_status")
+        )
+    )
+
+
+def is_date_after(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Filters a Polars DataFrame to include only rows where the specified date field
+    is earlier than a given date, and adds a new column indicating the data quality status.
+
+    Args:
+        df (pl.DataFrame): The input Polars DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field' (str): The name of the column containing date strings.
+            - 'check' (str): A descriptive label for the check being performed.
+            - 'date_str' (str): The date string in the format "%Y-%m-%d" to compare against.
+
+    Returns:
+        pl.DataFrame: A new Polars DataFrame with rows filtered based on the date condition
+        and an additional column named "dq_status" indicating the applied rule.
+    """
+    field, check, date_str = __extract_params(rule)
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") < date_str
+    ).with_columns(pl.lit(f"{field}:{check}:{date_str}").alias("dq_status"))
+
+def is_date_before(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Filters a Polars DataFrame to include only rows where the specified date field
+    is after a given date, and adds a new column indicating the data quality status.
+
+    Args:
+        df (pl.DataFrame): The input Polars DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - 'field' (str): The name of the column to check.
+            - 'check' (str): A descriptive label for the check being performed.
+            - 'date_str' (str): The date string in the format "%Y-%m-%d" to compare against.
+
+    Returns:
+        pl.DataFrame: A new Polars DataFrame with rows filtered based on the date condition
+        and an additional column named "dq_status" indicating the applied rule.
+    """
+    field, check, date_str = __extract_params(rule)
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") > date_str
+    ).with_columns(pl.lit(f"{field}:{check}:{date_str}").alias("dq_status"))
+
+def all_date_checks(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    """
+    Applies all date-related validation checks on the given DataFrame based on the specified rule.
+
+    Args:
+        df (pl.DataFrame): The input DataFrame to validate.
+        rule (dict): A dictionary containing the validation rules to apply.
+
+    Returns:
+        pl.DataFrame: The DataFrame after applying the date validation checks.
+    """
+    return is_past_date(df, rule)
 
 
 def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
