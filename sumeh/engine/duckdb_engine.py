@@ -14,7 +14,7 @@ Functions:
     __escape_single_quotes(txt: str) -> str:
         Escapes single quotes in a string for SQL compatibility.
 
-    _format_sequence(value: Any) -> str:
+    __format_sequence(value: Any) -> str:
         Formats a sequence (list, tuple, or string) into a SQL-compatible 
         representation for IN/NOT IN clauses.
 
@@ -85,24 +85,6 @@ from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
 from sumeh.services.utils import __compare_schemas
 
-__RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
-    "is_complete": _is_complete,
-    "are_complete": _are_complete,
-    "is_unique": _is_unique,
-    "are_unique": _are_unique,
-    "is_greater_than": _is_greater_than,
-    "is_less_than": _is_less_than,
-    "is_greater_or_equal_than": _is_greater_or_equal_than,
-    "is_less_or_equal_than": _is_less_or_equal_than,
-    "is_equal_than": _is_equal_than,
-    "is_between": _is_between,
-    "has_pattern": _has_pattern,
-    "is_contained_in": _is_contained_in,
-    "not_contained_in": _not_contained_in,
-    "satisfies": _satisfies,
-}
-
-
 def __escape_single_quotes(txt: str) -> str:
     """
     Escapes single quotes in a given string by replacing each single quote
@@ -118,7 +100,7 @@ def __escape_single_quotes(txt: str) -> str:
     return txt.replace("'", "''")
 
 
-def _format_sequence(value: Any) -> str:
+def __format_sequence(value: Any) -> str:
     """
     Formats a sequence-like input into a string representation suitable for SQL queries.
 
@@ -361,7 +343,7 @@ def _is_contained_in(r: __RuleCtx) -> str:
     Returns:
         str: A SQL fragment in the format "<column> IN (<value1>, <value2>, ...)".
     """
-    return f"{r.column} IN {_format_sequence(r.value)}"
+    return f"{r.column} IN {__format_sequence(r.value)}"
 
 
 def _not_contained_in(r: __RuleCtx) -> str:
@@ -376,7 +358,7 @@ def _not_contained_in(r: __RuleCtx) -> str:
     Returns:
         str: A SQL string in the format "<column> NOT IN (<value1>, <value2>, ...)".
     """
-    return f"{r.column} NOT IN {_format_sequence(r.value)}"
+    return f"{r.column} NOT IN {__format_sequence(r.value)}"
 
 
 def _satisfies(r: __RuleCtx) -> str:
@@ -447,6 +429,117 @@ def _build_union_sql(rules: List[Dict]) -> str:
 
     return "\nUNION ALL\n".join(pieces)
 
+def _validate_date_format(r: __RuleCtx) -> str:
+    """
+    Validates a date format string by translating tokens into a regular expression
+    and generating a validation condition.
+
+    Args:
+        r (__RuleCtx): A context object containing the `value` attribute, which is
+        the date format string to validate, and the `column` attribute, which is
+        the name of the column to validate.
+
+    Returns:
+        str: A string representing a validation condition that checks if the column
+        is either NULL or does not match the expected date format.
+    """
+    fmt = r.value
+    # translate tokens to regex
+    token_map = {
+        "DD": r"(0[1-9]|[12][0-9]|3[01])",
+        "MM": r"(0[1-9]|1[0-2])",
+        "YYYY": r"(19|20)\d\d",
+        "YY": r"\d\d",
+    }
+    regex = fmt
+    for tok, pat in token_map.items():
+        regex = regex.replace(tok, pat)
+    # escape any remaining dots/spaces
+    regex = regex.replace(".", r"\.").replace(" ", r"\s")
+    return f"{r.column} IS NULL OR NOT REGEXP_MATCHES({r.column}, '^{regex}$')"
+
+
+def _is_future_date(r: __RuleCtx) -> str:
+    """
+    Constructs a SQL condition to check if the values in a specified column 
+    represent future dates relative to the current date.
+
+    Args:
+        r (__RuleCtx): A context object containing metadata, including the column name.
+
+    Returns:
+        str: A SQL condition string in the format "<column> > CURRENT_DATE".
+    """
+    return f"{r.column} > CURRENT_DATE"
+
+
+def _is_past_date(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition to check if the values in a specified column are earlier than the current date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column to be evaluated.
+
+    Returns:
+        str: A SQL condition string in the format "<column> < CURRENT_DATE".
+    """
+    return f"{r.column} < CURRENT_DATE"
+
+
+def _is_date_after(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition to check if a column's date value is earlier than a specified date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column name and the date value to compare.
+
+    Returns:
+        str: A SQL condition string in the format "<column> < DATE '<value>'".
+    """
+    return f"{r.column} < DATE '{r.value}'"
+
+
+def _is_date_before(r: __RuleCtx) -> str:
+    """
+    Generates a SQL condition to check if a column's date is after a specified date.
+
+    Args:
+        r (__RuleCtx): A context object containing the column name and the date value.
+
+    Returns:
+        str: A SQL condition string in the format "<column> > DATE '<value>'".
+    """
+    return f"{r.column} > DATE '{r.value}'"
+
+
+def _is_date_between(r: __RuleCtx) -> str:
+    """
+    Constructs a SQL condition to check if a column's date value is not within a specified range.
+
+    Args:
+        r (__RuleCtx): A rule context object containing:
+            - r.value (str): A string representation of the date range in the format "[start_date, end_date]".
+            - r.column (str): The name of the column to be checked.
+
+    Returns:
+        str: A SQL condition string in the format:
+             "NOT (column BETWEEN DATE 'start_date' AND DATE 'end_date')".
+    """
+    start, end = [d.strip() for d in r.value.strip("[]").split(",")]
+    return f"NOT ({r.column} BETWEEN DATE '{start}' AND DATE '{end}')"
+
+
+def _all_date_checks(r: __RuleCtx) -> str:
+    """
+    Perform all date-related checks on the given rule context.
+
+    Args:
+        r (__RuleCtx): The rule context containing the data to be checked.
+
+    Returns:
+        str: The result of the date check, typically indicating whether the date is in the past.
+    """
+    return is_past_date(r)
 
 def validate(df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection) -> dk.DuckDBPyRelation:
     """
@@ -545,7 +638,7 @@ def __rules_to_duckdb_df(rules: List[Dict]) -> str:
             val_sql = f"'{__escape_single_quotes(ctx.value)}'"
         elif isinstance(ctx.value, (list, tuple)):
             try:
-                val_sql = _format_sequence(ctx.value)
+                val_sql = __format_sequence(ctx.value)
             except ValueError:
                 val_sql = "NULL"
         else:
@@ -683,3 +776,28 @@ def validate_schema(conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]],
     """
     actual = __duckdb_schema_to_list(conn, table)
     return __compare_schemas(actual, expected)
+
+
+__RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
+    "is_complete":              _is_complete,
+    "are_complete":             _are_complete,
+    "is_unique":                _is_unique,
+    "are_unique":               _are_unique,
+    "is_greater_than":          _is_greater_than,
+    "is_less_than":             _is_less_than,
+    "is_greater_or_equal_than": _is_greater_or_equal_than,
+    "is_less_or_equal_than":    _is_less_or_equal_than,
+    "is_equal_than":            _is_equal_than,
+    "is_between":               _is_between,
+    "has_pattern":              _has_pattern,
+    "is_contained_in":          _is_contained_in,
+    "not_contained_in":         _not_contained_in,
+    "satisfies":                _satisfies,
+    "validate_date_format":     _validate_date_format,
+    "is_future_date":           _is_future_date,
+    "is_past_date":             _is_past_date,
+    "is_date_after":            _is_date_after,
+    "is_date_before":           _is_date_before,
+    "is_date_between":          _is_date_between,
+    "all_date_checks":          _all_date_checks,
+}
