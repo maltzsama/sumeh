@@ -133,7 +133,7 @@ from sumeh.services.utils import (
     __transform_date_format_in_pattern,
 )
 import operator
-from datetime import datetime
+from datetime import datetime, timedelta
 from datetime import date as _dt
 from typing import List, Dict, Any, Tuple
 
@@ -942,6 +942,102 @@ def all_date_checks(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         pl.DataFrame: The DataFrame after applying the date validation checks.
     """
     return is_past_date(df, rule)
+
+
+def is_in_millions(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+
+    return df.filter(pl.col(field) < 1_000_000).with_columns(
+        pl.lit(f"{field}:{check}:{value}").alias("dq_status")
+    )
+
+
+def is_in_billions(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(pl.col(field) < 1_000_000_000).with_columns(
+        pl.lit(f"{field}:{check}:{value}").alias("dq_status")
+    )
+
+
+def is_today(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    today = date.today().isoformat()
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(today).cast(pl.Date)
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def is_t_minus_1(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    target = (date.today() - timedelta(days=1)).isoformat()
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(target).cast(pl.Date)
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def is_t_minus_2(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    target = (date.today() - timedelta(days=2)).isoformat()
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(target).cast(pl.Date)
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def is_t_minus_3(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    target = (date.today() - timedelta(days=3)).isoformat()
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(target).cast(pl.Date)
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def is_on_weekday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d").dt.weekday() < 5
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def is_on_weekend(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d").dt.weekday() >= 5
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def _day_of_week(df: pl.DataFrame, rule: dict, dow: int) -> pl.DataFrame:
+    field, check, value = __extract_params(rule)
+    return df.filter(
+        pl.col(field).str.strptime(pl.Date, "%Y-%m-%d").dt.weekday() == dow
+    ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
+
+
+def is_on_monday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 0)
+
+
+def is_on_tuesday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 1)
+
+
+def is_on_wednesday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 2)
+
+
+def is_on_thursday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 3)
+
+
+def is_on_friday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 4)
+
+
+def is_on_saturday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 5)
+
+
+def is_on_sunday(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
+    return _day_of_week(df, rule, 6)
 
 
 def satisfies(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
