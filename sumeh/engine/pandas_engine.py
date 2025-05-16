@@ -123,7 +123,7 @@ import warnings
 import re
 import pandas as pd
 import numpy as np
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from sumeh.services.utils import (
     __convert_value,
     __extract_params,
@@ -918,6 +918,310 @@ def all_date_checks(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A DataFrame with the results of the date validation checks.
     """
     return is_past_date(df, rule)
+
+
+def is_in_millions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters rows in the DataFrame where the specified field's value is greater than or equal to one million
+    and adds a "dq_status" column with a formatted string indicating the rule applied.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field (str): The column name to check.
+            - check (str): The type of check being performed (e.g., "greater_than").
+            - value (any): The value associated with the rule (not used in this function).
+
+    Returns:
+        pd.DataFrame: A new DataFrame containing rows where the specified field's value is >= 1,000,000.
+                      Includes an additional "dq_status" column with the rule details.
+    """
+    field, check, value = __extract_params(rule)
+    out = df[df[field] >= 1_000_000].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_in_billions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified field's value
+    is greater than or equal to one billion, and adds a data quality status column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame to filter.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - field (str): The column name to check.
+            - check (str): The type of check being performed (used for status annotation).
+            - value (any): The value associated with the rule (used for status annotation).
+
+    Returns:
+        pd.DataFrame: A new DataFrame containing rows where the specified field's
+        value is greater than or equal to one billion. Includes an additional
+        column `dq_status` with the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    out = df[df[field] >= 1_000_000_000].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_today(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified date field matches today's date.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include
+                     the field name, a check operation, and a value.
+
+    Returns:
+        pd.DataFrame: A new DataFrame containing only the rows where the specified date field
+                      matches today's date. An additional column "dq_status" is added to indicate
+                      the rule applied in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    today = pd.Timestamp(date.today())
+    mask = df[field].dt.normalize() == today
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_yesterday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified date field matches yesterday's date.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected to have
+                     keys that allow `__extract_params(rule)` to return the field name,
+                     check type, and value.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only rows where the specified date field
+                      matches yesterday's date. An additional column `dq_status` is added to
+                      indicate the data quality status in the format "{field}:{check}:{value}".
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today() - timedelta(days=1))
+    mask = df[field].dt.normalize() == target
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_t_minus_2(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified date field
+    matches the date two days prior to the current date.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to filter.
+        rule (dict): A dictionary containing the rule parameters. It is expected
+            to include the field name, check type, and value.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the
+        specified date field matches the target date (two days prior). An
+        additional column "dq_status" is added to indicate the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today() - timedelta(days=2))
+    mask = df[field].dt.normalize() == target
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_t_minus_3(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified date field
+    matches the date three days prior to the current date.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to filter.
+        rule (dict): A dictionary containing the rule parameters. The rule
+            should include the field to check, the type of check, and the value.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the
+        specified date field matches the target date (three days prior). An
+        additional column "dq_status" is added to indicate the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    target = pd.Timestamp(date.today() - timedelta(days=3))
+    mask = df[field].dt.normalize() == target
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_on_weekday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified date field falls on a weekday
+    (Monday to Friday) and adds a "dq_status" column indicating the rule applied.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the date column to check.
+            - check (str): A descriptive string for the check being performed.
+            - value (str): A value associated with the rule for documentation purposes.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only rows where the specified date field
+        falls on a weekday, with an additional "dq_status" column describing the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    mask = df[field].dt.dayofweek.between(0, 4)
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_on_weekend(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the specified date field falls on a weekend
+    (Saturday or Sunday) and adds a "dq_status" column indicating the rule applied.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+            - field (str): The name of the date column to check.
+            - check (str): A descriptive string for the type of check being performed.
+            - value (str): A value associated with the rule for documentation purposes.
+
+    Returns:
+        pd.DataFrame: A new DataFrame containing only the rows where the specified date field
+        falls on a weekend. Includes an additional "dq_status" column with the rule details.
+    """
+    field, check, value = __extract_params(rule)
+    mask = df[field].dt.dayofweek.isin([5, 6])
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def _day_of_week(df: pd.DataFrame, rule: dict, dow: int) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the day of the week of a specified datetime field matches the given day.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing a datetime field.
+        rule (dict): A dictionary containing rule parameters. The function expects this to be parsed by `__extract_params`.
+        dow (int): The day of the week to filter by (0=Monday, 6=Sunday).
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only rows where the day of the week matches `dow`.
+                      An additional column, "dq_status", is added to indicate the rule applied.
+    """
+    field, check, value = __extract_params(rule)
+    mask = df[field].dt.dayofweek == dow
+    out = df[mask].copy()
+    out["dq_status"] = f"{field}:{check}:{value}"
+    return out
+
+
+def is_on_monday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters the rows of a DataFrame based on whether a specific date column corresponds to a Monday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the filtering rules, including the column to check.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column corresponds to a Monday.
+    """
+    return _day_of_week(df, rule, 0)
+
+
+def is_on_tuesday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters the rows of a DataFrame based on whether a specific date column corresponds to a Tuesday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the filtering rules, including the column to check.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column corresponds to a Tuesday.
+    """
+    return _day_of_week(df, rule, 1)
+
+
+def is_on_wednesday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters the rows of a DataFrame based on whether a date column corresponds to Wednesday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the rule configuration.
+                     It is expected to specify the column to evaluate.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column
+                      corresponds to Wednesday.
+    """
+    return _day_of_week(df, rule, 2)
+
+
+def is_on_thursday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters the rows of a DataFrame based on whether a date column corresponds to a Thursday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the filtering rules, including the column to check.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column
+                      corresponds to a Thursday.
+    """
+    return _day_of_week(df, rule, 3)
+
+
+def is_on_friday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters the rows of a DataFrame based on whether a specific date column corresponds to a Friday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be filtered.
+        rule (dict): A dictionary containing the rules or parameters for filtering.
+                     It should specify the column to check for the day of the week.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column corresponds to a Friday.
+    """
+    return _day_of_week(df, rule, 4)
+
+
+def is_on_saturday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Filters a DataFrame to include only rows where the date corresponds to a Saturday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing date information.
+        rule (dict): A dictionary containing rules or parameters for filtering.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame containing only rows where the date is a Saturday.
+    """
+    return _day_of_week(df, rule, 5)
+
+
+def is_on_sunday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+    """
+    Determines whether the dates in a given DataFrame fall on a Sunday.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing date-related data.
+        rule (dict): A dictionary containing rules or parameters for the operation.
+
+    Returns:
+        pd.DataFrame: A DataFrame indicating whether each date falls on a Sunday.
+    """
+    return _day_of_week(df, rule, 6)
 
 
 def validate(df: pd.DataFrame, rules: list[dict]) -> Tuple[pd.DataFrame, pd.DataFrame]:
