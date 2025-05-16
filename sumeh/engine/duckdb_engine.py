@@ -291,16 +291,17 @@ def _is_equal_than(r: __RuleCtx) -> str:
     """
     return f"{r.column} = {r.value}"
 
+
 def _is_in_millions(r: __RuleCtx) -> str:
     """
-    Generates a condition string to check if the values in a specified column 
+    Generates a condition string to check if the values in a specified column
     are greater than or equal to one million.
 
     Args:
         r (__RuleCtx): A context object containing the column to be evaluated.
 
     Returns:
-        str: A string representing the condition to check if the column values 
+        str: A string representing the condition to check if the column values
         are in the millions.
     """
     return f"{r.column} >= 1000000"
@@ -314,7 +315,7 @@ def _is_in_billions(r: __RuleCtx) -> str:
         r (__RuleCtx): A context object containing the column to be evaluated.
 
     Returns:
-        str: A string representing the condition where the column's value is 
+        str: A string representing the condition where the column's value is
         greater than or equal to 1 billion.
     """
     return f"{r.column} >= 1000000000"
@@ -599,6 +600,7 @@ def _all_date_checks(r: __RuleCtx) -> str:
     """
     return is_past_date(r)
 
+
 def _is_today(r: __RuleCtx) -> str:
     """
     Generates a SQL condition to check if the given column corresponds to the current date.
@@ -610,6 +612,7 @@ def _is_today(r: __RuleCtx) -> str:
         str: A SQL condition string in the format "<column> = current_date".
     """
     return f"{r.column} = current_date"
+
 
 def _is_yesterday(r: __RuleCtx) -> str:
     """
@@ -625,6 +628,7 @@ def _is_yesterday(r: __RuleCtx) -> str:
     """
     return f"{r.column} = current_date - 1"
 
+
 def _is_t_minus_1(r: __RuleCtx) -> str:
     """
     Determines if the given rule context corresponds to "T minus 1" (yesterday).
@@ -634,6 +638,7 @@ def _is_t_minus_1(r: __RuleCtx) -> str:
         str: A string indicating whether the rule context matches "T minus 1".
     """
     return _is_yesterday(r)
+
 
 def _is_t_minus_2(r: __RuleCtx) -> str:
     """
@@ -647,20 +652,22 @@ def _is_t_minus_2(r: __RuleCtx) -> str:
     """
     return f"{r.column} = current_date - 2"
 
+
 def _is_t_minus_3(r: __RuleCtx) -> str:
     """
-    Generates a SQL condition string that checks if a given column's value 
+    Generates a SQL condition string that checks if a given column's value
     is equal to the current date minus 3 days.
 
     Args:
-        r (__RuleCtx): A context object containing the column name to be used 
+        r (__RuleCtx): A context object containing the column name to be used
                        in the SQL condition.
 
     Returns:
-        str: A SQL condition string in the format 
+        str: A SQL condition string in the format
              "<column_name> = current_date - 3".
     """
     return f"{r.column} = current_date - 3"
+
 
 def _is_on_weekday(r: __RuleCtx) -> str:
     """
@@ -676,6 +683,7 @@ def _is_on_weekday(r: __RuleCtx) -> str:
     """
     return f"EXTRACT(DOW FROM {r.column}) BETWEEN 1 AND 5"
 
+
 def _is_on_weekend(r: __RuleCtx) -> str:
     """
     Generates a SQL expression to determine if a date column falls on a weekend.
@@ -688,6 +696,7 @@ def _is_on_weekend(r: __RuleCtx) -> str:
              is on a Saturday (6) or Sunday (0), otherwise False.
     """
     return f"(EXTRACT(DOW FROM {r.column}) = 0 OR EXTRACT(DOW FROM {r.column}) = 6)"
+
 
 def _is_on_monday(r: __RuleCtx) -> str:
     """
@@ -703,6 +712,7 @@ def _is_on_monday(r: __RuleCtx) -> str:
     """
     return f"EXTRACT(DOW FROM {r.column}) = 1"
 
+
 def _is_on_tuesday(r: __RuleCtx) -> str:
     """
     Generates a SQL expression to check if the day of the week for a given column is Tuesday.
@@ -714,6 +724,7 @@ def _is_on_tuesday(r: __RuleCtx) -> str:
         str: A SQL expression that evaluates to True if the day of the week is Tuesday, otherwise False.
     """
     return f"EXTRACT(DOW FROM {r.column}) = 2"
+
 
 def _is_on_wednesday(r: __RuleCtx) -> str:
     """
@@ -729,6 +740,7 @@ def _is_on_wednesday(r: __RuleCtx) -> str:
     """
     return f"EXTRACT(DOW FROM {r.column}) = 3"
 
+
 def _is_on_thursday(r: __RuleCtx) -> str:
     """
     Generates a SQL expression to check if the day of the week for a given column is Thursday.
@@ -740,6 +752,7 @@ def _is_on_thursday(r: __RuleCtx) -> str:
         str: A SQL expression that evaluates to True if the day of the week is Thursday, otherwise False.
     """
     return f"EXTRACT(DOW FROM {r.column}) = 4"
+
 
 def _is_on_friday(r: __RuleCtx) -> str:
     """
@@ -755,6 +768,7 @@ def _is_on_friday(r: __RuleCtx) -> str:
     """
     return f"EXTRACT(DOW FROM {r.column}) = 5"
 
+
 def _is_on_saturday(r: __RuleCtx) -> str:
     """
     Generates a SQL expression to check if the date in the specified column
@@ -769,6 +783,7 @@ def _is_on_saturday(r: __RuleCtx) -> str:
     """
     return f"EXTRACT(DOW FROM {r.column}) = 6"
 
+
 def _is_on_sunday(r: __RuleCtx) -> str:
     """
     Generates a SQL expression to check if the date in the specified column
@@ -782,7 +797,6 @@ def _is_on_sunday(r: __RuleCtx) -> str:
         is a Sunday, otherwise False.
     """
     return f"EXTRACT(DOW FROM {r.column}) = 0"
-
 
 
 def validate(
@@ -1057,5 +1071,4 @@ __RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
     "is_date_before": _is_date_before,
     "is_date_between": _is_date_between,
     "all_date_checks": _all_date_checks,
-
 }
