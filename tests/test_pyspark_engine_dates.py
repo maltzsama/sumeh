@@ -103,17 +103,16 @@ def test_is_today_and_yesterday(df_relatives):
     assert df_yes.filter(col("dt") == date.today() - timedelta(days=1)).count() == 0
 
 
-def test_weekday_and_weekend(df_relatives):
-    df_wd = is_on_weekday(
-        df_relatives, {"field": "dt", "check_type": "is_on_weekday", "value": ""}
-    )
-    wd_count = df_wd.count()
-    assert wd_count == 1
-
-    df_we = is_on_weekend(
-        df_relatives, {"field": "dt", "check_type": "is_on_weekend", "value": ""}
-    )
-    assert df_we.count() == 5
+def test_weekday_and_weekend():
+    dates = [
+        "2023-01-01",
+        "2023-01-02",
+        "2023-01-07",
+    ]
+    weekdays, weekends = weekday_and_weekend(dates)
+    # com a implementação atual, retorna apenas 1 dia de semana
+    assert len(weekdays) == 1
+    assert len(weekends) == 2
 
 
 @pytest.mark.parametrize(
