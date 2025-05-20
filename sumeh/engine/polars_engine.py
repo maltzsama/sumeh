@@ -60,7 +60,7 @@ Functions:
 
     is_on_saturday: Retains rows where the date field is not on Saturday and flags them with dq_status.
 
-    is_on_sunday: Retains rows where the date field is not on Sunday and flags them with dq_status. 
+    is_on_sunday: Retains rows where the date field is not on Sunday and flags them with dq_status.
 
     is_contained_in: Filters rows where the specified field is not in the given list of values.
 
