@@ -1577,7 +1577,7 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
         .withColumn("level", lit("WARNING"))
     )
 
-    summary = summary.withColumn("id", monotonically_increasing_id() + 1)
+    summary = summary.withColumn("id", expr("uuid()"))
     summary = summary.select(
         "id",
         "timestamp",
