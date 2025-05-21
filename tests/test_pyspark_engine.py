@@ -236,15 +236,13 @@ class TestPySparkEngine(unittest.TestCase):
         self.assertEqual(len(errors), 5)
 
     def test_validate_date_format(self):
-        rules = [
-            {
-                "field": "join_date",
-                "check_type": "validate_date_format",
-                "value": "DD-MM-YYYY",
-            }
-        ]
+        rule = {
+            "field": "join_date",
+            "check_type": "validate_date_format",
+            "value": "DD-MM-YYYY",
+        }
         # engine.validate_date_format retorna só o DataFrame de violações
-        raw_result = engine.validate_date_format(self.test_df, rules)
+        raw_result = engine.validate_date_format(self.test_df, rule)
 
         self.assertTrue("dq_status" in raw_result.columns)
         # apenas "01-31-2019" e "02/02/2024" violam o formato → 2 linhas
