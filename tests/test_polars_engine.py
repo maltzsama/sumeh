@@ -19,6 +19,7 @@ from sumeh.engine.polars_engine import (
     __build_rules_df,
 )
 from datetime import datetime, date, timedelta
+import numpy as np
 
 
 @pytest.fixture

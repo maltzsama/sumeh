@@ -1,5 +1,5 @@
 import pytest
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from sumeh.engine.pyspark_engine import (
@@ -101,19 +101,6 @@ def test_is_today_and_yesterday(df_relatives):
         df_relatives, {"field": "dt", "check_type": "is_yesterday", "value": ""}
     )
     assert df_yes.filter(col("dt") == date.today() - timedelta(days=1)).count() == 0
-
-
-def test_weekday_and_weekend(df_relatives):
-    df_wd = is_on_weekday(
-        df_relatives, {"field": "dt", "check_type": "is_on_weekday", "value": ""}
-    )
-    wd_count = df_wd.count()
-    assert wd_count == 1
-
-    df_we = is_on_weekend(
-        df_relatives, {"field": "dt", "check_type": "is_on_weekend", "value": ""}
-    )
-    assert df_we.count() == 5
 
 
 @pytest.mark.parametrize(

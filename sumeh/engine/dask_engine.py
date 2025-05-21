@@ -152,15 +152,16 @@ Functions:
 import re
 import warnings
 import operator
+import uuid
 from functools import reduce
+from datetime import datetime, date
+from typing import List, Dict, Any, Tuple
+
 import pandas as pd
 import dask.dataframe as dd
 import numpy as np
-from datetime import datetime
-from datetime import date
-from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
-from typing import List, Dict, Any, Tuple
 
+from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
@@ -1544,7 +1545,8 @@ def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.Da
         .reset_index(drop=True)
     )
 
-    summary.insert(0, "id", np.arange(1, len(summary) + 1))
+    summary.insert(0, "id", [str(uuid.uuid4()) for _ in range(len(summary))])
+
     summary = summary[
         [
             "id",
