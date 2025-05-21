@@ -1169,11 +1169,11 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <span class="n">df</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;data.csv&quot;</span><span class="p">)</span>
 
 <span class="c1"># 2) Run validation</span>
-<span class="n">qc_df</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rules</span><span class="p">)</span>
+<span class="n">result</span><span class="p">,</span> <span class="n">result_raw</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rules</span><span class="p">)</span>
 
 <span class="c1"># 3) Generate summary</span>
 <span class="n">total</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">height</span>
-<span class="n">report</span> <span class="o">=</span> <span class="n">summarize</span><span class="p">(</span><span class="n">qc_df</span><span class="p">,</span> <span class="n">rules</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">summarize</span><span class="p">(</span><span class="n">result_raw</span><span class="p">,</span> <span class="n">rules</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
 </code></pre></div>
 

@@ -7521,7 +7521,7 @@ and generating a validation condition.</p>
 <span class="s2">            SELECT </span><span class="si">{</span><span class="n">total_rows</span><span class="si">}</span><span class="s2"> AS cnt</span>
 <span class="s2">        )</span>
 <span class="s2">        SELECT</span>
-<span class="s2">        ROW_NUMBER() OVER ()                            AS id,</span>
+<span class="s2">        uuid()                                          AS id,</span>
 <span class="s2">        date_trunc(&#39;minute&#39;, NOW())                     AS timestamp,</span>
 <span class="s2">        &#39;Quality Check&#39;                                 AS check,</span>
 <span class="s2">        &#39;WARNING&#39;                                       AS level,</span>
