@@ -1529,7 +1529,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         ]
     )
 
-    uuids = np.array([uuid.uuid4() for _ in range(len(step4))], dtype='object')
+    uuids = np.array([uuid.uuid4() for _ in range(len(step4))], dtype="object")
 
     summary = step4.with_columns(pl.Series(uuids).alias("id")).select(
         [

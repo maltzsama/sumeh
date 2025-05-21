@@ -1371,7 +1371,7 @@ def summarize(qc_df: pd.DataFrame, rules: list[dict], total_rows: int) -> pd.Dat
     df["timestamp"] = datetime.now().replace(second=0, microsecond=0)
     df["check"] = "Quality Check"
     df["level"] = "WARNING"
-    df.insert(0, "id", np.array([uuid.uuid4() for _ in range(len(df))], dtype='object'))
+    df.insert(0, "id", np.array([uuid.uuid4() for _ in range(len(df))], dtype="object"))
     return df[
         [
             "id",
