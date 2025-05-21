@@ -124,6 +124,8 @@ from sumeh.services.utils import (
     __transform_date_format_in_pattern,
 )
 from typing import List, Dict, Any, Tuple
+import uuid
+import numpy as np
 
 
 def is_positive(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
@@ -1369,7 +1371,7 @@ def summarize(qc_df: pd.DataFrame, rules: list[dict], total_rows: int) -> pd.Dat
     df["timestamp"] = datetime.now().replace(second=0, microsecond=0)
     df["check"] = "Quality Check"
     df["level"] = "WARNING"
-    df.insert(0, "id", range(1, len(df) + 1))
+    df.insert(0, "id", np.array([uuid.uuid4() for _ in range(len(df))], dtype="object"))
     return df[
         [
             "id",

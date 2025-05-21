@@ -138,6 +138,7 @@ from pyspark.sql.functions import (
     expr,
     date_sub,
     dayofweek,
+    broadcast,
 )
 
 
@@ -1556,8 +1557,10 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
         "value", coalesce(col("value"), lit("N/A"))
     )
 
-    base = rules_df.join(viol_df, ["column", "rule", "value"], how="left").withColumn(
-        "violations", coalesce(col("violations"), lit(0))
+    base = (
+        broadcast(rules_df)
+        .join(viol_df, ["column", "rule", "value"], how="left")
+        .withColumn("violations", coalesce(col("violations"), lit(0)))
     )
 
     summary = (
@@ -1574,7 +1577,7 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
         .withColumn("level", lit("WARNING"))
     )
 
-    summary = summary.withColumn("id", monotonically_increasing_id() + 1)
+    summary = summary.withColumn("id", expr("uuid()"))
     summary = summary.select(
         "id",
         "timestamp",

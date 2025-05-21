@@ -946,7 +946,7 @@ def summarize(
             SELECT {total_rows} AS cnt
         )
         SELECT
-        ROW_NUMBER() OVER ()                            AS id,
+        uuid()                                          AS id,
         date_trunc('minute', NOW())                     AS timestamp,
         'Quality Check'                                 AS check,
         'WARNING'                                       AS level,

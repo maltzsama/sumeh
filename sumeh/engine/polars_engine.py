@@ -60,7 +60,7 @@ Functions:
 
     is_on_saturday: Retains rows where the date field is not on Saturday and flags them with dq_status.
 
-    is_on_sunday: Retains rows where the date field is not on Sunday and flags them with dq_status. 
+    is_on_sunday: Retains rows where the date field is not on Sunday and flags them with dq_status.
 
     is_contained_in: Filters rows where the specified field is not in the given list of values.
 
@@ -118,6 +118,7 @@ Functions:
 import warnings
 from functools import reduce
 import polars as pl
+import numpy as np
 from sumeh.services.utils import (
     __convert_value,
     __extract_params,
@@ -128,6 +129,7 @@ import operator
 from datetime import datetime, timedelta
 from datetime import date as _dt
 from typing import List, Dict, Any, Tuple
+import uuid
 
 
 def is_positive(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
@@ -1036,7 +1038,7 @@ def is_today(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         ValueError: If the rule dictionary does not contain the required keys or if the date parsing fails.
     """
     field, check, value = __extract_params(rule)
-    today = date.today().isoformat()
+    today = _dt.today().isoformat()
     return df.filter(
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(today).cast(pl.Date)
     ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
@@ -1063,7 +1065,7 @@ def is_t_minus_1(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         contains metadata about the rule applied.
     """
     field, check, value = __extract_params(rule)
-    target = (date.today() - timedelta(days=1)).isoformat()
+    target = (_dt.today() - timedelta(days=1)).isoformat()
     return df.filter(
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(target).cast(pl.Date)
     ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
@@ -1090,7 +1092,7 @@ def is_t_minus_2(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         rule applied.
     """
     field, check, value = __extract_params(rule)
-    target = (date.today() - timedelta(days=2)).isoformat()
+    target = (_dt.today() - timedelta(days=2)).isoformat()
     return df.filter(
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(target).cast(pl.Date)
     ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
@@ -1114,7 +1116,7 @@ def is_t_minus_3(df: pl.DataFrame, rule: dict) -> pl.DataFrame:
         "dq_status" that contains a string in the format "{field}:{check}:{value}".
     """
     field, check, value = __extract_params(rule)
-    target = (date.today() - timedelta(days=3)).isoformat()
+    target = (_dt.today() - timedelta(days=3)).isoformat()
     return df.filter(
         pl.col(field).str.strptime(pl.Date, "%Y-%m-%d") == pl.lit(target).cast(pl.Date)
     ).with_columns(pl.lit(f"{field}:{check}:{value}").alias("dq_status"))
@@ -1527,7 +1529,9 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
         ]
     )
 
-    summary = step4.with_columns(pl.arange(1, pl.len() + 1).alias("id")).select(
+    uuids = np.array([uuid.uuid4() for _ in range(len(step4))], dtype="object")
+
+    summary = step4.with_columns(pl.Series(uuids).alias("id")).select(
         [
             "id",
             "timestamp",

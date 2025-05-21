@@ -69,11 +69,11 @@ import polars as pl
 df = pl.read_csv("data.csv")
 
 # 2) Run validation
-qc_df = validate(df, rules)
+result, result_raw = validate(df, rules)
 
 # 3) Generate summary
 total = df.height
-report = summarize(qc_df, rules, total)
+report = summarize(result_raw, rules, total)
 print(report)
 ```
 
