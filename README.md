@@ -46,43 +46,74 @@ Each engine implements the `validate()` + `summarize()` pair:
 Load rules from CSV, S3, MySQL, Postgres, BigQuery table, or AWS Glue:
 
 ```python
-from sumeh.services.config import (
-    get_config_from_csv,
-    get_config_from_s3,
-    get_config_from_mysql,
-    get_config_from_postgresql,
-    get_config_from_bigquery,
-    get_config_from_glue_data_catalog,
-)
+from sumeh import get_rules_config
 
-rules = get_config_from_csv("rules.csv", delimiter=";")
+# ✅ CSV local
+rules = get_rules_config("rules.csv", delimiter=";")
+
+# ✅ S3 (formato s3://bucket/path/to/rules.csv)
+rules = get_rules_config("s3://my-bucket/rules.csv", delimiter=";")
+
+# ✅ DuckDB
+import duckdb
+conn = duckdb.connect("my_db.duckdb")
+rules = get_rules_config("duckdb", table="rules", conn=conn)
+
+# ✅ MySQL
+rules = get_rules_config("mysql", host="localhost", user="root", password="pass", database="dq", table="rules")
+
+# ✅ PostgreSQL
+rules = get_rules_config("postgresql", host="localhost", user="admin", password="pass", database="dq", table="rules")
+
+# ✅ BigQuery
+rules = get_rules_config("bigquery", project_id="my-project", dataset_id="dq", table_id="rules")
+
+# ✅ AWS Glue
+from awsglue.context import GlueContext
+glue_context = GlueContext(...)  # spark session must be initialized
+rules = get_rules_config("glue", glue_context=glue_context, database_name="dq", table_name="rules")
+
+# ✅ Databricks (Delta Table or Hive Metastore)
+rules = get_rules_config("databricks", catalog="main", schema="dq", table="rules")
 ```
 
 ## 🏃‍♂️ Typical Workflow
 
 ```python
-from sumeh import report
-from sumeh.engine.polars_engine import validate, summarize
-import polars as pl
+import pandas as pd
+from sumeh import get_rules_config, report, validate, summarize
 
-# 1) Load data
-df = pl.read_csv("data.csv")
+# 1) Load your dataset
+df = pd.read_parquet("data/searches_1.parquet")  # or read_csv, read_json...
 
-# 2) Run validation
-result, result_raw = validate(df, rules)
+# 2) Load your rules
+rules = get_rules_config("rules.csv", delimiter=";")
+rules = [r for r in rules if r.get("execute", True)]  # optional filtering
 
-# 3) Generate summary
-total = df.height
-report = summarize(result_raw, rules, total)
-print(report)
+# 3) Run validations
+qc_result = report(df, rules, name="Validação Inicial")
+
+# 4) Raw and summarized violations
+agg_result, raw_violations = validate(df, rules)
+summary = summarize(raw_violations, rules, total_rows=len(df))
+
+# 5) Display
+print(qc_result)       # from cuallee's CheckResult
+print(summary)         # if using Pandas or DuckDB
 ```
 
 Or simply:
 
 ```python
-from sumeh import report
+from sumeh import report, get_rules_config
+import pandas as pd
 
-report = report(df, rules, name="My Check")
+df = pd.read_csv("data.csv")
+rules = get_rules_config("rules.csv", delimiter=";")
+rules = [r for r in rules if r.get("execute", True)]
+
+result = report(df, rules, name="My Check")
+print(result)  # show as DataFrame
 ```
 
 ## 📋 Rule Definition Example
