@@ -64,7 +64,7 @@ Functions:
     __create_connection(connect_func, host, user, password, database, port) -> Any:
 
     infer_basic_type(val: str) -> str:
-        Infers the basic data type of a given value.
+        Infers the basic data type of given value.
 """
 from io import StringIO
 from dateutil import parser
@@ -373,7 +373,6 @@ def get_config_from_duckdb(
     dictionaries.
 
     Args:
-        db_path (str): The path to the DuckDB database file.
         table (str, optional): The name of the table to fetch data from. Defaults to None.
         query (str, optional): A custom SQL query to execute. Defaults to None.
         conn: A valid DuckDB connection object.
@@ -412,7 +411,7 @@ def get_config_from_databricks(
     Retrieves configuration data from a Databricks table and returns it as a list of dictionaries.
 
     Args:
-        spark SparkSession: Spark Session to get information from Databricks Catalog
+        spark SparkSession: Spark Session to get information from Databricks
         catalog (Optional[str]): The catalog name in Databricks. If provided, it will be included in the table's full path.
         schema (Optional[str]): The schema name in Databricks. If provided, it will be included in the table's full path.
         table (str): The name of the table to retrieve data from.
@@ -528,7 +527,7 @@ def __read_csv_file(
     Parses the content of a CSV file.
 
     Args:
-        content (str): The content of the CSV file as a string.
+        file_content (str): The content of the CSV file as a string.
         delimiter (str): The delimiter used in the CSV file.
 
     Returns:
@@ -692,7 +691,7 @@ def get_schema_from_glue(
     from awsglue.context import GlueContext
 
     if not isinstance(glue_context, GlueContext):
-        raise ValueError("Informe um GlueContext válido")
+        raise ValueError("Valid GlueContext required")
     df = glue_context.spark_session.read.table(f"{database_name}.{table_name}")
     return [
         {
@@ -705,7 +704,7 @@ def get_schema_from_glue(
     ]
 
 
-def get_schema_from_duckdb(db_path: str, table: str, conn) -> List[Dict[str, Any]]:
+def get_schema_from_duckdb(table: str, conn) -> List[Dict[str, Any]]:
     df = conn.execute(f"PRAGMA table_info('{table}')").fetchdf()
     return [
         {
@@ -758,14 +757,12 @@ def __parse_data(data: list[dict]) -> list[dict]:
 
     for row in data:
         try:
-            # Field - aceita lista ou string
             field_value = row.get("field", "")
             if isinstance(field_value, str) and "[" in field_value:
                 field_value = [
                     item.strip() for item in field_value.strip("[]").split(",")
                 ]
 
-            # Threshold - padrão 1.0 se vazio/NULL
             threshold_value = row.get("threshold")
             if threshold_value in [None, "NULL", ""]:
                 threshold_value = 1.0
@@ -775,19 +772,17 @@ def __parse_data(data: list[dict]) -> list[dict]:
                 except (ValueError, TypeError):
                     threshold_value = 1.0
 
-            # Updated_at - flexível para string ou objeto date
             updated_at_value = row.get("updated_at")
             if updated_at_value in [None, "NULL", ""]:
                 updated_at_value = None
             elif isinstance(updated_at_value, (date, datetime)):
-                updated_at_value = updated_at_value  # Mantém como está
+                updated_at_value = updated_at_value
             elif isinstance(updated_at_value, str):
                 try:
                     updated_at_value = parser.parse(updated_at_value)
                 except (ValueError, TypeError):
                     updated_at_value = None
 
-            # Execute - padrão True
             execute_value = row.get("execute", True)
             if isinstance(execute_value, str):
                 execute_value = execute_value.lower() in ["true", "1", "yes", "y", "t"]
@@ -839,7 +834,7 @@ def __create_connection(connect_func, host, user, password, database, port) -> A
             host=host, user=user, password=password, database=database, port=port
         )
     except Exception as e:
-        raise (f"Error creating connection: {e}")
+        raise ConnectionError(f"Error creating connection: {e}")
 
 
 def infer_basic_type(val: str) -> str:

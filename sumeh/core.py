@@ -22,10 +22,6 @@ Functions:
 
     report(df, rules: list[dict], name: str = "Quality Check"):
 
-Constants:
-    _CONFIG_DISPATCH: A dictionary mapping data source types (e.g., "mysql", "postgresql")
-      to their respective configuration retrieval functions.
-
 Imports:
     cuallee: Provides the `Check` and `CheckLevel` classes for data validation.
     warnings: Used to issue warnings for unknown rule names.
@@ -50,7 +46,7 @@ import warnings
 from importlib import import_module
 from typing import List, Dict, Any, Tuple
 import re
-from .services.utils import __convert_value, __parse_databricks_uri
+from .services.utils import __convert_value
 from sumeh.services.config import (
     get_config_from_s3,
     get_config_from_csv,
@@ -69,11 +65,6 @@ from sumeh.services.config import (
     get_schema_from_databricks,
     get_schema_from_glue,
 )
-
-_CONFIG_DISPATCH = {
-    "mysql": get_config_from_mysql,
-    "postgresql": get_config_from_postgresql,
-}
 
 
 def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
@@ -125,7 +116,6 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_config_from_csv(s, **kwargs)
 
         case "mysql":
-            # MySQL: não precisa de schema
             required_params = ["host", "user", "password", "database", "table"]
             for param in required_params:
                 if param not in kwargs:
@@ -134,7 +124,6 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_config_from_mysql(**kwargs)
 
         case "postgresql":
-            # PostgreSQL: PRECISA de schema!
             required_params = [
                 "host",
                 "user",
@@ -267,7 +256,7 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             conn = kwargs.pop("conn")
             _, path = s.split("://", 1)
             db_path, table = path.rsplit(".", 1)
-            return get_schema_from_duckdb(db_path=db_path, conn=conn, table=table)
+            return get_schema_from_duckdb(conn=conn, table=table)
 
         case "databricks":
             required_params = ["spark", "catalog", "schema", "table"]
