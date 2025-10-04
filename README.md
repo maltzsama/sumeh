@@ -43,20 +43,101 @@ Each engine implements the `validate()` + `summarize()` pair:
 
 ## 🏗 Configuration Sources
 
-Load rules from CSV, S3, MySQL, Postgres, BigQuery table, or AWS Glue:
+**Load rules from CSV**
 
 ```python
-from sumeh.services.config import (
-    get_config_from_csv,
-    get_config_from_s3,
-    get_config_from_mysql,
-    get_config_from_postgresql,
-    get_config_from_bigquery,
-    get_config_from_glue_data_catalog,
+from sumeh import get_rules_config
+
+rules = get_rules_config("rules.csv", delimiter=";")
+```
+
+**Load rules from S3**
+```python
+from sumeh import get_rules_config
+
+rules = get_rules_config("rules.csv", delimiter=";")
+```
+
+**Load rules from MySQL**
+```python
+from sumeh import get_rules_config
+
+host = "<host>"
+port = "<port>" #optional
+user = "<username>"
+password = "<passwd>"
+database = "<database>"
+table = "<rules_table>"
+query = "<select * from rules>" # optional
+
+rules = get_rules_config(
+    source="mysql", 
+    host=host, 
+    user=user, 
+    password=password, 
+    database=database, 
+    table=table, 
+    query=query
 )
 
-rules = get_config_from_csv("rules.csv", delimiter=";")
+# or using Mysql Connector
+import mysql.connector
+conn = mysql.connector.connect(
+    host=host,
+    port=port,
+    database=database,
+    user=user,
+    password=password
+)
+
+rules = get_rules_config(source="mysql", connection=conn, query=query)
+
 ```
+
+**Load rules from Postgres**
+```python
+from sumeh import get_rules_config
+
+host = "<host>"
+port = "<port>" #optional
+user = "<username>"
+password = "<passwd>"
+database = "<database>"
+schema = "<public>"
+table = "<rules_table>"
+query = "<select * from rules>" # optional
+
+rules_pgsql = get_rules_config(
+    source="postgresql", 
+    host=host, user=user, 
+    password=password, 
+    database=database, 
+    schema=schema, 
+    table=table, 
+    query=query
+)
+
+# Or using the PostgreSQL Connector
+import psycopg2
+
+conn = psycopg2.connect(
+            host=host,
+            database=database,
+            user=user,
+            password=password
+)
+
+rules_pgsql = get_rules_config(source="postgresql", connection=conn, query=query)
+
+```
+
+**Load rules from AWS Glue Data Catalog**
+```python
+from sumeh import get_rules_config
+
+rules = get_rules_config("rules.csv", delimiter=";")
+```
+
 
 ## 🏃‍♂️ Typical Workflow
 
@@ -73,16 +154,16 @@ result, result_raw = validate(df, rules)
 
 # 3) Generate summary
 total = df.height
-report = summarize(result_raw, rules, total)
+report = summarize(result_raw, rules, total_rows=total)
 print(report)
 ```
 
-Or simply:
+**Or simply:**
 
 ```python
 from sumeh import report
 
-report = report(df, rules, name="My Check")
+report = report(df, rules)
 ```
 
 ## 📋 Rule Definition Example
