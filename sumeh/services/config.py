@@ -69,6 +69,7 @@ Functions:
 from io import StringIO
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
+from datetime import date, datetime
 
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
@@ -320,6 +321,8 @@ def get_config_from_glue_data_catalog(
     """
     Retrieves configuration data from AWS Glue Data Catalog.
 
+    Using Spark directly - works with all table formats (Parquet, ORC, CSV, Iceberg, Delta, Hudi).
+
     Args:
         glue_context: An instance of `GlueContext`.
         database_name (str): Glue database name.
@@ -340,15 +343,14 @@ def get_config_from_glue_data_catalog(
     spark = glue_context.spark_session
 
     try:
-        dynamic_frame = glue_context.create_dynamic_frame.from_catalog(
-            database=database_name, table_name=table_name
-        )
-
-        data_frame = dynamic_frame.toDF()
+        full_table_name = f"`{database_name}`.`{table_name}`"
 
         if query:
-            data_frame.createOrReplaceTempView("table_name")
+            data_frame = spark.read.table(full_table_name)
+            data_frame.createOrReplaceTempView("temp_table_view")
             data_frame = spark.sql(query)
+        else:
+            data_frame = spark.read.table(full_table_name)
 
         data_dict = [row.asDict() for row in data_frame.collect()]
 
@@ -356,7 +358,7 @@ def get_config_from_glue_data_catalog(
 
     except Exception as e:
         raise RuntimeError(
-            f"Error occurred while querying Glue Data Catalog: {e}"
+            f"Error occurred while querying Glue Data Catalog '{database_name}.{table_name}': {e}"
         ) from e
 
 
@@ -745,36 +747,72 @@ def get_schema_from_databricks(
 
 def __parse_data(data: list[dict]) -> list[dict]:
     """
-    Parse the configuration data.
+    Parse the configuration data with robust type handling.
 
     Args:
-        data (List[Dict[str, str]]): The raw data to be parsed.
+        data (List[Dict[str, Any]]): The raw data to be parsed.
 
     Returns:
-        List[Dict[str, str]]: A list of parsed configuration data.
+        List[Dict[str, Any]]: A list of parsed configuration data.
     """
     parsed_data = []
 
     for row in data:
-        parsed_row = {
-            "field": (
-                row["field"].strip("[]").split(",")
-                if "[" in row["field"]
-                else row["field"]
-            ),
-            "check_type": row["check_type"],
-            "value": None if row["value"] == "NULL" else row["value"],
-            "threshold": (
-                None if row["threshold"] == "NULL" else float(row["threshold"])
-            ),
-            "execute": (
-                row["execute"].lower() == "true"
-                if isinstance(row["execute"], str)
-                else row["execute"] is True
-            ),
-            "updated_at": parser.parse(row["updated_at"]),
-        }
-        parsed_data.append(parsed_row)
+        try:
+            # Field - aceita lista ou string
+            field_value = row.get("field", "")
+            if isinstance(field_value, str) and "[" in field_value:
+                field_value = [
+                    item.strip() for item in field_value.strip("[]").split(",")
+                ]
+
+            # Threshold - padrão 1.0 se vazio/NULL
+            threshold_value = row.get("threshold")
+            if threshold_value in [None, "NULL", ""]:
+                threshold_value = 1.0
+            else:
+                try:
+                    threshold_value = float(threshold_value)
+                except (ValueError, TypeError):
+                    threshold_value = 1.0
+
+            # Updated_at - flexível para string ou objeto date
+            updated_at_value = row.get("updated_at")
+            if updated_at_value in [None, "NULL", ""]:
+                updated_at_value = None
+            elif isinstance(updated_at_value, (date, datetime)):
+                updated_at_value = updated_at_value  # Mantém como está
+            elif isinstance(updated_at_value, str):
+                try:
+                    updated_at_value = parser.parse(updated_at_value)
+                except (ValueError, TypeError):
+                    updated_at_value = None
+
+            # Execute - padrão True
+            execute_value = row.get("execute", True)
+            if isinstance(execute_value, str):
+                execute_value = execute_value.lower() in ["true", "1", "yes", "y", "t"]
+            else:
+                execute_value = bool(execute_value)
+
+            # Value
+            value_field = row.get("value")
+            if value_field in ["NULL", "", None]:
+                value_field = None
+
+            parsed_row = {
+                "field": field_value,
+                "check_type": row.get("check_type", ""),
+                "value": value_field,
+                "threshold": threshold_value,
+                "execute": execute_value,
+                "updated_at": updated_at_value,
+            }
+            parsed_data.append(parsed_row)
+
+        except Exception as e:
+            print(f"Warning: Error parsing row {row}. Error: {e}")
+            continue
 
     return parsed_data
 

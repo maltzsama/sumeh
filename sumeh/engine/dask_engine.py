@@ -163,6 +163,7 @@ import numpy as np
 
 from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
 
+
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:
     """
     Checks if the values in a specified field of a Dask DataFrame are positive.
