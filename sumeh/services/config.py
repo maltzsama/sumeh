@@ -363,7 +363,7 @@ def get_config_from_glue_data_catalog(
 
 
 def get_config_from_duckdb(
-    db_path: str, table: str = None, query: str = None, conn=None
+    table: str = None, query: str = None, conn=None
 ) -> List[Dict[str, Any]]:
     """
     Retrieve configuration data from a DuckDB database.
@@ -406,23 +406,22 @@ def get_config_from_duckdb(
 
 
 def get_config_from_databricks(
-    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
+    spark, catalog: Optional[str], schema: Optional[str], table: str, **kwargs
 ) -> List[Dict[str, Any]]:
     """
     Retrieves configuration data from a Databricks table and returns it as a list of dictionaries.
 
     Args:
+        spark SparkSession: Spark Session to get information from Databricks Catalog
         catalog (Optional[str]): The catalog name in Databricks. If provided, it will be included in the table's full path.
         schema (Optional[str]): The schema name in Databricks. If provided, it will be included in the table's full path.
         table (str): The name of the table to retrieve data from.
-        **kwargs: Additional keyword arguments (currently unused).
+        query: Additional keyword arguments (currently unused).
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries, where each dictionary represents a row of data from the table.
     """
-    from pyspark.sql import SparkSession
 
-    spark = SparkSession.builder.getOrCreate()
     if catalog and schema:
         full = f"{catalog}.{schema}.{table}"
     elif schema:
@@ -840,7 +839,7 @@ def __create_connection(connect_func, host, user, password, database, port) -> A
             host=host, user=user, password=password, database=database, port=port
         )
     except Exception as e:
-        raise ConnectionError(f"Error creating connection: {e}")
+        raise (f"Error creating connection: {e}")
 
 
 def infer_basic_type(val: str) -> str:

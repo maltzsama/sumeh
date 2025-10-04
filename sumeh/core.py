@@ -60,6 +60,14 @@ from sumeh.services.config import (
     get_config_from_glue_data_catalog,
     get_config_from_duckdb,
     get_config_from_databricks,
+    get_schema_from_duckdb,
+    get_schema_from_bigquery,
+    get_schema_from_s3,
+    get_schema_from_csv,
+    get_schema_from_mysql,
+    get_schema_from_postgresql,
+    get_schema_from_databricks,
+    get_schema_from_glue,
 )
 
 _CONFIG_DISPATCH = {
@@ -116,30 +124,54 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
         case s if re.search(r"\.csv$", s, re.IGNORECASE):
             return get_config_from_csv(s, **kwargs)
 
-        case "mysql" | "postgresql" as driver:
-            loader = _CONFIG_DISPATCH[driver]
-            return loader(**kwargs)
+        case "mysql":
+            # MySQL: não precisa de schema
+            required_params = ["host", "user", "password", "database", "table"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"MySQL source requires '{param}' in kwargs")
+
+            return get_config_from_mysql(**kwargs)
+
+        case "postgresql":
+            # PostgreSQL: PRECISA de schema!
+            required_params = [
+                "host",
+                "user",
+                "password",
+                "database",
+                "schema",
+                "table",
+            ]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"PostgreSQL source requires '{param}' in kwargs")
+
+            return get_config_from_postgresql(**kwargs)
 
         case "glue":
+            required_params = ["glue_context", "database_name", "table_name"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"Glue source requires '{param}' in kwargs")
             return get_config_from_glue_data_catalog(**kwargs)
 
         case s if s.startswith("duckdb://"):
             _, path = s.split("://", 1)
-            db_path, table = path.rsplit(".", 1)
+            _, table = path.rsplit(".", 1)
             conn = kwargs.pop("conn", None)
             return get_config_from_duckdb(
                 conn=conn,
                 table=table,
             )
 
-        case s if s.startswith("databricks://"):
-            parts = __parse_databricks_uri(s)
-            return get_config_from_databricks(
-                catalog=parts["catalog"],
-                schema=parts["schema"],
-                table=parts["table"],
-                **kwargs,
-            )
+        case "databricks":
+            required_params = ["spark", "catalog", "schema", "table"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"Databricks source requires '{param}' in kwargs")
+
+            return get_config_from_databricks(**kwargs)
 
         case _:
             raise ValueError(f"Unknow source: {source}")
@@ -190,6 +222,13 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
                 **kwargs,
             )
 
+        case "bigquery":
+            required_params = ["project_id", "dataset_id", "table_id"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"BigQuery schema requires '{param}' in kwargs")
+            return get_schema_from_bigquery(**kwargs)
+
         case s if s.startswith("s3://"):
             return get_schema_from_s3(s, **kwargs)
 
@@ -197,28 +236,45 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_schema_from_csv(s, **kwargs)
 
         case "mysql":
+            required_params = ["host", "user", "password", "database", "table"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"MySQL schema requires '{param}' in kwargs")
             return get_schema_from_mysql(**kwargs)
 
         case "postgresql":
+            required_params = [
+                "host",
+                "user",
+                "password",
+                "database",
+                "schema",
+                "table",
+            ]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"PostgreSQL schema requires '{param}' in kwargs")
             return get_schema_from_postgresql(**kwargs)
 
         case "glue":
+            required_params = ["glue_context", "database_name", "table_name"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"Glue schema requires '{param}' in kwargs")
             return get_schema_from_glue(**kwargs)
 
         case s if s.startswith("duckdb://"):
             conn = kwargs.pop("conn")
             _, path = s.split("://", 1)
             db_path, table = path.rsplit(".", 1)
-            return get_schema_from_duckdb(conn=conn, table=table)
+            return get_schema_from_duckdb(db_path=db_path, conn=conn, table=table)
 
-        case s if s.startswith("databricks://"):
-            parts = __parse_databricks_uri(s)
-            return get_schema_from_databricks(
-                catalog=parts["catalog"],
-                schema=parts["schema"],
-                table=parts["table"],
-                **kwargs,
-            )
+        case "databricks":
+            required_params = ["spark", "catalog", "schema", "table"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"Databricks schema requires '{param}' in kwargs")
+            return get_schema_from_databricks(**kwargs)
 
         case _:
             raise ValueError(f"Unknow source: {source}")
@@ -359,7 +415,7 @@ def summarize(df, rules: list[dict], **context):
           in the context.
 
     Example:
-        >>> summarized_df = summarize(df, rules=[{"operation": "sum", "column": "sales"}], conn=my_conn)
+        summarized_df = summarize(df, rules=[{"operation": "sum", "column": "sales"}], conn=my_conn)
     """
     engine_name = __detect_engine(df)
     engine = import_module(f"sumeh.engine.{engine_name}")
@@ -374,10 +430,8 @@ def summarize(df, rules: list[dict], **context):
         case _:
             return engine.summarize(df, rules, total_rows=context.get("total_rows"))
 
-    raise TypeError(f"Unsupported DataFrame type: {type(df)}")
 
-
-# TODO: refactore to get better performance
+# TODO: refactor to get better performance
 def report(df, rules: list[dict], name: str = "Quality Check"):
     """
     Performs a quality check on the given DataFrame based on the provided rules.
