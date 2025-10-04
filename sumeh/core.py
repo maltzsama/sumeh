@@ -102,15 +102,13 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             If `source` does not match any supported format.
     """
     match source:
-        case s if s.startswith("bigquery://"):
-            _, path = s.split("://", 1)
-            project, dataset, table = path.split(".")
-            return get_config_from_bigquery(
-                project_id=project,
-                dataset_id=dataset,
-                table_id=table,
-                **kwargs,
-            )
+        case "bigquery":
+            required_params = ["project_id", "dataset_id", "table_id"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"BigQuery source requires '{param}' in kwargs")
+
+            return get_config_from_bigquery(**kwargs)
 
         case s if s.startswith("s3://"):
             return get_config_from_s3(s, **kwargs)

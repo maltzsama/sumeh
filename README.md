@@ -54,8 +54,12 @@ rules = get_rules_config("rules.csv", delimiter=";")
 **Load rules from S3**
 ```python
 from sumeh import get_rules_config
+bucket_name = "<bucket>"
+path = "<path>"
+file_name = "<file_name>"
 
-rules = get_rules_config("rules.csv", delimiter=";")
+rules = get_rules_config(f"s3://{bucket_name}/{path}/{file_name}", delimiter=";")
+
 ```
 
 **Load rules from MySQL**
@@ -133,9 +137,54 @@ rules_pgsql = get_rules_config(source="postgresql", connection=conn, query=query
 
 **Load rules from AWS Glue Data Catalog**
 ```python
+from pyspark.context import SparkContext
+from awsglue.utils import getResolvedOptions
+from awsglue.context import GlueContext
+from awsglue.job import Job
+
 from sumeh import get_rules_config
 
-rules = get_rules_config("rules.csv", delimiter=";")
+args = getResolvedOptions(sys.argv, ['JOB_NAME'])
+
+sc = SparkContext()
+glue_context = GlueContext(sc)
+spark = glue_context.spark_session
+job = Job(glue_context)
+job.init(args['JOB_NAME'], args)
+
+
+database_name = "<database>"
+table_name = "<table>"
+
+rules = get_rules_config(
+    source="glue",
+    glue_context=glue_context,
+    database_name=database_name,
+    table_name=table_name
+)
+
+job.commit()
+
+```
+
+**Load rules from Databricks Data Catalog**
+```python
+from sumeh import get_rules_config
+
+catalog = "<catalog>"
+database_name = "<database>"
+table_name = "<table>"
+query = "<query>" # OPTIONAL
+
+rules = get_rules_config(
+    "databricks", 
+    spark=spark, 
+    catalog="sumeh_demo", 
+    schema="sample_data", 
+    table="rules",
+    query=query
+)
+
 ```
 
 
