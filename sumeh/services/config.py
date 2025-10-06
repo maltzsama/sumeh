@@ -108,7 +108,6 @@ def get_config_from_mysql(
 ):
     """
     Retrieves configuration data from a MySQL database.
-
     Args:
         connection (Optional): An existing MySQL connection object.
         host (Optional[str]): Host of the MySQL server.
@@ -247,28 +246,23 @@ def get_config_from_bigquery(
         RuntimeError: If there is an error while querying BigQuery.
     """
     from google.cloud import bigquery
+    from google.oauth2 import service_account
     from google.auth.exceptions import DefaultCredentialsError
 
     if query is None:
         query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}`"
 
     try:
-        client = bigquery.Client(
-            project=project_id,
-            credentials=(
-                None
-                if credentials_path is None
-                else bigquery.Credentials.from_service_account_file(credentials_path)
-            ),
-        )
+        if credentials_path:
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path
+            )
+            client = bigquery.Client(project=project_id, credentials=credentials)
+        else:
+            client = bigquery.Client(project=project_id)
 
-        # Execute the query and convert the result to a pandas DataFrame
         data = client.query(query).to_dataframe()
-
-        # Convert the DataFrame to a list of dictionaries
         data_dict = data.to_dict(orient="records")
-
-        # Parse the data and return the result
         return __parse_data(data_dict)
 
     except DefaultCredentialsError as e:
@@ -509,8 +503,17 @@ def __read_local_file(file_path: str) -> str:
     Raises:
         FileNotFoundError: If the file is not found.
     """
+    import os
+
+    # Resolve and validate the file path to prevent path traversal
+    resolved_path = os.path.realpath(file_path)
+
+    # Check for path traversal attempts
+    if ".." in file_path or not resolved_path.startswith(os.getcwd()):
+        raise ValueError(f"Invalid file path: '{file_path}'. Path traversal detected.")
+
     try:
-        with open(file_path, mode="r", encoding="utf-8") as file:
+        with open(resolved_path, mode="r", encoding="utf-8") as file:
             return file.read()
     except FileNotFoundError as e:
         raise FileNotFoundError(
@@ -549,7 +552,6 @@ def __read_csv_file(
 def get_schema_from_csv(
     file_path: str,
     table: str,
-    environment: str = "prod",
     delimiter: str = ",",
     query: str = None,
 ) -> List[Dict[str, Any]]:
@@ -559,7 +561,6 @@ def get_schema_from_csv(
     Args:
         file_path: Path to the schema_registry CSV file
         table: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         delimiter: CSV delimiter (default: ',')
         query: Optional custom WHERE clause for additional filters (NOT SUPPORTED for CSV)
 
@@ -574,7 +575,7 @@ def get_schema_from_csv(
         reader = csv.DictReader(f, delimiter=delimiter)
 
         for row in reader:
-            if row.get("table_name") == table and row.get("environment") == environment:
+            if row.get("table_name") == table:
                 schema.append(
                     {
                         "id": int(row["id"]) if row.get("id") else None,
@@ -600,10 +601,7 @@ def get_schema_from_csv(
                 )
 
     if not schema:
-        raise ValueError(
-            f"No schema found in {file_path} "
-            f"for table '{table}' in environment '{environment}'"
-        )
+        raise ValueError(f"No schema found in {file_path} " f"for table '{table}'")
 
     if query:
         import warnings
@@ -618,7 +616,6 @@ def get_schema_from_csv(
 def get_schema_from_s3(
     s3_path: str,
     table: str,
-    environment: str = "prod",
     delimiter: str = ",",
     query: str = None,
 ) -> List[Dict[str, Any]]:
@@ -628,7 +625,6 @@ def get_schema_from_s3(
     Args:
         s3_path: S3 URI to the schema_registry CSV file (e.g., 's3://bucket/path/schema_registry.csv')
         table: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         delimiter: CSV delimiter (default: ',')
         query: Optional custom WHERE clause for additional filters (NOT SUPPORTED for S3/CSV)
 
@@ -650,7 +646,6 @@ def get_schema_from_s3(
         return get_schema_from_csv(
             file_path=temp_path,
             table=table,
-            environment=environment,
             delimiter=delimiter,
             query=query,
         )
@@ -664,7 +659,6 @@ def get_schema_from_mysql(
     password: str = None,
     database: str = None,
     table: str = None,
-    environment: str = "prod",
     port: int = 3306,
     registry_table: str = "schema_registry",
     query: str = None,
@@ -679,7 +673,6 @@ def get_schema_from_mysql(
         password: MySQL password (not needed if conn is provided)
         database: Database containing the registry table (not needed if conn is provided)
         table: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         port: MySQL port (default: 3306)
         registry_table: Name of the schema registry table (default: 'schema_registry')
         query: Optional custom WHERE clause for additional filters
@@ -690,7 +683,6 @@ def get_schema_from_mysql(
     """
     import mysql.connector
 
-    # Se não recebeu conexão, cria uma nova
     if conn is None:
         if not all([host, user, password, database]):
             raise ValueError(
@@ -705,51 +697,49 @@ def get_schema_from_mysql(
 
     cursor = conn.cursor(dictionary=True)
 
-    # Monta WHERE clause com filtros obrigatórios usando parameterized query
-    base_where = "table_name = %s AND environment = %s"
-    params = [table, environment]
+    base_where = "table_name = %s"
+    params = [table]
 
     if query:
         where_clause = f"{base_where} AND ({query})"
     else:
         where_clause = base_where
 
+    if not registry_table.isidentifier():
+        raise ValueError(f"Invalid registry_table name: {registry_table}")
+
     cursor.execute(
         f"""
-        SELECT 
-            id,
-            environment,
-            source_type,
-            database_name,
-            catalog_name,
-            schema_name,
-            table_name,
-            field,
-            data_type,
-            nullable,
-            max_length,
-            comment,
-            created_at,
-            updated_at
-        FROM {registry_table}
-        WHERE {where_clause}
-        ORDER BY id
-        """,
+            SELECT 
+                id,
+                environment,
+                source_type,
+                database_name,
+                catalog_name,
+                schema_name,
+                table_name,
+                field,
+                data_type,
+                nullable,
+                max_length,
+                comment,
+                created_at,
+                updated_at
+            FROM {registry_table}
+            WHERE {where_clause}
+            ORDER BY id
+            """,
         params,
     )
 
     schema = cursor.fetchall()
     cursor.close()
 
-    # Só fecha conexão se foi criada aqui
     if should_close:
         conn.close()
 
     if not schema:
-        raise ValueError(
-            f"No schema found in {registry_table} "
-            f"for table '{table}' in environment '{environment}'"
-        )
+        raise ValueError(f"No schema found in {registry_table} for table '{table}'")
 
     return schema
 
@@ -761,7 +751,6 @@ def get_schema_from_postgresql(
     database: str = None,
     schema: str = None,
     table: str = None,
-    environment: str = "prod",
     port: int = 5432,
     registry_table: str = "schema_registry",
     query: str = None,
@@ -777,7 +766,6 @@ def get_schema_from_postgresql(
         database: Database containing the registry table (not needed if conn is provided)
         schema: Schema containing the registry table
         table: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         port: PostgreSQL port (default: 5432)
         registry_table: Name of the schema registry table (default: 'schema_registry')
         query: Optional custom WHERE clause for additional filters
@@ -788,7 +776,6 @@ def get_schema_from_postgresql(
     """
     import psycopg2
 
-    # Se não recebeu conexão, cria uma nova
     if conn is None:
         if not all([host, user, password, database]):
             raise ValueError(
@@ -803,56 +790,56 @@ def get_schema_from_postgresql(
 
     cursor = conn.cursor()
 
-    # Monta WHERE clause com filtros obrigatórios usando parameterized query
-    base_where = "table_name = %s AND environment = %s"
-    params = [table, environment]
+    base_where = "table_name = %s"
+    params = [table]
 
     if query:
         where_clause = f"{base_where} AND ({query})"
     else:
         where_clause = base_where
 
-    # Se schema não foi fornecido, assume 'public'
     schema_name = schema or "public"
+
+    if not schema_name.isidentifier():
+        raise ValueError(f"Invalid schema name: {schema_name}")
+    if not registry_table.isidentifier():
+        raise ValueError(f"Invalid registry_table name: {registry_table}")
 
     cursor.execute(
         f"""
-        SELECT
-            id,
-            environment,
-            source_type,
-            database_name,
-            catalog_name,
-            schema_name,
-            table_name,
-            field,
-            data_type,
-            nullable,
-            max_length,
-            comment,
-            created_at,
-            updated_at
-        FROM {schema_name}.{registry_table}
-        WHERE {where_clause}
-        ORDER BY id
-        """,
+            SELECT
+                id,
+                environment,
+                source_type,
+                database_name,
+                catalog_name,
+                schema_name,
+                table_name,
+                field,
+                data_type,
+                nullable,
+                max_length,
+                comment,
+                created_at,
+                updated_at
+            FROM {schema_name}.{registry_table}
+            WHERE {where_clause}
+            ORDER BY id
+            """,
         params,
     )
 
     cols = cursor.fetchall()
     cursor.close()
 
-    # Só fecha conexão se foi criada aqui
     if should_close:
         conn.close()
 
     if not cols:
         raise ValueError(
-            f"No schema found in {database}.{schema_name}.{registry_table} "
-            f"for table '{table}' in environment '{environment}'"
+            f"No schema found in {database}.{schema_name}.{registry_table} for table '{table}'"
         )
 
-    # Converte tuplas em dicts
     return [
         {
             "id": row[0],
@@ -874,15 +861,28 @@ def get_schema_from_postgresql(
     ]
 
 
-def get_schema_from_bigquery(
+def get_schema_from_bigquery(  # pylint: disable=too-many-arguments,too-many-locals
     project_id: str,
     dataset_id: str,
     table_id: str,
-    environment: str = "prod",  # Novo parâmetro com default
     credentials_path: str = None,
     registry_table: str = "schema_registry",
     query: str = None,
 ) -> List[Dict[str, Any]]:
+    """
+    Get schema from BigQuery schema_registry table
+
+    Args:
+        project_id: BigQuery project ID
+        dataset_id: BigQuery dataset ID
+        table_id: Table name to look up in the registry
+        credentials_path: Path to service account credentials file
+        registry_table: Name of the schema registry table
+        query: Optional custom WHERE clause for additional filters
+
+    Returns:
+        List of dicts with schema information
+    """
     from google.cloud import bigquery
     from google.oauth2 import service_account
 
@@ -894,55 +894,60 @@ def get_schema_from_bigquery(
     else:
         client = bigquery.Client(project=project_id)
 
-    base_where = f"table_name = @table_name AND environment = @environment"
-    if query:
-        where_clause = f"{base_where} AND ({query})"
-    else:
-        where_clause = base_where
+    where_clause = "table_name = @table_name" + (f" AND ({query})" if query else "")
 
-    full_query = f"""
-        SELECT 
-            id, source_type, database_name, catalog_name, schema_name,
-            table_name, field, data_type, nullable, max_length,
-            comment, created_at, updated_at
-        FROM `{project_id}.{dataset_id}.{registry_table}`
-        WHERE {where_clause}
-        ORDER BY id
-    """
+    sql = f"""
+            SELECT 
+                id,
+                environment,
+                source_type,
+                database_name,
+                catalog_name,
+                schema_name,
+                table_name,
+                field,
+                data_type,
+                nullable,
+                max_length,
+                comment,
+                created_at,
+                updated_at
+            FROM `{project_id}.{dataset_id}.{registry_table}`
+            WHERE {where_clause}
+            ORDER BY id
+        """
 
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
-            bigquery.ScalarQueryParameter("table_name", "STRING", table_id),
-            bigquery.ScalarQueryParameter("environment", "STRING", environment),
+            bigquery.ScalarQueryParameter("table_name", "STRING", table_id)
         ]
     )
 
-    results = client.query(full_query, job_config=job_config).result()
+    results = client.query(sql, job_config=job_config).result()
 
-    schema = []
-    for row in results:
-        schema.append(
-            {
-                "id": row.id,
-                "source_type": row.source_type,
-                "database_name": row.database_name,
-                "catalog_name": row.catalog_name,
-                "schema_name": row.schema_name,
-                "table_name": row.table_name,
-                "field": row.field,
-                "data_type": row.data_type,
-                "nullable": row.nullable,
-                "max_length": row.max_length,
-                "comment": row.comment,
-                "created_at": row.created_at,
-                "updated_at": row.updated_at,
-            }
-        )
+    schema = [
+        {
+            "id": row.id,
+            "environment": row.environment,
+            "source_type": row.source_type,
+            "database_name": row.database_name,
+            "catalog_name": row.catalog_name,
+            "schema_name": row.schema_name,
+            "table_name": row.table_name,
+            "field": row.field,
+            "data_type": row.data_type,
+            "nullable": row.nullable,
+            "max_length": row.max_length,
+            "comment": row.comment,
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
+        }
+        for row in results
+    ]
 
     if not schema:
         raise ValueError(
-            f"No schema found in {project_id}.{dataset_id}.{registry_table} "
-            f"for table '{table_id}'"
+            f"No schema found in {project_id}.{dataset_id}.{registry_table} for table '{table_id}'"
         )
 
     return schema
@@ -952,7 +957,6 @@ def get_schema_from_glue(
     glue_context,
     database_name: str,
     table_name: str,
-    environment: str = "prod",
     registry_table: str = "schema_registry",
     query: str = None,
 ) -> List[Dict[str, Any]]:
@@ -963,7 +967,6 @@ def get_schema_from_glue(
         glue_context: GlueContext instance
         database_name: Glue database containing the registry table
         table_name: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         registry_table: Name of the schema registry table (default: 'schema_registry')
         query: Optional custom WHERE clause for additional filters
 
@@ -977,23 +980,9 @@ def get_schema_from_glue(
 
     spark = glue_context.spark_session
 
-    # Escapa valores para prevenir SQL injection
-    def escape_sql_string(value: str) -> str:
-        return value.replace("'", "''")
+    table_name_escaped = __escape_sql_string(table_name)
 
-    table_name_escaped = escape_sql_string(table_name)
-    environment_escaped = escape_sql_string(environment)
-
-    # Monta WHERE clause com filtros obrigatórios
-    base_where = (
-        f"table_name = '{table_name_escaped}' AND environment = '{environment_escaped}'"
-    )
-
-    if query:
-        # Query adicional - CUIDADO: assume que usuário passou SQL seguro
-        where_clause = f"{base_where} AND ({query})"
-    else:
-        where_clause = base_where
+    where_clause = f"table_name = '{table_name_escaped}'" + (f" AND ({query})" if query else "")
 
     registry_df = spark.sql(
         f"""
@@ -1023,7 +1012,7 @@ def get_schema_from_glue(
     if not rows:
         raise ValueError(
             f"No schema found in {database_name}.{registry_table} "
-            f"for table '{table_name}' in environment '{environment}'"
+            f"for table '{table_name}'"
         )
 
     schema = []
@@ -1055,7 +1044,6 @@ def get_schema_from_databricks(
     catalog: str,
     schema: str,
     table: str,
-    environment: str = "prod",
     registry_table: str = "schema_registry",
     query: str = None,
 ) -> List[Dict[str, Any]]:
@@ -1067,7 +1055,6 @@ def get_schema_from_databricks(
         catalog: Unity Catalog name containing the registry
         schema: Schema name containing the registry table
         table: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         registry_table: Name of the schema registry table (default: 'schema_registry')
         query: Optional custom WHERE clause for additional filters
 
@@ -1075,15 +1062,9 @@ def get_schema_from_databricks(
         List of dicts with schema information
     """
 
-    def escape_sql_string(value: str) -> str:
-        return value.replace("'", "''")
+    table_escaped = __escape_sql_string(table)
 
-    table_escaped = escape_sql_string(table)
-    environment_escaped = escape_sql_string(environment)
-
-    base_where = (
-        f"table_name = '{table_escaped}' AND environment = '{environment_escaped}'"
-    )
+    base_where = f"table_name = '{table_escaped}'"
 
     if query:
         where_clause = f"{base_where} AND ({query})"
@@ -1118,7 +1099,7 @@ def get_schema_from_databricks(
     if not rows:
         raise ValueError(
             f"No schema found in {catalog}.{schema}.{registry_table} "
-            f"for table '{table}' in environment '{environment}'"
+            f"for table '{table}'"
         )
 
     result = []
@@ -1148,7 +1129,6 @@ def get_schema_from_databricks(
 def get_schema_from_duckdb(
     conn,
     table: str,
-    environment: str = "prod",
     registry_table: str = "schema_registry",
     query: str = None,
 ) -> List[Dict[str, Any]]:
@@ -1158,7 +1138,6 @@ def get_schema_from_duckdb(
     Args:
         conn: DuckDB connection object
         table: Table name to look up in the registry
-        environment: Environment filter (default: 'prod')
         registry_table: Name of the schema registry table (default: 'schema_registry')
         query: Optional custom WHERE clause for additional filters
 
@@ -1166,17 +1145,9 @@ def get_schema_from_duckdb(
         List of dicts with schema information
     """
 
-    # Escapa valores para prevenir SQL injection
-    def escape_sql_string(value: str) -> str:
-        return value.replace("'", "''")
+    table_escaped = __escape_sql_string(table)
 
-    table_escaped = escape_sql_string(table)
-    environment_escaped = escape_sql_string(environment)
-
-    # Monta WHERE clause com filtros obrigatórios
-    base_where = (
-        f"table_name = '{table_escaped}' AND environment = '{environment_escaped}'"
-    )
+    base_where = f"table_name = '{table_escaped}'"
 
     if query:
         where_clause = f"{base_where} AND ({query})"
@@ -1208,12 +1179,8 @@ def get_schema_from_duckdb(
     ).fetchdf()
 
     if df.empty:
-        raise ValueError(
-            f"No schema found in {registry_table} "
-            f"for table '{table}' in environment '{environment}'"
-        )
+        raise ValueError(f"No schema found in {registry_table} " f"for table '{table}'")
 
-    # Converte DataFrame para lista de dicts
     schema = []
     for _, row in df.iterrows():
         schema.append(
@@ -1305,6 +1272,9 @@ def __parse_data(data: list[dict]) -> list[dict]:
 
     return parsed_data
 
+
+def __escape_sql_string(value: str) -> str:
+        return value.replace("'", "''")
 
 def __create_connection(connect_func, host, user, password, database, port) -> Any:
     """
