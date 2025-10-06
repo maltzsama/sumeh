@@ -42,8 +42,10 @@ plugins:
 nav:
   - home: index.md
   - quickstart: quickstart.md
+  - cli:
+      - cli: cli/cli.md
+      - sql generator: cli/sql.md
   - api:
-      - cli: api/cli.md
       - core: api/core.md    
       - services:
         - services overview: api/services/services.md
