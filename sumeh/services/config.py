@@ -64,11 +64,12 @@ Functions:
     __create_connection(connect_func, host, user, password, database, port) -> Any:
 
     infer_basic_type(val: str) -> str:
-        Infers the basic data type of a given value.
+        Infers the basic data type of given value.
 """
 from io import StringIO
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
+from datetime import date, datetime
 
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
@@ -107,7 +108,6 @@ def get_config_from_mysql(
 ):
     """
     Retrieves configuration data from a MySQL database.
-
     Args:
         connection (Optional): An existing MySQL connection object.
         host (Optional[str]): Host of the MySQL server.
@@ -246,28 +246,23 @@ def get_config_from_bigquery(
         RuntimeError: If there is an error while querying BigQuery.
     """
     from google.cloud import bigquery
+    from google.oauth2 import service_account
     from google.auth.exceptions import DefaultCredentialsError
 
     if query is None:
         query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}`"
 
     try:
-        client = bigquery.Client(
-            project=project_id,
-            credentials=(
-                None
-                if credentials_path is None
-                else bigquery.Credentials.from_service_account_file(credentials_path)
-            ),
-        )
+        if credentials_path:
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path
+            )
+            client = bigquery.Client(project=project_id, credentials=credentials)
+        else:
+            client = bigquery.Client(project=project_id)
 
-        # Execute the query and convert the result to a pandas DataFrame
         data = client.query(query).to_dataframe()
-
-        # Convert the DataFrame to a list of dictionaries
         data_dict = data.to_dict(orient="records")
-
-        # Parse the data and return the result
         return __parse_data(data_dict)
 
     except DefaultCredentialsError as e:
@@ -320,6 +315,8 @@ def get_config_from_glue_data_catalog(
     """
     Retrieves configuration data from AWS Glue Data Catalog.
 
+    Using Spark directly - works with all table formats (Parquet, ORC, CSV, Iceberg, Delta, Hudi).
+
     Args:
         glue_context: An instance of `GlueContext`.
         database_name (str): Glue database name.
@@ -340,15 +337,14 @@ def get_config_from_glue_data_catalog(
     spark = glue_context.spark_session
 
     try:
-        dynamic_frame = glue_context.create_dynamic_frame.from_catalog(
-            database=database_name, table_name=table_name
-        )
-
-        data_frame = dynamic_frame.toDF()
+        full_table_name = f"`{database_name}`.`{table_name}`"
 
         if query:
-            data_frame.createOrReplaceTempView("table_name")
+            data_frame = spark.read.table(full_table_name)
+            data_frame.createOrReplaceTempView("temp_table_view")
             data_frame = spark.sql(query)
+        else:
+            data_frame = spark.read.table(full_table_name)
 
         data_dict = [row.asDict() for row in data_frame.collect()]
 
@@ -356,12 +352,12 @@ def get_config_from_glue_data_catalog(
 
     except Exception as e:
         raise RuntimeError(
-            f"Error occurred while querying Glue Data Catalog: {e}"
+            f"Error occurred while querying Glue Data Catalog '{database_name}.{table_name}': {e}"
         ) from e
 
 
 def get_config_from_duckdb(
-    db_path: str, table: str = None, query: str = None, conn=None
+    table: str = None, query: str = None, conn=None
 ) -> List[Dict[str, Any]]:
     """
     Retrieve configuration data from a DuckDB database.
@@ -371,7 +367,6 @@ def get_config_from_duckdb(
     dictionaries.
 
     Args:
-        db_path (str): The path to the DuckDB database file.
         table (str, optional): The name of the table to fetch data from. Defaults to None.
         query (str, optional): A custom SQL query to execute. Defaults to None.
         conn: A valid DuckDB connection object.
@@ -404,23 +399,22 @@ def get_config_from_duckdb(
 
 
 def get_config_from_databricks(
-    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
+    spark, catalog: Optional[str], schema: Optional[str], table: str, **kwargs
 ) -> List[Dict[str, Any]]:
     """
     Retrieves configuration data from a Databricks table and returns it as a list of dictionaries.
 
     Args:
+        spark SparkSession: Spark Session to get information from Databricks
         catalog (Optional[str]): The catalog name in Databricks. If provided, it will be included in the table's full path.
         schema (Optional[str]): The schema name in Databricks. If provided, it will be included in the table's full path.
         table (str): The name of the table to retrieve data from.
-        **kwargs: Additional keyword arguments (currently unused).
+        query: Additional keyword arguments (currently unused).
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries, where each dictionary represents a row of data from the table.
     """
-    from pyspark.sql import SparkSession
 
-    spark = SparkSession.builder.getOrCreate()
     if catalog and schema:
         full = f"{catalog}.{schema}.{table}"
     elif schema:
@@ -509,8 +503,17 @@ def __read_local_file(file_path: str) -> str:
     Raises:
         FileNotFoundError: If the file is not found.
     """
+    import os
+
+    # Resolve and validate the file path to prevent path traversal
+    resolved_path = os.path.realpath(file_path)
+
+    # Check for path traversal attempts
+    if ".." in file_path or not resolved_path.startswith(os.getcwd()):
+        raise ValueError(f"Invalid file path: '{file_path}'. Path traversal detected.")
+
     try:
-        with open(file_path, mode="r", encoding="utf-8") as file:
+        with open(resolved_path, mode="r", encoding="utf-8") as file:
             return file.read()
     except FileNotFoundError as e:
         raise FileNotFoundError(
@@ -527,7 +530,7 @@ def __read_csv_file(
     Parses the content of a CSV file.
 
     Args:
-        content (str): The content of the CSV file as a string.
+        file_content (str): The content of the CSV file as a string.
         delimiter (str): The delimiter used in the CSV file.
 
     Returns:
@@ -547,237 +550,731 @@ def __read_csv_file(
 
 
 def get_schema_from_csv(
-    file_path: str, delimiter: str = ",", sample_size: int = 1_000
+    file_path: str,
+    table: str,
+    delimiter: str = ",",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
+    """
+    Get schema from CSV schema_registry file
+
+    Args:
+        file_path: Path to the schema_registry CSV file
+        table: Table name to look up in the registry
+        delimiter: CSV delimiter (default: ',')
+        query: Optional custom WHERE clause for additional filters (NOT SUPPORTED for CSV)
+
+    Returns:
+        List of dicts with schema information
+    """
     import csv
 
-    cols: Dict[str, Dict[str, Any]] = {}
+    schema = []
+
     with open(file_path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f, delimiter=delimiter)
-        for idx, row in enumerate(reader):
-            if idx >= sample_size:
-                break
-            for name, raw in row.items():
-                info = cols.setdefault(
-                    name,
+
+        for row in reader:
+            if row.get("table_name") == table:
+                schema.append(
                     {
-                        "field": name,
-                        "nullable": False,
-                        "max_length": 0,
-                        "type_hints": set(),
-                    },
+                        "id": int(row["id"]) if row.get("id") else None,
+                        "environment": row.get("environment"),
+                        "source_type": row.get("source_type"),
+                        "database_name": row.get("database_name"),
+                        "catalog_name": row.get("catalog_name"),
+                        "schema_name": row.get("schema_name"),
+                        "table_name": row.get("table_name"),
+                        "field": row.get("field"),
+                        "data_type": row.get("data_type"),
+                        "nullable": row.get("nullable", "").lower()
+                        in ("true", "1", "yes"),
+                        "max_length": (
+                            int(row["max_length"])
+                            if row.get("max_length") and row["max_length"].strip()
+                            else None
+                        ),
+                        "comment": row.get("comment"),
+                        "created_at": row.get("created_at"),
+                        "updated_at": row.get("updated_at"),
+                    }
                 )
-                if raw == "" or raw is None:
-                    info["nullable"] = True
-                    continue
-                info["max_length"] = max(info["max_length"], len(raw))
-                info["type_hints"].add(infer_basic_type(raw))
 
-    out: List[Dict[str, Any]] = []
-    for info in cols.values():
-        hints = info["type_hints"]
-        if hints == {"integer"}:
-            dtype = "integer"
-        elif hints <= {"integer", "float"}:
-            dtype = "float"
-        elif hints == {"date"}:
-            dtype = "date"
-        else:
-            dtype = "string"
-        out.append(
-            {
-                "field": info["field"],
-                "data_type": dtype,
-                "nullable": info["nullable"],
-                "max_length": info["max_length"] or None,
-            }
+    if not schema:
+        raise ValueError(f"No schema found in {file_path} " f"for table '{table}'")
+
+    if query:
+        import warnings
+
+        warnings.warn(
+            "The 'query' parameter is not supported for CSV sources and will be ignored"
         )
-    return out
+
+    return schema
 
 
-def get_schema_from_s3(s3_path: str, **kwargs) -> List[Dict[str, Any]]:
+def get_schema_from_s3(
+    s3_path: str,
+    table: str,
+    delimiter: str = ",",
+    query: str = None,
+) -> List[Dict[str, Any]]:
+    """
+    Get schema from S3 schema_registry CSV file
+
+    Args:
+        s3_path: S3 URI to the schema_registry CSV file (e.g., 's3://bucket/path/schema_registry.csv')
+        table: Table name to look up in the registry
+        delimiter: CSV delimiter (default: ',')
+        query: Optional custom WHERE clause for additional filters (NOT SUPPORTED for S3/CSV)
+
+    Returns:
+        List of dicts with schema information
+    """
+    import tempfile
+    import os
 
     content = __read_s3_file(s3_path)
-    with open("/tmp/temp.csv", "w") as f:
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".csv", delete=False, encoding="utf-8"
+    ) as f:
         f.write(content)
-    return get_schema_from_csv("/tmp/temp.csv", **kwargs)
+        temp_path = f.name
+
+    try:
+        return get_schema_from_csv(
+            file_path=temp_path,
+            table=table,
+            delimiter=delimiter,
+            query=query,
+        )
+    finally:
+        os.unlink(temp_path)
 
 
 def get_schema_from_mysql(
-    host: str, user: str, password: str, database: str, table: str, port: int = 3306
+    host: str = None,
+    user: str = None,
+    password: str = None,
+    database: str = None,
+    table: str = None,
+    port: int = 3306,
+    registry_table: str = "schema_registry",
+    query: str = None,
+    conn=None,  # Novo parâmetro
 ) -> List[Dict[str, Any]]:
+    """
+    Get schema from MySQL schema_registry table
+
+    Args:
+        host: MySQL host (not needed if conn is provided)
+        user: MySQL user (not needed if conn is provided)
+        password: MySQL password (not needed if conn is provided)
+        database: Database containing the registry table (not needed if conn is provided)
+        table: Table name to look up in the registry
+        port: MySQL port (default: 3306)
+        registry_table: Name of the schema registry table (default: 'schema_registry')
+        query: Optional custom WHERE clause for additional filters
+        conn: Existing MySQL connection (optional, will create new if not provided)
+
+    Returns:
+        List of dicts with schema information
+    """
     import mysql.connector
 
-    conn = mysql.connector.connect(
-        host=host, user=user, password=password, database=database, port=port
-    )
+    if conn is None:
+        if not all([host, user, password, database]):
+            raise ValueError(
+                "Either 'conn' or all of (host, user, password, database) must be provided"
+            )
+        conn = mysql.connector.connect(
+            host=host, user=user, password=password, database=database, port=port
+        )
+        should_close = True
+    else:
+        should_close = False
+
     cursor = conn.cursor(dictionary=True)
+
+    base_where = "table_name = %s"
+    params = [table]
+
+    if query:
+        where_clause = f"{base_where} AND ({query})"
+    else:
+        where_clause = base_where
+
+    if not registry_table.isidentifier():
+        raise ValueError(f"Invalid registry_table name: {registry_table}")
+
     cursor.execute(
         f"""
-        SELECT 
-            column_name AS field,
-            data_type,
-            is_nullable = 'YES' AS nullable,
-            character_maximum_length AS max_length
-        FROM information_schema.columns
-        WHERE table_schema = %s AND table_name = %s
-    """,
-        (database, table),
+            SELECT 
+                id,
+                environment,
+                source_type,
+                database_name,
+                catalog_name,
+                schema_name,
+                table_name,
+                field,
+                data_type,
+                nullable,
+                max_length,
+                comment,
+                created_at,
+                updated_at
+            FROM {registry_table}
+            WHERE {where_clause}
+            ORDER BY id
+            """,
+        params,
     )
+
     schema = cursor.fetchall()
     cursor.close()
-    conn.close()
+
+    if should_close:
+        conn.close()
+
+    if not schema:
+        raise ValueError(f"No schema found in {registry_table} for table '{table}'")
+
     return schema
 
 
 def get_schema_from_postgresql(
-    host: str, user: str, password: str, database: str, table: str, port: int = 5432
+    host: str = None,
+    user: str = None,
+    password: str = None,
+    database: str = None,
+    schema: str = None,
+    table: str = None,
+    port: int = 5432,
+    registry_table: str = "schema_registry",
+    query: str = None,
+    conn=None,  # Novo parâmetro
 ) -> List[Dict[str, Any]]:
+    """
+    Get schema from PostgreSQL schema_registry table
+
+    Args:
+        host: PostgreSQL host (not needed if conn is provided)
+        user: PostgreSQL user (not needed if conn is provided)
+        password: PostgreSQL password (not needed if conn is provided)
+        database: Database containing the registry table (not needed if conn is provided)
+        schema: Schema containing the registry table
+        table: Table name to look up in the registry
+        port: PostgreSQL port (default: 5432)
+        registry_table: Name of the schema registry table (default: 'schema_registry')
+        query: Optional custom WHERE clause for additional filters
+        conn: Existing PostgreSQL connection (optional, will create new if not provided)
+
+    Returns:
+        List of dicts with schema information
+    """
     import psycopg2
 
-    conn = psycopg2.connect(
-        host=host, user=user, password=password, dbname=database, port=port
-    )
+    if conn is None:
+        if not all([host, user, password, database]):
+            raise ValueError(
+                "Either 'conn' or all of (host, user, password, database) must be provided"
+            )
+        conn = psycopg2.connect(
+            host=host, user=user, password=password, dbname=database, port=port
+        )
+        should_close = True
+    else:
+        should_close = False
+
     cursor = conn.cursor()
+
+    base_where = "table_name = %s"
+    params = [table]
+
+    if query:
+        where_clause = f"{base_where} AND ({query})"
+    else:
+        where_clause = base_where
+
+    schema_name = schema or "public"
+
+    if not schema_name.isidentifier():
+        raise ValueError(f"Invalid schema name: {schema_name}")
+    if not registry_table.isidentifier():
+        raise ValueError(f"Invalid registry_table name: {registry_table}")
+
     cursor.execute(
         f"""
-        SELECT
-            column_name AS field,
-            data_type,
-            is_nullable = 'YES' AS nullable,
-            character_maximum_length AS max_length
-        FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = %s
-    """,
-        (table,),
+            SELECT
+                id,
+                environment,
+                source_type,
+                database_name,
+                catalog_name,
+                schema_name,
+                table_name,
+                field,
+                data_type,
+                nullable,
+                max_length,
+                comment,
+                created_at,
+                updated_at
+            FROM {schema_name}.{registry_table}
+            WHERE {where_clause}
+            ORDER BY id
+            """,
+        params,
     )
+
     cols = cursor.fetchall()
     cursor.close()
-    conn.close()
-    return [
-        {"field": f, "data_type": dt, "nullable": nl, "max_length": ml}
-        for f, dt, nl, ml in cols
-    ]
 
+    if should_close:
+        conn.close()
 
-def get_schema_from_bigquery(
-    project_id: str, dataset_id: str, table_id: str, credentials_path: str = None
-) -> List[Dict[str, Any]]:
-    from google.cloud import bigquery
+    if not cols:
+        raise ValueError(
+            f"No schema found in {database}.{schema_name}.{registry_table} for table '{table}'"
+        )
 
-    client = bigquery.Client(
-        project=project_id,
-        credentials=(
-            None
-            if credentials_path is None
-            else bigquery.Credentials.from_service_account_file(credentials_path)
-        ),
-    )
-    table = client.get_table(f"{project_id}.{dataset_id}.{table_id}")
     return [
         {
-            "field": schema_field.name,
-            "data_type": schema_field.field_type.lower(),
-            "nullable": schema_field.is_nullable,
-            "max_length": None,
+            "id": row[0],
+            "environment": row[1],
+            "source_type": row[2],
+            "database_name": row[3],
+            "catalog_name": row[4],
+            "schema_name": row[5],
+            "table_name": row[6],
+            "field": row[7],
+            "data_type": row[8],
+            "nullable": row[9],
+            "max_length": row[10],
+            "comment": row[11],
+            "created_at": row[12],
+            "updated_at": row[13],
         }
-        for schema_field in table.schema
+        for row in cols
     ]
+
+
+def get_schema_from_bigquery(  # pylint: disable=too-many-arguments,too-many-locals
+    project_id: str,
+    dataset_id: str,
+    table_id: str,
+    credentials_path: str = None,
+    registry_table: str = "schema_registry",
+    query: str = None,
+) -> List[Dict[str, Any]]:
+    """
+    Get schema from BigQuery schema_registry table
+
+    Args:
+        project_id: BigQuery project ID
+        dataset_id: BigQuery dataset ID
+        table_id: Table name to look up in the registry
+        credentials_path: Path to service account credentials file
+        registry_table: Name of the schema registry table
+        query: Optional custom WHERE clause for additional filters
+
+    Returns:
+        List of dicts with schema information
+    """
+    from google.cloud import bigquery
+    from google.oauth2 import service_account
+
+    if credentials_path:
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path
+        )
+        client = bigquery.Client(project=project_id, credentials=credentials)
+    else:
+        client = bigquery.Client(project=project_id)
+
+    where_clause = "table_name = @table_name" + (f" AND ({query})" if query else "")
+
+    sql = f"""
+            SELECT 
+                id,
+                environment,
+                source_type,
+                database_name,
+                catalog_name,
+                schema_name,
+                table_name,
+                field,
+                data_type,
+                nullable,
+                max_length,
+                comment,
+                created_at,
+                updated_at
+            FROM `{project_id}.{dataset_id}.{registry_table}`
+            WHERE {where_clause}
+            ORDER BY id
+        """
+
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("table_name", "STRING", table_id)
+        ]
+    )
+
+    results = client.query(sql, job_config=job_config).result()
+
+    schema = [
+        {
+            "id": row.id,
+            "environment": row.environment,
+            "source_type": row.source_type,
+            "database_name": row.database_name,
+            "catalog_name": row.catalog_name,
+            "schema_name": row.schema_name,
+            "table_name": row.table_name,
+            "field": row.field,
+            "data_type": row.data_type,
+            "nullable": row.nullable,
+            "max_length": row.max_length,
+            "comment": row.comment,
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
+        }
+        for row in results
+    ]
+
+    if not schema:
+        raise ValueError(
+            f"No schema found in {project_id}.{dataset_id}.{registry_table} for table '{table_id}'"
+        )
+
+    return schema
 
 
 def get_schema_from_glue(
-    glue_context, database_name: str, table_name: str
+    glue_context,
+    database_name: str,
+    table_name: str,
+    registry_table: str = "schema_registry",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
+    """
+    Get schema from Glue Data Catalog schema_registry table
+
+    Args:
+        glue_context: GlueContext instance
+        database_name: Glue database containing the registry table
+        table_name: Table name to look up in the registry
+        registry_table: Name of the schema registry table (default: 'schema_registry')
+        query: Optional custom WHERE clause for additional filters
+
+    Returns:
+        List of dicts with schema information
+    """
     from awsglue.context import GlueContext
 
     if not isinstance(glue_context, GlueContext):
-        raise ValueError("Informe um GlueContext válido")
-    df = glue_context.spark_session.read.table(f"{database_name}.{table_name}")
-    return [
-        {
-            "field": field.name,
-            "data_type": field.dataType.simpleString(),
-            "nullable": field.nullable,
-            "max_length": None,
-        }
-        for field in df.schema.fields
-    ]
+        raise ValueError("Valid GlueContext required")
 
+    spark = glue_context.spark_session
 
-def get_schema_from_duckdb(db_path: str, table: str, conn) -> List[Dict[str, Any]]:
-    df = conn.execute(f"PRAGMA table_info('{table}')").fetchdf()
-    return [
-        {
-            "field": row["name"],
-            "data_type": row["type"].lower(),
-            "nullable": not bool(row["notnull"]),
-            "max_length": None,
-        }
-        for _, row in df.iterrows()
-    ]
+    table_name_escaped = __escape_sql_string(table_name)
+
+    where_clause = f"table_name = '{table_name_escaped}'" + (f" AND ({query})" if query else "")
+
+    registry_df = spark.sql(
+        f"""
+        SELECT 
+            id,
+            environment,
+            source_type,
+            database_name,
+            catalog_name,
+            schema_name,
+            table_name,
+            field,
+            data_type,
+            nullable,
+            max_length,
+            comment,
+            created_at,
+            updated_at
+        FROM {database_name}.{registry_table}
+        WHERE {where_clause}
+        ORDER BY id
+    """
+    )
+
+    rows = registry_df.collect()
+
+    if not rows:
+        raise ValueError(
+            f"No schema found in {database_name}.{registry_table} "
+            f"for table '{table_name}'"
+        )
+
+    schema = []
+    for row in rows:
+        schema.append(
+            {
+                "id": row.id,
+                "environment": row.environment,
+                "source_type": row.source_type,
+                "database_name": row.database_name,
+                "catalog_name": row.catalog_name,
+                "schema_name": row.schema_name,
+                "table_name": row.table_name,
+                "field": row.field,
+                "data_type": row.data_type,
+                "nullable": row.nullable,
+                "max_length": row.max_length,
+                "comment": row.comment,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
+            }
+        )
+
+    return schema
 
 
 def get_schema_from_databricks(
-    catalog: Optional[str], schema: Optional[str], table: str, **kwargs
+    spark,
+    catalog: str,
+    schema: str,
+    table: str,
+    registry_table: str = "schema_registry",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
-    from pyspark.sql import SparkSession
+    """
+    Get schema from Databricks Unity Catalog schema_registry table
 
-    spark = SparkSession.builder.getOrCreate()
-    if catalog and schema:
-        full = f"{catalog}.{schema}.{table}"
-    elif schema:
-        full = f"{schema}.{table}"
+    Args:
+        spark: SparkSession instance
+        catalog: Unity Catalog name containing the registry
+        schema: Schema name containing the registry table
+        table: Table name to look up in the registry
+        registry_table: Name of the schema registry table (default: 'schema_registry')
+        query: Optional custom WHERE clause for additional filters
+
+    Returns:
+        List of dicts with schema information
+    """
+
+    table_escaped = __escape_sql_string(table)
+
+    base_where = f"table_name = '{table_escaped}'"
+
+    if query:
+        where_clause = f"{base_where} AND ({query})"
     else:
-        full = table
-    schema = spark.table(full).schema
+        where_clause = base_where
+
+    registry_df = spark.sql(
+        f"""
+        SELECT 
+            id,
+            environment,
+            source_type,
+            database_name,
+            catalog_name,
+            schema_name,
+            table_name,
+            field,
+            data_type,
+            nullable,
+            max_length,
+            comment,
+            created_at,
+            updated_at
+        FROM {catalog}.{schema}.{registry_table}
+        WHERE {where_clause}
+        ORDER BY id
+    """
+    )
+
+    rows = registry_df.collect()
+
+    if not rows:
+        raise ValueError(
+            f"No schema found in {catalog}.{schema}.{registry_table} "
+            f"for table '{table}'"
+        )
+
     result = []
-    for f in schema.fields:
+    for row in rows:
         result.append(
             {
-                "field": f.name,
-                "data_type": f.dataType.simpleString(),
-                "nullable": f.nullable,
-                "max_length": None,
+                "id": row.id,
+                "environment": row.environment,
+                "source_type": row.source_type,
+                "database_name": row.database_name,
+                "catalog_name": row.catalog_name,
+                "schema_name": row.schema_name,
+                "table_name": row.table_name,
+                "field": row.field,
+                "data_type": row.data_type,
+                "nullable": row.nullable,
+                "max_length": row.max_length,
+                "comment": row.comment,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
             }
         )
+
     return result
+
+
+def get_schema_from_duckdb(
+    conn,
+    table: str,
+    registry_table: str = "schema_registry",
+    query: str = None,
+) -> List[Dict[str, Any]]:
+    """
+    Get schema from DuckDB schema_registry table
+
+    Args:
+        conn: DuckDB connection object
+        table: Table name to look up in the registry
+        registry_table: Name of the schema registry table (default: 'schema_registry')
+        query: Optional custom WHERE clause for additional filters
+
+    Returns:
+        List of dicts with schema information
+    """
+
+    table_escaped = __escape_sql_string(table)
+
+    base_where = f"table_name = '{table_escaped}'"
+
+    if query:
+        where_clause = f"{base_where} AND ({query})"
+    else:
+        where_clause = base_where
+
+    # Query no schema_registry
+    df = conn.execute(
+        f"""
+        SELECT 
+            id,
+            environment,
+            source_type,
+            database_name,
+            catalog_name,
+            schema_name,
+            table_name,
+            field,
+            data_type,
+            nullable,
+            max_length,
+            comment,
+            created_at,
+            updated_at
+        FROM {registry_table}
+        WHERE {where_clause}
+        ORDER BY id
+    """
+    ).fetchdf()
+
+    if df.empty:
+        raise ValueError(f"No schema found in {registry_table} " f"for table '{table}'")
+
+    schema = []
+    for _, row in df.iterrows():
+        schema.append(
+            {
+                "id": row["id"],
+                "environment": row["environment"],
+                "source_type": row["source_type"],
+                "database_name": row["database_name"],
+                "catalog_name": row["catalog_name"],
+                "schema_name": row["schema_name"],
+                "table_name": row["table_name"],
+                "field": row["field"],
+                "data_type": row["data_type"],
+                "nullable": row["nullable"],
+                "max_length": row["max_length"],
+                "comment": row["comment"],
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+            }
+        )
+
+    return schema
 
 
 def __parse_data(data: list[dict]) -> list[dict]:
     """
-    Parse the configuration data.
+    Parse the configuration data with robust type handling.
 
     Args:
-        data (List[Dict[str, str]]): The raw data to be parsed.
+        data (List[Dict[str, Any]]): The raw data to be parsed.
 
     Returns:
-        List[Dict[str, str]]: A list of parsed configuration data.
+        List[Dict[str, Any]]: A list of parsed configuration data.
     """
     parsed_data = []
 
     for row in data:
-        parsed_row = {
-            "field": (
-                row["field"].strip("[]").split(",")
-                if "[" in row["field"]
-                else row["field"]
-            ),
-            "check_type": row["check_type"],
-            "value": None if row["value"] == "NULL" else row["value"],
-            "threshold": (
-                None if row["threshold"] == "NULL" else float(row["threshold"])
-            ),
-            "execute": (
-                row["execute"].lower() == "true"
-                if isinstance(row["execute"], str)
-                else row["execute"] is True
-            ),
-            "updated_at": parser.parse(row["updated_at"]),
-        }
-        parsed_data.append(parsed_row)
+        try:
+            field_value = row.get("field", "")
+            if isinstance(field_value, str) and "[" in field_value:
+                field_value = [
+                    item.strip() for item in field_value.strip("[]").split(",")
+                ]
+
+            threshold_value = row.get("threshold")
+            if threshold_value in [None, "NULL", ""]:
+                threshold_value = 1.0
+            else:
+                try:
+                    threshold_value = float(threshold_value)
+                except (ValueError, TypeError):
+                    threshold_value = 1.0
+
+            updated_at_value = row.get("updated_at")
+            if updated_at_value in [None, "NULL", ""]:
+                updated_at_value = None
+            elif isinstance(updated_at_value, (date, datetime)):
+                updated_at_value = updated_at_value
+            elif isinstance(updated_at_value, str):
+                try:
+                    updated_at_value = parser.parse(updated_at_value)
+                except (ValueError, TypeError):
+                    updated_at_value = None
+
+            execute_value = row.get("execute", True)
+            if isinstance(execute_value, str):
+                execute_value = execute_value.lower() in ["true", "1", "yes", "y", "t"]
+            else:
+                execute_value = bool(execute_value)
+
+            # Value
+            value_field = row.get("value")
+            if value_field in ["NULL", "", None]:
+                value_field = None
+
+            parsed_row = {
+                "field": field_value,
+                "check_type": row.get("check_type", ""),
+                "value": value_field,
+                "threshold": threshold_value,
+                "execute": execute_value,
+                "updated_at": updated_at_value,
+            }
+            parsed_data.append(parsed_row)
+
+        except Exception as e:
+            print(f"Warning: Error parsing row {row}. Error: {e}")
+            continue
 
     return parsed_data
 
+
+def __escape_sql_string(value: str) -> str:
+        return value.replace("'", "''")
 
 def __create_connection(connect_func, host, user, password, database, port) -> Any:
     """
