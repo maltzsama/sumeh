@@ -1,6 +1,6 @@
-# Module `sumeh.engine` - Overview
+# Module `sumeh.engines` - Overview
 
-::: sumeh.engine
+::: sumeh.engines
 
 This package provides engine-specific implementations for **data quality checks**, **schema validation**, and **result summarization** across multiple backends.
 

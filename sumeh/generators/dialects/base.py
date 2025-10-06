@@ -18,11 +18,11 @@ class BaseDialect(ABC):
         pass
 
     def generate_ddl(
-            self,
-            table_name: str,
-            columns: List[Dict[str, Any]],
-            schema: str = None,
-            **kwargs
+        self,
+        table_name: str,
+        columns: List[Dict[str, Any]],
+        schema: str = None,
+        **kwargs,
     ) -> str:
         """
         Generate complete DDL statement.
@@ -36,9 +36,7 @@ class BaseDialect(ABC):
         Returns:
             Complete DDL statement
         """
-        full_table_name = (
-            f"{schema}.{table_name}" if schema else table_name
-        )
+        full_table_name = f"{schema}.{table_name}" if schema else table_name
 
         col_definitions = []
         primary_keys = []

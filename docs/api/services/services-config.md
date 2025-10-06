@@ -1,4 +1,4 @@
-# Module `sumeh.services.config`
+# Module `sumeh.core.config`
 
-::: sumeh.services.config
+::: sumeh.core.config
 

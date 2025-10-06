@@ -52,7 +52,9 @@ class RedshiftDialect(BaseDialect):
 
         return " ".join(parts)
 
-    def generate_ddl(self, table_name: str, columns, schema: str = None, **kwargs) -> str:
+    def generate_ddl(
+        self, table_name: str, columns, schema: str = None, **kwargs
+    ) -> str:
         """Override to add Redshift-specific options."""
         ddl = super().generate_ddl(table_name, columns, schema, **kwargs)
 
@@ -63,7 +65,11 @@ class RedshiftDialect(BaseDialect):
             additions.append(f"DISTKEY({kwargs['distkey']})")
 
         if "sortkey" in kwargs:
-            sort_cols = ", ".join(kwargs['sortkey']) if isinstance(kwargs['sortkey'], list) else kwargs['sortkey']
+            sort_cols = (
+                ", ".join(kwargs["sortkey"])
+                if isinstance(kwargs["sortkey"], list)
+                else kwargs["sortkey"]
+            )
             additions.append(f"SORTKEY({sort_cols})")
 
         if additions:

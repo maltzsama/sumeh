@@ -1,7 +1,7 @@
 """Tests for SQL DDL generation."""
 
 import pytest
-from sumeh.services.sql import SQLGenerator
+from sumeh.generators import SQLGenerator
 
 
 def test_list_dialects():
@@ -52,7 +52,7 @@ def test_generate_bigquery_with_partitioning():
         "bigquery",
         schema="mydataset",
         partition_by="DATE(created_at)",
-        cluster_by=["table_name", "environment"]
+        cluster_by=["table_name", "environment"],
     )
     assert "`mydataset.rules`" in ddl
     assert "PARTITION BY DATE(created_at)" in ddl
@@ -66,7 +66,7 @@ def test_generate_athena_external_table():
         "athena",
         schema="my_database",
         format="PARQUET",
-        location="s3://my-bucket/rules/"
+        location="s3://my-bucket/rules/",
     )
     assert "CREATE EXTERNAL TABLE my_database.rules" in ddl
     assert "STORED AS PARQUET" in ddl
@@ -114,10 +114,7 @@ def test_snowflake_ddl():
 def test_redshift_with_distribution():
     """Test Redshift DDL with distribution and sort keys."""
     ddl = SQLGenerator.generate(
-        "rules",
-        "redshift",
-        distkey="table_name",
-        sortkey=["created_at", "table_name"]
+        "rules", "redshift", distkey="table_name", sortkey=["created_at", "table_name"]
     )
     assert "DISTKEY(table_name)" in ddl
     assert "SORTKEY(created_at, table_name)" in ddl

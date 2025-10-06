@@ -96,65 +96,68 @@ def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
 
 
 def get_config_from_mysql(
-    connection: Optional = None,
-    host: Optional[str] = None,
-    user: Optional[str] = None,
-    password: Optional[str] = None,
-    database: Optional[str] = None,
-    port: Optional[int] = 3306,
-    schema: Optional[str] = None,
-    table: Optional[str] = None,
-    query: Optional[str] = None,
-):
+    host: str = None,
+    user: str = None,
+    password: str = None,
+    database: str = None,
+    schema: str = None,
+    table: str = None,
+    port: int = 3306,
+    query: str = None,
+    conn=None,
+) -> List[Dict[str, Any]]:
     """
-    Retrieves configuration data from a MySQL database.
+    Get configuration from MySQL table
+
     Args:
-        connection (Optional): An existing MySQL connection object.
-        host (Optional[str]): Host of the MySQL server.
-        user (Optional[str]): Username to connect to MySQL.
-        password (Optional[str]): Password for the MySQL user.
-        database (Optional[str]): Database name to query.
-        port (Optional[int]): The port for the MySQL connection (default is 3306).
-        schema (Optional[str]): Schema name if query is not provided.
-        table (Optional[str]): Table name if query is not provided.
-        query (Optional[str]): Custom SQL query to fetch data (if not provided, `schema` and `table` must be given).
+        host: MySQL host (not needed if conn is provided)
+        user: MySQL user (not needed if conn is provided)
+        password: MySQL password (not needed if conn is provided)
+        database: Database name (not needed if conn is provided)
+        schema: Schema name (optional)
+        table: Table name to query
+        port: MySQL port (default: 3306)
+        query: Optional custom query (if not provided, uses schema and table)
+        conn: Existing MySQL connection (optional)
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries representing the parsed configuration data.
-
-    Raises:
-        ValueError: If neither `query` nor both `schema` and `table` are provided.
-        ConnectionError: If there is an error connecting to MySQL.
-        RuntimeError: If there is an error executing the query or processing the data.
+        List of dicts with configuration data
     """
     import mysql.connector
-    import pandas as pd
 
-    if query is None and (schema is None or table is None):
-        raise ValueError(
-            "You must provide either a 'query' or both 'schema' and 'table'."
+    if conn is None:
+        if not all([host, user, password, database]):
+            raise ValueError(
+                "Either 'conn' or all of (host, user, password, database) must be provided"
+            )
+        conn = mysql.connector.connect(
+            host=host, user=user, password=password, database=database, port=port
         )
+        should_close = True
+    else:
+        should_close = False
+
+    cursor = conn.cursor(dictionary=True)
 
     if query is None:
-        query = f"SELECT * FROM {schema}.{table}"
+        if schema and table:
+            query = f"SELECT * FROM {schema}.{table}"
+        elif table:
+            query = f"SELECT * FROM {table}"
+        else:
+            raise ValueError("Either 'query' or 'table' must be provided")
 
-    try:
-        connection = connection or __create_connection(
-            mysql.connector.connect, host, user, password, database, port
-        )
-        data = pd.read_sql(query, connection)
-        data_dict = data.to_dict(orient="records")
-        return __parse_data(data_dict)
+    cursor.execute(query)
+    config_data = cursor.fetchall()
+    cursor.close()
 
-    except mysql.connector.Error as e:
-        raise ConnectionError(f"Error connecting to MySQL database: {e}")
+    if should_close:
+        conn.close()
 
-    except Exception as e:
-        raise RuntimeError(f"Error executing the query or processing data: {e}")
+    if not config_data:
+        raise ValueError(f"No configuration data found with query: {query}")
 
-    finally:
-        if connection and host is not None:
-            connection.close()
+    return __parse_data(config_data)
 
 
 def get_config_from_postgresql(
@@ -982,7 +985,9 @@ def get_schema_from_glue(
 
     table_name_escaped = __escape_sql_string(table_name)
 
-    where_clause = f"table_name = '{table_name_escaped}'" + (f" AND ({query})" if query else "")
+    where_clause = f"table_name = '{table_name_escaped}'" + (
+        f" AND ({query})" if query else ""
+    )
 
     registry_df = spark.sql(
         f"""
@@ -1274,7 +1279,8 @@ def __parse_data(data: list[dict]) -> list[dict]:
 
 
 def __escape_sql_string(value: str) -> str:
-        return value.replace("'", "''")
+    return value.replace("'", "''")
+
 
 def __create_connection(connect_func, host, user, password, database, port) -> Any:
     """

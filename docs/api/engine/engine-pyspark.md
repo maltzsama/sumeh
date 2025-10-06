@@ -1,4 +1,4 @@
-# Module `sumeh.engine.pyspark_engine`
+# Module `sumeh.engines.pyspark_engine`
 
-::: sumeh.engine.pyspark_engine
+::: sumeh.engines.pyspark_engine
 

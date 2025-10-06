@@ -291,7 +291,7 @@ sumeh-sql --table all --dialect sqlite > tests/fixtures/schema.sql
 ## Python API
 
 ```python
-from sumeh.services.sql import SQLGenerator
+from sumeh.generators import SQLGenerator
 
 # Generate DDL
 ddl = SQLGenerator.generate(

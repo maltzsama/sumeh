@@ -58,7 +58,7 @@ import duckdb as dk
 import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
-from sumeh.services.utils import __compare_schemas
+from sumeh.core.utils import __compare_schemas
 
 
 def __escape_single_quotes(txt: str) -> str:

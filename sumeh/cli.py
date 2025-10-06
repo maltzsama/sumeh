@@ -50,7 +50,7 @@ def generate_sql():
     Supports multiple SQL dialects and can generate DDL for individual tables
     or all tables at once.
     """
-    from sumeh.services.sql import SQLGenerator
+    from sumeh.generators import SQLGenerator
 
     parser = argparse.ArgumentParser(
         description="Generate SQL DDL for sumeh tables",
@@ -68,86 +68,64 @@ Supported dialects:
 
 Supported tables:
   rules, schema_registry, all
-        """
+        """,
     )
 
     parser.add_argument(
         "--table",
         "-t",
         choices=["rules", "schema_registry", "all"],
-        help="Table to generate DDL for (use 'all' for all tables)"
+        help="Table to generate DDL for (use 'all' for all tables)",
     )
 
     parser.add_argument(
         "--dialect",
         "-d",
-        help="SQL dialect (postgres, mysql, bigquery, duckdb, athena, sqlite, snowflake, redshift)"
+        help="SQL dialect (postgres, mysql, bigquery, duckdb, athena, sqlite, snowflake, redshift)",
     )
 
     parser.add_argument(
-        "--schema",
-        "-s",
-        help="Schema/dataset name (optional, depends on dialect)"
+        "--schema", "-s", help="Schema/dataset name (optional, depends on dialect)"
     )
 
     parser.add_argument(
-        "--output",
-        "-o",
-        help="Output file path (if not specified, prints to stdout)"
+        "--output", "-o", help="Output file path (if not specified, prints to stdout)"
     )
 
     parser.add_argument(
-        "--list-dialects",
-        action="store_true",
-        help="List all supported SQL dialects"
+        "--list-dialects", action="store_true", help="List all supported SQL dialects"
     )
 
     parser.add_argument(
-        "--list-tables",
-        action="store_true",
-        help="List all available tables"
+        "--list-tables", action="store_true", help="List all available tables"
     )
 
     # BigQuery-specific options
     parser.add_argument(
         "--partition-by",
-        help="BigQuery: Partition by expression (e.g., 'DATE(created_at)')"
+        help="BigQuery: Partition by expression (e.g., 'DATE(created_at)')",
     )
 
     parser.add_argument(
         "--cluster-by",
         nargs="+",
-        help="BigQuery: Cluster by columns (e.g., table_name environment)"
+        help="BigQuery: Cluster by columns (e.g., table_name environment)",
     )
 
     # Athena-specific options
     parser.add_argument(
-        "--format",
-        help="Athena: Storage format (PARQUET, ORC, JSON, etc.)"
+        "--format", help="Athena: Storage format (PARQUET, ORC, JSON, etc.)"
     )
 
-    parser.add_argument(
-        "--location",
-        help="Athena: S3 location for external table"
-    )
+    parser.add_argument("--location", help="Athena: S3 location for external table")
 
     # MySQL-specific options
-    parser.add_argument(
-        "--engine",
-        help="MySQL: Storage engine (InnoDB, MyISAM, etc.)"
-    )
+    parser.add_argument("--engine", help="MySQL: Storage engine (InnoDB, MyISAM, etc.)")
 
     # Redshift-specific options
-    parser.add_argument(
-        "--distkey",
-        help="Redshift: Distribution key column"
-    )
+    parser.add_argument("--distkey", help="Redshift: Distribution key column")
 
-    parser.add_argument(
-        "--sortkey",
-        nargs="+",
-        help="Redshift: Sort key columns"
-    )
+    parser.add_argument("--sortkey", nargs="+", help="Redshift: Sort key columns")
 
     args = parser.parse_args()
 
@@ -199,10 +177,7 @@ Supported tables:
     try:
         # Generate DDL
         ddl = SQLGenerator.generate(
-            table=args.table,
-            dialect=args.dialect,
-            schema=args.schema,
-            **kwargs
+            table=args.table, dialect=args.dialect, schema=args.schema, **kwargs
         )
 
         # Output
@@ -225,22 +200,19 @@ def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
         description="Sumeh CLI tools",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Config command (existing)
-    subparsers.add_parser(
-        "config",
-        help="Launch configuration web interface"
-    )
+    subparsers.add_parser("config", help="Launch configuration web interface")
 
     # SQL command (new)
     subparsers.add_parser(
         "sql",
         help="Generate SQL DDL for sumeh tables",
-        add_help=False  # We'll handle help in generate_sql()
+        add_help=False,  # We'll handle help in generate_sql()
     )
 
     args, remaining = parser.parse_known_args()

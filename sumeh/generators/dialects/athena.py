@@ -31,7 +31,9 @@ class AthenaDialect(BaseDialect):
         # Athena doesn't support NOT NULL, PRIMARY KEY, AUTO_INCREMENT, or DEFAULT
         return f"{col['name']} {self.map_type(col)}"
 
-    def generate_ddl(self, table_name: str, columns, schema: str = None, **kwargs) -> str:
+    def generate_ddl(
+        self, table_name: str, columns, schema: str = None, **kwargs
+    ) -> str:
         """Override to handle Athena-specific syntax."""
         full_table_name = f"{schema}.{table_name}" if schema else table_name
 
@@ -50,7 +52,9 @@ class AthenaDialect(BaseDialect):
 
         # Add table properties if provided
         if "tblproperties" in kwargs:
-            props = ", ".join([f"'{k}'='{v}'" for k, v in kwargs["tblproperties"].items()])
+            props = ", ".join(
+                [f"'{k}'='{v}'" for k, v in kwargs["tblproperties"].items()]
+            )
             ddl += f"\nTBLPROPERTIES ({props})"
 
         ddl += ";"

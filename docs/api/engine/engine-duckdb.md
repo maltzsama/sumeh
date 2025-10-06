@@ -1,4 +1,4 @@
-# Module `sumeh.engine.duckdb_engine`
+# Module `sumeh.engines.duckdb_engine`
 
-::: sumeh.engine.duckdb_engine
+::: sumeh.engines.duckdb_engine
 

@@ -146,7 +146,7 @@ from typing import List, Dict, Any, Tuple
 import operator
 from functools import reduce
 
-from sumeh.services.utils import (
+from sumeh.core.utils import (
     __convert_value,
     __extract_params,
     __compare_schemas,

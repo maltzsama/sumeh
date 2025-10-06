@@ -12,12 +12,12 @@ Functions:
 Dependencies:
     - google.cloud.bigquery: Provides the BigQuery client and table schema functionality.
     - typing: Used for type annotations.
-    - sumeh.services.utils.__compare_schemas: A utility function for comparing schemas.
+    - sumeh.core.utils.__compare_schemas: A utility function for comparing schemas.
 """
 
 from google.cloud import bigquery
 from typing import List, Dict, Any, Tuple
-from sumeh.services.utils import __compare_schemas
+from sumeh.core.utils import __compare_schemas
 
 
 def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:

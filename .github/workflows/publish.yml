@@ -1,0 +1,42 @@
+name: Publish Python Package to PyPI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies and semantic-release
+        run: |
+          poetry install --no-root
+          pip install python-semantic-release
+
+      - name: Run semantic-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        run: semantic-release publish

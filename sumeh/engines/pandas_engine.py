@@ -117,7 +117,7 @@ import re
 import pandas as pd
 import numpy as np
 from datetime import datetime, date, timedelta
-from sumeh.services.utils import (
+from sumeh.core.utils import (
     __convert_value,
     __extract_params,
     __compare_schemas,

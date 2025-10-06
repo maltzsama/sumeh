@@ -119,7 +119,7 @@ import warnings
 from functools import reduce
 import polars as pl
 import numpy as np
-from sumeh.services.utils import (
+from sumeh.core.utils import (
     __convert_value,
     __extract_params,
     __compare_schemas,

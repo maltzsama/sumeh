@@ -45,7 +45,9 @@ class BigQueryDialect(BaseDialect):
 
         return " ".join(parts)
 
-    def generate_ddl(self, table_name: str, columns, schema: str = None, **kwargs) -> str:
+    def generate_ddl(
+        self, table_name: str, columns, schema: str = None, **kwargs
+    ) -> str:
         """Override to handle BigQuery syntax."""
         full_table_name = f"`{schema}.{table_name}`" if schema else f"`{table_name}`"
 
@@ -64,7 +66,7 @@ class BigQueryDialect(BaseDialect):
             ddl += f"\nPARTITION BY {kwargs['partition_by']}"
 
         if "cluster_by" in kwargs:
-            cluster_cols = ", ".join(kwargs['cluster_by'])
+            cluster_cols = ", ".join(kwargs["cluster_by"])
             ddl += f"\nCLUSTER BY {cluster_cols}"
 
         ddl += ";"

@@ -161,7 +161,7 @@ import pandas as pd
 import dask.dataframe as dd
 import numpy as np
 
-from sumeh.services.utils import __convert_value, __extract_params, __compare_schemas
+from sumeh.core.utils import __convert_value, __extract_params, __compare_schemas
 
 
 def is_positive(df: dd.DataFrame, rule: dict) -> dd.DataFrame:

@@ -3,7 +3,7 @@ import dask.dataframe as dd
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from sumeh.engine.dask_engine import (
+from sumeh.engines.dask_engine import (
     validate,
     summarize,
     _rules_to_df,

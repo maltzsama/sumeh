@@ -30,11 +30,21 @@ class SQLGenerator:
 
     TABLE_SCHEMAS = {
         "rules": [
-            {"name": "id", "type": "integer", "primary_key": True, "auto_increment": True},
+            {
+                "name": "id",
+                "type": "integer",
+                "primary_key": True,
+                "auto_increment": True,
+            },
             {"name": "environment", "type": "varchar", "length": 50},
             {"name": "source_type", "type": "varchar", "length": 50},
             {"name": "database_name", "type": "varchar", "length": 255},
-            {"name": "catalog_name", "type": "varchar", "length": 255, "nullable": True},
+            {
+                "name": "catalog_name",
+                "type": "varchar",
+                "length": 255,
+                "nullable": True,
+            },
             {"name": "schema_name", "type": "varchar", "length": 255, "nullable": True},
             {"name": "table_name", "type": "varchar", "length": 255},
             {"name": "field", "type": "varchar", "length": 255},
@@ -46,11 +56,21 @@ class SQLGenerator:
             {"name": "updated_at", "type": "timestamp", "nullable": True},
         ],
         "schema_registry": [
-            {"name": "id", "type": "integer", "primary_key": True, "auto_increment": True},
+            {
+                "name": "id",
+                "type": "integer",
+                "primary_key": True,
+                "auto_increment": True,
+            },
             {"name": "environment", "type": "varchar", "length": 50},
             {"name": "source_type", "type": "varchar", "length": 50},
             {"name": "database_name", "type": "varchar", "length": 255},
-            {"name": "catalog_name", "type": "varchar", "length": 255, "nullable": True},
+            {
+                "name": "catalog_name",
+                "type": "varchar",
+                "length": 255,
+                "nullable": True,
+            },
             {"name": "schema_name", "type": "varchar", "length": 255, "nullable": True},
             {"name": "table_name", "type": "varchar", "length": 255},
             {"name": "field", "type": "varchar", "length": 255},
@@ -64,9 +84,7 @@ class SQLGenerator:
     }
 
     @classmethod
-    def generate(
-            cls, table: str, dialect: str, schema: str = None, **kwargs
-    ) -> str:
+    def generate(cls, table: str, dialect: str, schema: str = None, **kwargs) -> str:
         """
         Generate DDL for a specific table and dialect.
 
@@ -86,9 +104,7 @@ class SQLGenerator:
 
         if dialect_lower not in cls.DIALECTS:
             available = ", ".join(sorted(cls.DIALECTS.keys()))
-            raise ValueError(
-                f"Unknown dialect '{dialect}'. Available: {available}"
-            )
+            raise ValueError(f"Unknown dialect '{dialect}'. Available: {available}")
 
         if table == "all":
             tables = list(cls.TABLE_SCHEMAS.keys())
@@ -96,19 +112,14 @@ class SQLGenerator:
             tables = [table]
         else:
             available = ", ".join(sorted(cls.TABLE_SCHEMAS.keys()))
-            raise ValueError(
-                f"Unknown table '{table}'. Available: {available}, all"
-            )
+            raise ValueError(f"Unknown table '{table}'. Available: {available}, all")
 
         dialect_class = cls.DIALECTS[dialect_lower]()
 
         results = []
         for tbl in tables:
             ddl = dialect_class.generate_ddl(
-                table_name=tbl,
-                columns=cls.TABLE_SCHEMAS[tbl],
-                schema=schema,
-                **kwargs
+                table_name=tbl, columns=cls.TABLE_SCHEMAS[tbl], schema=schema, **kwargs
             )
             results.append(ddl)
 

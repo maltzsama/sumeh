@@ -1,6 +1,6 @@
 import pytest
 import polars as pl
-from sumeh.engine.polars_engine import (
+from sumeh.engines.polars_engine import (
     validate,
     summarize,
     is_positive,

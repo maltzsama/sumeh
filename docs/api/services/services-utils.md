@@ -1,4 +1,4 @@
-# Module `sumeh.services.utils`
+# Module `sumeh.core.utils`
 
-::: sumeh.services.utils
+::: sumeh.core.utils
 

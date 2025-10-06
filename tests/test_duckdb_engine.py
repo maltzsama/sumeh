@@ -1,6 +1,6 @@
 import pytest
 import duckdb
-from sumeh.engine.duckdb_engine import (
+from sumeh.engines.duckdb_engine import (
     __escape_single_quotes,
     __format_sequence,
     __RuleCtx,

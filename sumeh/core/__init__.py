@@ -28,9 +28,9 @@ Imports:
     importlib: Dynamically imports modules based on engine detection.
     typing: Provides type hints for function arguments and return values.
     re: Used for regular expression matching in source string parsing.
-    sumeh.services.config: Contains functions for retrieving configurations and schemas
+    sumeh.core.config: Contains functions for retrieving configurations and schemas
       from various data sources.
-    sumeh.services.utils: Provides utility functions for value conversion and URI parsing.
+    sumeh.core.utils: Provides utility functions for value conversion and URI parsing.
 
     The module uses Python's structural pattern matching (`match-case`) to handle
     different data source types and validation rules.
@@ -46,8 +46,8 @@ import warnings
 from importlib import import_module
 from typing import List, Dict, Any, Tuple
 import re
-from .services.utils import __convert_value
-from sumeh.services.config import (
+from .utils import __convert_value
+from sumeh.core.config import (
     get_config_from_s3,
     get_config_from_csv,
     get_config_from_mysql,
@@ -116,25 +116,31 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_config_from_csv(s, **kwargs)
 
         case "mysql":
-            required_params = ["host", "user", "password", "database", "table"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"MySQL source requires '{param}' in kwargs")
+            if "conn" not in kwargs:
+                required_params = ["host", "user", "password", "database"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(
+                            f"MySQL schema requires 'conn' OR all of {required_params} in kwargs"
+                        )
 
             return get_config_from_mysql(**kwargs)
 
         case "postgresql":
-            required_params = [
-                "host",
-                "user",
-                "password",
-                "database",
-                "schema",
-                "table",
-            ]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"PostgreSQL source requires '{param}' in kwargs")
+            if "conn" not in kwargs:
+                required_params = [
+                    "host",
+                    "user",
+                    "password",
+                    "database",
+                    "schema",
+                    "table",
+                ]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(
+                            f"PostgreSQL source requires '{param}' in kwargs"
+                        )
 
             return get_config_from_postgresql(**kwargs)
 
@@ -338,7 +344,7 @@ def validate_schema(
                                             name and the corresponding error message.
     """
     engine_name = __detect_engine(df_or_conn)
-    engine = import_module(f"sumeh.engine.{engine_name}")
+    engine = import_module(f"sumeh.engines.{engine_name}")
     return engine.validate_schema(df_or_conn, expected=expected, **engine_kwargs)
 
 
@@ -372,7 +378,7 @@ def validate(df, rules, **context):
           context under the key "conn".
     """
     engine_name = __detect_engine(df)
-    engine = import_module(f"sumeh.engine.{engine_name}")
+    engine = import_module(f"sumeh.engines.{engine_name}")
 
     match engine_name:
         case "duckdb_engine":
@@ -408,7 +414,7 @@ def summarize(df, rules: list[dict], **context):
     Notes:
         - The function uses the `__detect_engine` method to determine the engine name
           based on the input DataFrame.
-        - Supported engines are dynamically imported from the `sumeh.engine` package.
+        - Supported engines are dynamically imported from the `sumeh.engines` package.
         - The "duckdb_engine" case requires a database connection (`conn`) to be passed
           in the context.
 
@@ -416,7 +422,7 @@ def summarize(df, rules: list[dict], **context):
         summarized_df = summarize(df, rules=[{"operation": "sum", "column": "sales"}], conn=my_conn)
     """
     engine_name = __detect_engine(df)
-    engine = import_module(f"sumeh.engine.{engine_name}")
+    engine = import_module(f"sumeh.engines.{engine_name}")
     match engine_name:
         case "duckdb_engine":
             return engine.summarize(

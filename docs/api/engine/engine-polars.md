@@ -1,4 +1,4 @@
-# Module `sumeh.engine.polars_engine`
+# Module `sumeh.engines.polars_engine`
 
-::: sumeh.engine.polars_engine
+::: sumeh.engines.polars_engine
 

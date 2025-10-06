@@ -1,4 +1,4 @@
-# Module `sumeh.engine.dask_engine`
+# Module `sumeh.engines.dask_engine`
 
-::: sumeh.engine.dask_engine
+::: sumeh.engines.dask_engine
 

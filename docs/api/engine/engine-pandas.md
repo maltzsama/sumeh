@@ -1,4 +1,4 @@
-# Module `sumeh.engine.pandas_engine`
+# Module `sumeh.engines.pandas_engine`
 
-::: sumeh.engine.pandas_engine
+::: sumeh.engines.pandas_engine
 

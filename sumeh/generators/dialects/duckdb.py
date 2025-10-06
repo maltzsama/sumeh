@@ -13,7 +13,11 @@ class DuckDBDialect(BaseDialect):
 
         type_mapping = {
             "integer": "INTEGER",
-            "varchar": f"VARCHAR({col_def.get('length', 255)})" if col_def.get('length') else "VARCHAR",
+            "varchar": (
+                f"VARCHAR({col_def.get('length', 255)})"
+                if col_def.get("length")
+                else "VARCHAR"
+            ),
             "text": "TEXT",
             "float": "DOUBLE",
             "boolean": "BOOLEAN",
@@ -46,7 +50,11 @@ class DuckDBDialect(BaseDialect):
 
         type_mapping = {
             "integer": "INTEGER",
-            "varchar": f"VARCHAR({col_def.get('length', 255)})" if col_def.get('length') else "VARCHAR",
+            "varchar": (
+                f"VARCHAR({col_def.get('length', 255)})"
+                if col_def.get("length")
+                else "VARCHAR"
+            ),
             "text": "TEXT",
             "float": "DOUBLE",
             "boolean": "BOOLEAN",

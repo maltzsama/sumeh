@@ -34,12 +34,12 @@ Each engine implements the `validate()` + `summarize()` pair:
 
 | Engine                | Module                                  | Status          |
 |-----------------------|-----------------------------------------|-----------------|
-| PySpark               | `sumeh.engine.pyspark_engine`           | ✅ Fully implemented |
-| Dask                  | `sumeh.engine.dask_engine`              | ✅ Fully implemented |
-| Polars                | `sumeh.engine.polars_engine`            | ✅ Fully implemented |
-| DuckDB                | `sumeh.engine.duckdb_engine`            | ✅ Fully implemented |
-| Pandas                | `sumeh.engine.pandas_engine`            | ✅ Fully implemented |
-| BigQuery (SQL)        | `sumeh.engine.bigquery_engine`          | 🔧 Stub implementation |
+| PySpark               | `sumeh.engines.pyspark_engine`           | ✅ Fully implemented |
+| Dask                  | `sumeh.engines.dask_engine`              | ✅ Fully implemented |
+| Polars                | `sumeh.engines.polars_engine`            | ✅ Fully implemented |
+| DuckDB                | `sumeh.engines.duckdb_engine`            | ✅ Fully implemented |
+| Pandas                | `sumeh.engines.pandas_engine`            | ✅ Fully implemented |
+| BigQuery (SQL)        | `sumeh.engines.bigquery_engine`          | 🔧 Stub implementation |
 
 ## 🏗 Configuration Sources
 
@@ -192,7 +192,7 @@ rules = get_rules_config(
 
 ```python
 from sumeh import report
-from sumeh.engine.polars_engine import validate, summarize
+from sumeh.engines.polars_engine import validate, summarize
 import polars as pl
 
 # 1) Load data
@@ -363,7 +363,7 @@ Use `get_schema_config()` to retrieve the expected schema from your registry:
 #### BigQuery
 
 ```python
-from sumeh.services.config import get_schema_config
+from sumeh.core.config import get_schema_config
 
 schema = get_schema_config(
     source="bigquery",
