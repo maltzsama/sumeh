@@ -170,47 +170,46 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
     """
     Retrieve the schema configuration based on the provided data source.
 
-    This function determines the appropriate method to extract schema information
-    based on the format or type of the `source` string. It supports various data
-    sources such as BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB,
-    and Databricks.
+    This function reads from a schema_registry table/file to get the expected
+    schema for a given table. Supports various data sources such as BigQuery,
+    S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB, and Databricks.
 
     Args:
         source (str):
-            A string representing the data source. The format of the
-            string determines the method used to retrieve the schema. Supported
-            formats include: `bigquery://<project>.<dataset>.<table>`, `s3://<bucket>/<path>`,
-            `<file>.csv`, `mysql`, `postgresql`, `glue`, `duckdb://<db_path>.<table>`,
-            `databricks://<catalog>.<schema>.<table>`
-        **kwargs: Additional keyword arguments required by specific schema
-            retrieval methods. For example:
-            For DuckDB: `conn` (a database connection object).
-            For other sources: Additional parameters specific to the source.
+            A string representing the data source. Supported formats:
+            - `bigquery`: BigQuery source
+            - `s3://<bucket>/<path>`: S3 CSV file
+            - `<file>.csv`: Local CSV file
+            - `mysql`: MySQL database
+            - `postgresql`: PostgreSQL database
+            - `glue`: AWS Glue Data Catalog
+            - `duckdb`: DuckDB database
+            - `databricks`: Databricks Unity Catalog
+
+        **kwargs: Source-specific parameters. Common ones:
+            - table (str): Table name to look up (REQUIRED for all sources)
+            - environment (str): Environment filter (default: 'prod')
+            - query (str): Additional WHERE filters (optional)
+
+            For BigQuery: project_id, dataset_id, table_id
+            For MySQL/PostgreSQL: host, user, password, database OR conn
+            For Glue: glue_context, database_name, table_name
+            For DuckDB: conn, table
+            For Databricks: spark, catalog, schema, table
+            For CSV/S3: file_path/s3_path, table
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries representing the schema
-        configuration. Each dictionary contains details about a column in the
-        schema.
+        List[Dict[str, Any]]: Schema configuration from schema_registry
 
     Raises:
-        ValueError: If the `source` string does not match any supported format.
+        ValueError: If source format is invalid or required params are missing
 
     Examples:
-        >>> get_schema_config("bigquery://my_project.my_dataset.my_table")
-        >>> get_schema_config("s3://my_bucket/my_file.csv")
-        >>> get_schema_config("mysql", host="localhost", user="root", password="password")
+        >>> get_schema_config("bigquery", project_id="proj", dataset_id="ds", table_id="users")
+        >>> get_schema_config("mysql", conn=my_conn, table="users")
+        >>> get_schema_config("s3://bucket/registry.csv", table="users", environment="prod")
     """
     match source:
-        case s if s.startswith("bigquery://"):
-            _, path = s.split("://", 1)
-            project, dataset, table = path.split(".")
-            return get_schema_from_bigquery(
-                project_id=project,
-                dataset_id=dataset,
-                table_id=table,
-                **kwargs,
-            )
-
         case "bigquery":
             required_params = ["project_id", "dataset_id", "table_id"]
             for param in required_params:
@@ -219,30 +218,39 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_schema_from_bigquery(**kwargs)
 
         case s if s.startswith("s3://"):
+            if "table" not in kwargs:
+                raise ValueError("S3 schema requires 'table' in kwargs")
             return get_schema_from_s3(s, **kwargs)
 
         case s if re.search(r"\.csv$", s, re.IGNORECASE):
+            if "table" not in kwargs:
+                raise ValueError("CSV schema requires 'table' in kwargs")
             return get_schema_from_csv(s, **kwargs)
 
         case "mysql":
-            required_params = ["host", "user", "password", "database", "table"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"MySQL schema requires '{param}' in kwargs")
+            # Aceita conn OU (host, user, password, database)
+            if "conn" not in kwargs:
+                required_params = ["host", "user", "password", "database"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(
+                            f"MySQL schema requires 'conn' OR all of {required_params} in kwargs"
+                        )
+            if "table" not in kwargs:
+                raise ValueError("MySQL schema requires 'table' in kwargs")
             return get_schema_from_mysql(**kwargs)
 
         case "postgresql":
-            required_params = [
-                "host",
-                "user",
-                "password",
-                "database",
-                "schema",
-                "table",
-            ]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"PostgreSQL schema requires '{param}' in kwargs")
+            # Aceita conn OU (host, user, password, database)
+            if "conn" not in kwargs:
+                required_params = ["host", "user", "password", "database"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(
+                            f"PostgreSQL schema requires 'conn' OR all of {required_params} in kwargs"
+                        )
+            if "table" not in kwargs:
+                raise ValueError("PostgreSQL schema requires 'table' in kwargs")
             return get_schema_from_postgresql(**kwargs)
 
         case "glue":
@@ -252,11 +260,12 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
                     raise ValueError(f"Glue schema requires '{param}' in kwargs")
             return get_schema_from_glue(**kwargs)
 
-        case s if s.startswith("duckdb://"):
-            conn = kwargs.pop("conn")
-            _, path = s.split("://", 1)
-            db_path, table = path.rsplit(".", 1)
-            return get_schema_from_duckdb(conn=conn, table=table)
+        case "duckdb":
+            required_params = ["conn", "table"]
+            for param in required_params:
+                if param not in kwargs:
+                    raise ValueError(f"DuckDB schema requires '{param}' in kwargs")
+            return get_schema_from_duckdb(**kwargs)
 
         case "databricks":
             required_params = ["spark", "catalog", "schema", "table"]
@@ -266,7 +275,7 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_schema_from_databricks(**kwargs)
 
         case _:
-            raise ValueError(f"Unknow source: {source}")
+            raise ValueError(f"Unknown source: {source}")
 
 
 def __detect_engine(df):
