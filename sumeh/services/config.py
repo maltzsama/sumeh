@@ -547,11 +547,11 @@ def __read_csv_file(
 
 
 def get_schema_from_csv(
-        file_path: str,
-        table: str,
-        environment: str = "prod",
-        delimiter: str = ",",
-        query: str = None
+    file_path: str,
+    table: str,
+    environment: str = "prod",
+    delimiter: str = ",",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
     """
     Get schema from CSV schema_registry file
@@ -575,23 +575,29 @@ def get_schema_from_csv(
 
         for row in reader:
             if row.get("table_name") == table and row.get("environment") == environment:
-                schema.append({
-                    "id": int(row["id"]) if row.get("id") else None,
-                    "environment": row.get("environment"),
-                    "source_type": row.get("source_type"),
-                    "database_name": row.get("database_name"),
-                    "catalog_name": row.get("catalog_name"),
-                    "schema_name": row.get("schema_name"),
-                    "table_name": row.get("table_name"),
-                    "field": row.get("field"),
-                    "data_type": row.get("data_type"),
-                    "nullable": row.get("nullable", "").lower() in ("true", "1", "yes"),
-                    "max_length": int(row["max_length"]) if row.get("max_length") and row[
-                        "max_length"].strip() else None,
-                    "comment": row.get("comment"),
-                    "created_at": row.get("created_at"),
-                    "updated_at": row.get("updated_at"),
-                })
+                schema.append(
+                    {
+                        "id": int(row["id"]) if row.get("id") else None,
+                        "environment": row.get("environment"),
+                        "source_type": row.get("source_type"),
+                        "database_name": row.get("database_name"),
+                        "catalog_name": row.get("catalog_name"),
+                        "schema_name": row.get("schema_name"),
+                        "table_name": row.get("table_name"),
+                        "field": row.get("field"),
+                        "data_type": row.get("data_type"),
+                        "nullable": row.get("nullable", "").lower()
+                        in ("true", "1", "yes"),
+                        "max_length": (
+                            int(row["max_length"])
+                            if row.get("max_length") and row["max_length"].strip()
+                            else None
+                        ),
+                        "comment": row.get("comment"),
+                        "created_at": row.get("created_at"),
+                        "updated_at": row.get("updated_at"),
+                    }
+                )
 
     if not schema:
         raise ValueError(
@@ -601,17 +607,20 @@ def get_schema_from_csv(
 
     if query:
         import warnings
-        warnings.warn("The 'query' parameter is not supported for CSV sources and will be ignored")
+
+        warnings.warn(
+            "The 'query' parameter is not supported for CSV sources and will be ignored"
+        )
 
     return schema
 
 
 def get_schema_from_s3(
-        s3_path: str,
-        table: str,
-        environment: str = "prod",
-        delimiter: str = ",",
-        query: str = None
+    s3_path: str,
+    table: str,
+    environment: str = "prod",
+    delimiter: str = ",",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
     """
     Get schema from S3 schema_registry CSV file
@@ -631,7 +640,9 @@ def get_schema_from_s3(
 
     content = __read_s3_file(s3_path)
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False, encoding='utf-8') as f:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".csv", delete=False, encoding="utf-8"
+    ) as f:
         f.write(content)
         temp_path = f.name
 
@@ -641,23 +652,23 @@ def get_schema_from_s3(
             table=table,
             environment=environment,
             delimiter=delimiter,
-            query=query
+            query=query,
         )
     finally:
         os.unlink(temp_path)
 
 
 def get_schema_from_mysql(
-        host: str = None,
-        user: str = None,
-        password: str = None,
-        database: str = None,
-        table: str = None,
-        environment: str = "prod",
-        port: int = 3306,
-        registry_table: str = "schema_registry",
-        query: str = None,
-        conn=None  # Novo parâmetro
+    host: str = None,
+    user: str = None,
+    password: str = None,
+    database: str = None,
+    table: str = None,
+    environment: str = "prod",
+    port: int = 3306,
+    registry_table: str = "schema_registry",
+    query: str = None,
+    conn=None,  # Novo parâmetro
 ) -> List[Dict[str, Any]]:
     """
     Get schema from MySQL schema_registry table
@@ -724,7 +735,7 @@ def get_schema_from_mysql(
         WHERE {where_clause}
         ORDER BY id
         """,
-        params
+        params,
     )
 
     schema = cursor.fetchall()
@@ -744,17 +755,17 @@ def get_schema_from_mysql(
 
 
 def get_schema_from_postgresql(
-        host: str = None,
-        user: str = None,
-        password: str = None,
-        database: str = None,
-        schema: str = None,
-        table: str = None,
-        environment: str = "prod",
-        port: int = 5432,
-        registry_table: str = "schema_registry",
-        query: str = None,
-        conn=None  # Novo parâmetro
+    host: str = None,
+    user: str = None,
+    password: str = None,
+    database: str = None,
+    schema: str = None,
+    table: str = None,
+    environment: str = "prod",
+    port: int = 5432,
+    registry_table: str = "schema_registry",
+    query: str = None,
+    conn=None,  # Novo parâmetro
 ) -> List[Dict[str, Any]]:
     """
     Get schema from PostgreSQL schema_registry table
@@ -802,7 +813,7 @@ def get_schema_from_postgresql(
         where_clause = base_where
 
     # Se schema não foi fornecido, assume 'public'
-    schema_name = schema or 'public'
+    schema_name = schema or "public"
 
     cursor.execute(
         f"""
@@ -825,7 +836,7 @@ def get_schema_from_postgresql(
         WHERE {where_clause}
         ORDER BY id
         """,
-        params
+        params,
     )
 
     cols = cursor.fetchall()
@@ -870,13 +881,15 @@ def get_schema_from_bigquery(
     environment: str = "prod",  # Novo parâmetro com default
     credentials_path: str = None,
     registry_table: str = "schema_registry",
-    query: str = None
+    query: str = None,
 ) -> List[Dict[str, Any]]:
     from google.cloud import bigquery
     from google.oauth2 import service_account
 
     if credentials_path:
-        credentials = service_account.Credentials.from_service_account_file(credentials_path)
+        credentials = service_account.Credentials.from_service_account_file(
+            credentials_path
+        )
         client = bigquery.Client(project=project_id, credentials=credentials)
     else:
         client = bigquery.Client(project=project_id)
@@ -900,7 +913,7 @@ def get_schema_from_bigquery(
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
             bigquery.ScalarQueryParameter("table_name", "STRING", table_id),
-            bigquery.ScalarQueryParameter("environment", "STRING", environment)
+            bigquery.ScalarQueryParameter("environment", "STRING", environment),
         ]
     )
 
@@ -908,21 +921,23 @@ def get_schema_from_bigquery(
 
     schema = []
     for row in results:
-        schema.append({
-            "id": row.id,
-            "source_type": row.source_type,
-            "database_name": row.database_name,
-            "catalog_name": row.catalog_name,
-            "schema_name": row.schema_name,
-            "table_name": row.table_name,
-            "field": row.field,
-            "data_type": row.data_type,
-            "nullable": row.nullable,
-            "max_length": row.max_length,
-            "comment": row.comment,
-            "created_at": row.created_at,
-            "updated_at": row.updated_at,
-        })
+        schema.append(
+            {
+                "id": row.id,
+                "source_type": row.source_type,
+                "database_name": row.database_name,
+                "catalog_name": row.catalog_name,
+                "schema_name": row.schema_name,
+                "table_name": row.table_name,
+                "field": row.field,
+                "data_type": row.data_type,
+                "nullable": row.nullable,
+                "max_length": row.max_length,
+                "comment": row.comment,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
+            }
+        )
 
     if not schema:
         raise ValueError(
@@ -934,12 +949,12 @@ def get_schema_from_bigquery(
 
 
 def get_schema_from_glue(
-        glue_context,
-        database_name: str,
-        table_name: str,
-        environment: str = "prod",
-        registry_table: str = "schema_registry",
-        query: str = None
+    glue_context,
+    database_name: str,
+    table_name: str,
+    environment: str = "prod",
+    registry_table: str = "schema_registry",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
     """
     Get schema from Glue Data Catalog schema_registry table
@@ -970,7 +985,9 @@ def get_schema_from_glue(
     environment_escaped = escape_sql_string(environment)
 
     # Monta WHERE clause com filtros obrigatórios
-    base_where = f"table_name = '{table_name_escaped}' AND environment = '{environment_escaped}'"
+    base_where = (
+        f"table_name = '{table_name_escaped}' AND environment = '{environment_escaped}'"
+    )
 
     if query:
         # Query adicional - CUIDADO: assume que usuário passou SQL seguro
@@ -978,7 +995,8 @@ def get_schema_from_glue(
     else:
         where_clause = base_where
 
-    registry_df = spark.sql(f"""
+    registry_df = spark.sql(
+        f"""
         SELECT 
             id,
             environment,
@@ -997,7 +1015,8 @@ def get_schema_from_glue(
         FROM {database_name}.{registry_table}
         WHERE {where_clause}
         ORDER BY id
-    """)
+    """
+    )
 
     rows = registry_df.collect()
 
@@ -1009,34 +1028,36 @@ def get_schema_from_glue(
 
     schema = []
     for row in rows:
-        schema.append({
-            "id": row.id,
-            "environment": row.environment,
-            "source_type": row.source_type,
-            "database_name": row.database_name,
-            "catalog_name": row.catalog_name,
-            "schema_name": row.schema_name,
-            "table_name": row.table_name,
-            "field": row.field,
-            "data_type": row.data_type,
-            "nullable": row.nullable,
-            "max_length": row.max_length,
-            "comment": row.comment,
-            "created_at": row.created_at,
-            "updated_at": row.updated_at,
-        })
+        schema.append(
+            {
+                "id": row.id,
+                "environment": row.environment,
+                "source_type": row.source_type,
+                "database_name": row.database_name,
+                "catalog_name": row.catalog_name,
+                "schema_name": row.schema_name,
+                "table_name": row.table_name,
+                "field": row.field,
+                "data_type": row.data_type,
+                "nullable": row.nullable,
+                "max_length": row.max_length,
+                "comment": row.comment,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
+            }
+        )
 
     return schema
 
 
 def get_schema_from_databricks(
-        spark,
-        catalog: str,
-        schema: str,
-        table: str,
-        environment: str = "prod",
-        registry_table: str = "schema_registry",
-        query: str = None
+    spark,
+    catalog: str,
+    schema: str,
+    table: str,
+    environment: str = "prod",
+    registry_table: str = "schema_registry",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
     """
     Get schema from Databricks Unity Catalog schema_registry table
@@ -1060,14 +1081,17 @@ def get_schema_from_databricks(
     table_escaped = escape_sql_string(table)
     environment_escaped = escape_sql_string(environment)
 
-    base_where = f"table_name = '{table_escaped}' AND environment = '{environment_escaped}'"
+    base_where = (
+        f"table_name = '{table_escaped}' AND environment = '{environment_escaped}'"
+    )
 
     if query:
         where_clause = f"{base_where} AND ({query})"
     else:
         where_clause = base_where
 
-    registry_df = spark.sql(f"""
+    registry_df = spark.sql(
+        f"""
         SELECT 
             id,
             environment,
@@ -1086,7 +1110,8 @@ def get_schema_from_databricks(
         FROM {catalog}.{schema}.{registry_table}
         WHERE {where_clause}
         ORDER BY id
-    """)
+    """
+    )
 
     rows = registry_df.collect()
 
@@ -1098,32 +1123,34 @@ def get_schema_from_databricks(
 
     result = []
     for row in rows:
-        result.append({
-            "id": row.id,
-            "environment": row.environment,
-            "source_type": row.source_type,
-            "database_name": row.database_name,
-            "catalog_name": row.catalog_name,
-            "schema_name": row.schema_name,
-            "table_name": row.table_name,
-            "field": row.field,
-            "data_type": row.data_type,
-            "nullable": row.nullable,
-            "max_length": row.max_length,
-            "comment": row.comment,
-            "created_at": row.created_at,
-            "updated_at": row.updated_at,
-        })
+        result.append(
+            {
+                "id": row.id,
+                "environment": row.environment,
+                "source_type": row.source_type,
+                "database_name": row.database_name,
+                "catalog_name": row.catalog_name,
+                "schema_name": row.schema_name,
+                "table_name": row.table_name,
+                "field": row.field,
+                "data_type": row.data_type,
+                "nullable": row.nullable,
+                "max_length": row.max_length,
+                "comment": row.comment,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
+            }
+        )
 
     return result
 
 
 def get_schema_from_duckdb(
-        conn,
-        table: str,
-        environment: str = "prod",
-        registry_table: str = "schema_registry",
-        query: str = None
+    conn,
+    table: str,
+    environment: str = "prod",
+    registry_table: str = "schema_registry",
+    query: str = None,
 ) -> List[Dict[str, Any]]:
     """
     Get schema from DuckDB schema_registry table
@@ -1147,7 +1174,9 @@ def get_schema_from_duckdb(
     environment_escaped = escape_sql_string(environment)
 
     # Monta WHERE clause com filtros obrigatórios
-    base_where = f"table_name = '{table_escaped}' AND environment = '{environment_escaped}'"
+    base_where = (
+        f"table_name = '{table_escaped}' AND environment = '{environment_escaped}'"
+    )
 
     if query:
         where_clause = f"{base_where} AND ({query})"
@@ -1155,7 +1184,8 @@ def get_schema_from_duckdb(
         where_clause = base_where
 
     # Query no schema_registry
-    df = conn.execute(f"""
+    df = conn.execute(
+        f"""
         SELECT 
             id,
             environment,
@@ -1174,7 +1204,8 @@ def get_schema_from_duckdb(
         FROM {registry_table}
         WHERE {where_clause}
         ORDER BY id
-    """).fetchdf()
+    """
+    ).fetchdf()
 
     if df.empty:
         raise ValueError(
@@ -1185,22 +1216,24 @@ def get_schema_from_duckdb(
     # Converte DataFrame para lista de dicts
     schema = []
     for _, row in df.iterrows():
-        schema.append({
-            "id": row["id"],
-            "environment": row["environment"],
-            "source_type": row["source_type"],
-            "database_name": row["database_name"],
-            "catalog_name": row["catalog_name"],
-            "schema_name": row["schema_name"],
-            "table_name": row["table_name"],
-            "field": row["field"],
-            "data_type": row["data_type"],
-            "nullable": row["nullable"],
-            "max_length": row["max_length"],
-            "comment": row["comment"],
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-        })
+        schema.append(
+            {
+                "id": row["id"],
+                "environment": row["environment"],
+                "source_type": row["source_type"],
+                "database_name": row["database_name"],
+                "catalog_name": row["catalog_name"],
+                "schema_name": row["schema_name"],
+                "table_name": row["table_name"],
+                "field": row["field"],
+                "data_type": row["data_type"],
+                "nullable": row["nullable"],
+                "max_length": row["max_length"],
+                "comment": row["comment"],
+                "created_at": row["created_at"],
+                "updated_at": row["updated_at"],
+            }
+        )
 
     return schema
 

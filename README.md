@@ -331,6 +331,236 @@ report = report(df, rules)
 
 
 
+## Schema Validation
+
+Sumeh allows you to validate your DataFrame schemas against a schema registry stored in various data sources (BigQuery, MySQL, PostgreSQL, DuckDB, Databricks, Glue, CSV, S3).
+
+### Step 1: Store Your Schema Registry
+
+First, create a `schema_registry` table in your data source with the following structure:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | int | Auto-increment ID |
+| environment | string | Environment (e.g., 'prod', 'staging', 'dev') |
+| source_type | string | Source type (e.g., 'bigquery', 'mysql') |
+| database_name | string | Database/project name |
+| catalog_name | string | Catalog name (for Databricks) |
+| schema_name | string | Schema name (for PostgreSQL) |
+| table_name | string | Table name |
+| field | string | Column name |
+| data_type | string | Data type |
+| nullable | boolean | Whether column can be null |
+| max_length | int | Maximum length for strings |
+| comment | string | Description/comment |
+| created_at | datetime | Creation timestamp |
+| updated_at | datetime | Last update timestamp |
+
+### Step 2: Get Schema Configuration
+
+Use `get_schema_config()` to retrieve the expected schema from your registry:
+
+#### BigQuery
+
+```python
+from sumeh.services.config import get_schema_config
+
+schema = get_schema_config(
+    source="bigquery",
+    project_id="my-project",
+    dataset_id="my-dataset",
+    table_id="users",
+    environment="prod"  # optional, defaults to 'prod'
+)
+```
+
+#### MySQL
+
+```python
+# Option 1: Create connection internally
+schema = get_schema_config(
+    source="mysql",
+    host="localhost",
+    user="root",
+    password="secret",
+    database="mydb",
+    table="users",
+    environment="prod"
+)
+
+# Option 2: Reuse existing connection
+import mysql.connector
+conn = mysql.connector.connect(host="localhost", user="root", password="secret", database="mydb")
+
+schema = get_schema_config(
+    source="mysql",
+    conn=conn,
+    table="users",
+    environment="prod"
+)
+```
+
+#### PostgreSQL
+
+```python
+# Option 1: Create connection internally
+schema = get_schema_config(
+    source="postgresql",
+    host="localhost",
+    user="postgres",
+    password="secret",
+    database="mydb",
+    schema="public",
+    table="users",
+    environment="prod"
+)
+
+# Option 2: Reuse existing connection
+import psycopg2
+conn = psycopg2.connect(host="localhost", user="postgres", password="secret", dbname="mydb")
+
+schema = get_schema_config(
+    source="postgresql",
+    conn=conn,
+    schema="public",
+    table="users",
+    environment="prod"
+)
+```
+
+#### DuckDB
+
+```python
+import duckdb
+
+conn = duckdb.connect("my_database.db")
+
+schema = get_schema_config(
+    source="duckdb",
+    conn=conn,
+    table="users",
+    environment="prod"
+)
+```
+
+#### Databricks
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.getOrCreate()
+
+schema = get_schema_config(
+    source="databricks",
+    spark=spark,
+    catalog="main",
+    schema="default",
+    table="users",
+    environment="prod"
+)
+```
+
+#### AWS Glue
+
+```python
+from awsglue.context import GlueContext
+from pyspark.context import SparkContext
+
+glueContext = GlueContext(SparkContext.getOrCreate())
+
+schema = get_schema_config(
+    source="glue",
+    glue_context=glueContext,
+    database_name="my_database",
+    table_name="users",
+    environment="prod"
+)
+```
+
+#### CSV
+
+```python
+schema = get_schema_config(
+    source="schema_registry.csv",
+    table="users",
+    environment="prod"
+)
+```
+
+#### S3
+
+```python
+schema = get_schema_config(
+    source="s3://my-bucket/path/schema_registry.csv",
+    table="users",
+    environment="prod"
+)
+```
+
+### Step 3: Validate DataFrame Schema
+
+Once you have the expected schema, validate your DataFrame against it:
+
+```python
+from sumeh.core import validate_schema
+
+# Load your DataFrame (example with pandas)
+import pandas as pd
+df = pd.read_csv("users.csv")
+
+# Validate
+is_valid, errors = validate_schema(
+    df_or_conn=df,
+    expected=schema
+)
+
+if is_valid:
+    print("✅ Schema is valid!")
+else:
+    print("❌ Schema validation failed:")
+    for field, error in errors:
+        print(f"  - {field}: {error}")
+```
+
+#### Example Output
+
+```
+❌ Schema validation failed:
+  - email: missing
+  - age: type mismatch (got 'object', expected 'int64')
+  - created_at: nullable but expected non-nullable
+  - extra_field: extra column
+```
+
+### Advanced: Custom Filters
+
+You can add custom WHERE clauses to filter the schema registry:
+
+```python
+schema = get_schema_config(
+    source="bigquery",
+    project_id="my-project",
+    dataset_id="my-dataset",
+    table_id="users",
+    environment="prod",
+    query="source_type = 'bigquery' AND catalog_name IS NOT NULL"
+)
+```
+
+**Note:** The `query` parameter adds additional filters to the base filter (`table_name` and `environment`).
+
+### Supported Engines
+
+Schema validation works with all supported DataFrame engines:
+- Dask
+- DuckDB
+- Pandas
+- Polars
+- PySpark
+
+**Important:** Make sure the `data_type` values in your `schema_registry` match the exact format returned by your DataFrame engine (e.g., `int64` for pandas, `string` for PySpark). Comparisons are case-insensitive.
+
+
 ## 📂 Project Layout
 
 ```
