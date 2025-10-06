@@ -83,34 +83,34 @@ def __compare_schemas(
 
     exp_map = {c["field"]: c for c in expected}
     act_map = {c["field"]: c for c in actual}
-
-    erros: List[Tuple[str, str]] = []
+    errors: List[Tuple[str, str]] = []
 
     for fld, exp in exp_map.items():
         if fld not in act_map:
-            erros.append((fld, "missing"))
+            errors.append((fld, "missing"))
             continue
+
         act = act_map[fld]
-        if act["data_type"] != exp["data_type"]:
-            erros.append(
+
+        exp_type = exp["data_type"].strip().lower()
+        act_type = act["data_type"].strip().lower()
+
+        if act_type != exp_type:
+            errors.append(
                 (
                     fld,
-                    f"type mismatch (got {act['data_type']}, expected {exp['data_type']})",
+                    f"type mismatch (got '{act['data_type']}', expected '{exp['data_type']}')",
                 )
             )
 
         if act["nullable"] and not exp["nullable"]:
-            erros.append((fld, "nullable but expected non-nullable"))
+            errors.append((fld, "nullable but expected non-nullable"))
 
-        if exp.get("max_length") is not None:
-            pass
-
-    # 2. campos extras (se quiser)
     extras = set(act_map) - set(exp_map)
     for fld in extras:
-        erros.append((fld, "extra column"))
+        errors.append((fld, "extra column"))
 
-    return len(erros) == 0, erros
+    return len(errors) == 0, errors
 
 
 def __parse_databricks_uri(uri: str) -> Dict[str, Optional[str]]:
