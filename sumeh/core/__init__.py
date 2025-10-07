@@ -89,7 +89,7 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             handler is invoked.
         **kwargs:
             Loader-specific parameters (e.g. `host`, `user`, `password`,
-            `connection`, `query`).
+            `connection`, `query`, `delimiter`).
 
     Returns:
         List[Dict[str, Any]]:
@@ -113,7 +113,8 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_config_from_s3(s, **kwargs)
 
         case s if re.search(r"\.csv$", s, re.IGNORECASE):
-            return get_config_from_csv(s, **kwargs)
+            delimiter = kwargs.pop("delimiter", None)
+            return get_config_from_csv(s, delimiter=delimiter, **kwargs)
 
         case "mysql":
             if "conn" not in kwargs:
@@ -169,7 +170,7 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_config_from_databricks(**kwargs)
 
         case _:
-            raise ValueError(f"Unknow source: {source}")
+            raise ValueError(f"Unknown source: {source}")
 
 
 def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:

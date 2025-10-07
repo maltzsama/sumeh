@@ -201,11 +201,14 @@ def _are_unique(r: __RuleCtx) -> str:
         f") = 1"
     )
 
+
 def _is_positive(r: __RuleCtx) -> str:
     return f"{r.column} < 0"
 
+
 def _is_negative(r: __RuleCtx) -> str:
     return f"{r.column} >= 0"
+
 
 def _is_greater_than(r: __RuleCtx) -> str:
     """

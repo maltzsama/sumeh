@@ -9,21 +9,21 @@ import json
 def load_data(source: str, engine: str = "pandas", **kwargs) -> Any:
     """
     Load data from various sources.
-    
+
     Args:
         source: Path to file or connection string
         engine: pandas | polars | dask
         **kwargs: Additional parameters for the reader
-        
+
     Returns:
         DataFrame (type depends on engine)
-        
+
     Examples:
         >>> df = load_data("data.csv")
         >>> df = load_data("data.parquet", engine="polars")
     """
     source_path = Path(source)
-    
+
     if engine == "pandas":
         return _load_pandas(source_path, **kwargs)
     elif engine == "polars":
@@ -37,7 +37,7 @@ def load_data(source: str, engine: str = "pandas", **kwargs) -> Any:
 def _load_pandas(source: Path, **kwargs) -> pd.DataFrame:
     """Load data using pandas."""
     suffix = source.suffix.lower()
-    
+
     if suffix == ".csv":
         return pd.read_csv(source, **kwargs)
     elif suffix == ".parquet":
@@ -56,9 +56,9 @@ def _load_polars(source: Path, **kwargs):
         import polars as pl
     except ImportError:
         raise ImportError("polars not installed. Run: pip install polars")
-    
+
     suffix = source.suffix.lower()
-    
+
     if suffix == ".csv":
         return pl.read_csv(source, **kwargs)
     elif suffix == ".parquet":
@@ -75,9 +75,9 @@ def _load_dask(source: Path, **kwargs):
         import dask.dataframe as dd
     except ImportError:
         raise ImportError("dask not installed. Run: pip install dask[dataframe]")
-    
+
     suffix = source.suffix.lower()
-    
+
     if suffix == ".csv":
         return dd.read_csv(source, **kwargs)
     elif suffix == ".parquet":
@@ -89,14 +89,11 @@ def _load_dask(source: Path, **kwargs):
 
 
 def save_results(
-    results: Dict[str, Any],
-    output_path: str,
-    format: str = "json",
-    **kwargs
+    results: Dict[str, Any], output_path: str, format: str = "json", **kwargs
 ) -> None:
     """
     Save validation results to file.
-    
+
     Args:
         results: Dictionary with validation results
         output_path: Path to output file
@@ -105,7 +102,7 @@ def save_results(
     """
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    
+
     if format == "json":
         _save_json(results, output, **kwargs)
     elif format == "csv":
@@ -125,7 +122,7 @@ def _save_json(results: Dict[str, Any], output: Path, **kwargs) -> None:
                 serializable_results[key] = value.to_dict(orient="records")
             else:
                 serializable_results[key] = value
-        
+
         json.dump(serializable_results, f, indent=2, default=str)
 
 
@@ -141,5 +138,6 @@ def _save_csv(results: Dict[str, Any], output: Path, **kwargs) -> None:
 def _save_html(results: Dict[str, Any], output: Path, **kwargs) -> None:
     """Save results as HTML report."""
     from sumeh.core.report import generate_html_report
+
     html_content = generate_html_report(results)
     output.write_text(html_content)

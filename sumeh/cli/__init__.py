@@ -21,7 +21,6 @@ Environment:
     For dashboard rendering, Streamlit and Plotly are required.
 """
 
-
 import os
 import webbrowser
 import argparse
@@ -283,55 +282,57 @@ Examples:
   sumeh validate data.csv rules.csv --format html --output report.html
   sumeh validate data.csv rules.csv --dashboard
   sumeh validate data.csv rules.csv --engine polars --verbose
-        """
+        """,
     )
 
     parser.add_argument(
-        "data_source",
-        help="Path to data file (CSV, Parquet, JSON, Excel)"
+        "data_source", help="Path to data file (CSV, Parquet, JSON, Excel)"
+    )
+
+    parser.add_argument("rules_source", help="Path to rules file (CSV)")
+
+    parser.add_argument(
+        "--output", "-o", help="Output file path (default: print to stdout)"
     )
 
     parser.add_argument(
-        "rules_source",
-        help="Path to rules file (CSV)"
-    )
-
-    parser.add_argument(
-        "--output", "-o",
-        help="Output file path (default: print to stdout)"
-    )
-
-    parser.add_argument(
-        "--format", "-f",
+        "--format",
+        "-f",
         choices=["json", "csv", "html", "markdown"],
         default="json",
-        help="Output format (default: json)"
+        help="Output format (default: json)",
     )
 
     parser.add_argument(
         "--engine",
         choices=["pandas", "polars", "dask"],
         default="pandas",
-        help="DataFrame engine to use (default: pandas)"
+        help="DataFrame engine to use (default: pandas)",
     )
 
     parser.add_argument(
         "--dashboard",
         action="store_true",
-        help="Launch interactive Streamlit dashboard"
+        help="Launch interactive Streamlit dashboard",
     )
 
     parser.add_argument(
         "--fail-on-error",
         action="store_true",
-        help="Exit with code 1 if any check fails"
+        help="Exit with code 1 if any check fails",
     )
 
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="count",
         default=0,
-        help="Increase verbosity (use -vv for more)"
+        help="Increase verbosity (use -vv for more)",
+    )
+
+    parser.add_argument(
+        "--rules-delimiter",
+        help="CSV delimiter for rules file (auto-detected if not specified)",
     )
 
     args = parser.parse_args()
@@ -350,7 +351,9 @@ Examples:
         if args.verbose:
             print(f"📋 Loading rules from: {args.rules_source}")
 
-        rules = get_rules_config(source=args.rules_source)
+        rules = get_rules_config(
+            source=args.rules_source, delimiter=getattr(args, "rules_delimiter", None)
+        )
 
         if args.verbose:
             print(f"✓ Loaded {len(rules)} rules")
@@ -371,8 +374,8 @@ Examples:
                 "data_source": args.data_source,
                 "rules_source": args.rules_source,
                 "total_rows": len(df),
-                "engine": args.engine
-            }
+                "engine": args.engine,
+            },
         }
 
         # 6. Output results (if not launching dashboard)
@@ -384,11 +387,12 @@ Examples:
                 # Print to stdout
                 if args.format == "json":
                     # Convert DataFrame to dict for JSON serialization
-                    summary_dict = summary.to_dict(orient="records") if hasattr(summary, 'to_dict') else summary
-                    output = {
-                        "summary": summary_dict,
-                        "metadata": results["metadata"]
-                    }
+                    summary_dict = (
+                        summary.to_dict(orient="records")
+                        if hasattr(summary, "to_dict")
+                        else summary
+                    )
+                    output = {"summary": summary_dict, "metadata": results["metadata"]}
                     print(json.dumps(output, indent=2, default=str))
                 elif args.format == "markdown":
                     print(generate_markdown_report(results))
@@ -397,6 +401,7 @@ Examples:
 
         # 7. Check if failed
         import pandas as pd
+
         if isinstance(summary, pd.DataFrame):
             failed_checks = (summary["status"] == "FAIL").sum()
         else:
@@ -422,17 +427,20 @@ Examples:
 
                 # Save results to temp file
                 temp_file = tempfile.NamedTemporaryFile(
-                    mode='w',
-                    suffix='.json',
-                    delete=False
+                    mode="w", suffix=".json", delete=False
                 )
 
                 # Convert DataFrame to dict for JSON
-                summary_dict = summary.to_dict(orient="records") if hasattr(summary, 'to_dict') else summary
-                json.dump({
-                    "summary": summary_dict,
-                    "metadata": results["metadata"]
-                }, temp_file, default=str)
+                summary_dict = (
+                    summary.to_dict(orient="records")
+                    if hasattr(summary, "to_dict")
+                    else summary
+                )
+                json.dump(
+                    {"summary": summary_dict, "metadata": results["metadata"]},
+                    temp_file,
+                    default=str,
+                )
                 temp_file.close()
 
                 # Launch Streamlit with temp file as argument
@@ -446,7 +454,9 @@ Examples:
                 sys.exit(stcli.main())
 
             except ImportError as e:
-                print("\n⚠️  Dashboard requires streamlit. Install with:", file=sys.stderr)
+                print(
+                    "\n⚠️  Dashboard requires streamlit. Install with:", file=sys.stderr
+                )
                 print("   poetry install --with dashboard", file=sys.stderr)
                 print("   or: pip install streamlit plotly", file=sys.stderr)
                 print(e)
@@ -460,6 +470,7 @@ Examples:
         print(f"❌ Error: {e}", file=sys.stderr)
         if args.verbose >= 2:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 

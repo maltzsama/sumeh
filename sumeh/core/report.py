@@ -8,23 +8,23 @@ from datetime import datetime
 def generate_html_report(results: Dict[str, Any]) -> str:
     """
     Generate HTML report from validation results.
-    
+
     Args:
         results: Dictionary containing validation results
-        
+
     Returns:
         HTML string
     """
     summary = results.get("summary")
-    
+
     if not isinstance(summary, pd.DataFrame):
         summary = pd.DataFrame(summary)
-    
+
     total_checks = len(summary)
     passed = (summary["status"] == "PASS").sum()
     failed = (summary["status"] == "FAIL").sum()
     pass_rate = (passed / total_checks * 100) if total_checks > 0 else 0
-    
+
     html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -144,13 +144,13 @@ def generate_html_report(results: Dict[str, Any]) -> str:
         </thead>
         <tbody>
 """
-    
+
     for _, row in summary.iterrows():
         status_class = "badge-pass" if row["status"] == "PASS" else "badge-fail"
         pass_rate_val = row.get("pass_rate", 0) * 100
         violations = row.get("violations", 0)
         rows_count = row.get("rows", 0)
-        
+
         html += f"""
             <tr>
                 <td><strong>{row.get('column', 'N/A')}</strong></td>
@@ -160,29 +160,29 @@ def generate_html_report(results: Dict[str, Any]) -> str:
                 <td><span class="badge {status_class}">{row['status']}</span></td>
             </tr>
 """
-    
+
     html += """
         </tbody>
     </table>
 </body>
 </html>
 """
-    
+
     return html
 
 
 def generate_markdown_report(results: Dict[str, Any]) -> str:
     """Generate Markdown report from validation results."""
     summary = results.get("summary")
-    
+
     if not isinstance(summary, pd.DataFrame):
         summary = pd.DataFrame(summary)
-    
+
     total_checks = len(summary)
     passed = (summary["status"] == "PASS").sum()
     failed = (summary["status"] == "FAIL").sum()
     pass_rate = (passed / total_checks * 100) if total_checks > 0 else 0
-    
+
     md = f"""# Data Quality Validation Report
 
 **Generated:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -199,13 +199,13 @@ def generate_markdown_report(results: Dict[str, Any]) -> str:
 | Column | Rule | Pass Rate | Violations | Status |
 |--------|------|-----------|------------|--------|
 """
-    
+
     for _, row in summary.iterrows():
         pass_rate_val = row.get("pass_rate", 0) * 100
         violations = row.get("violations", 0)
         rows_count = row.get("rows", 0)
         status_icon = "✅" if row["status"] == "PASS" else "❌"
-        
+
         md += f"| {row.get('column', 'N/A')} | {row.get('rule', 'N/A')} | {pass_rate_val:.1f}% | {violations}/{rows_count} | {status_icon} {row['status']} |\n"
-    
+
     return md
