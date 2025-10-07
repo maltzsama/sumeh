@@ -39,25 +39,36 @@ plugins:
             members: true
             show_root_toc_entry: false
 
+
 nav:
   - home: index.md
   - quickstart: quickstart.md
-  - cli:
-      - cli: cli/cli.md
-      - sql generator: cli/sql.md
-  - api:
-      - core: api/core.md    
-      - services:
-        - services overview: api/services/services.md
-        - services config: api/services/services-config.md
-        - services utils: api/services/services-utils.md
-      - engines:
-        - engine overview: api/engine/engines.md
-        - dask engine: api/engine/engine-dask.md
-        - duckDB engine: api/engine/engine-duckdb.md
-        - pandas engine: api/engine/engine-pandas.md
-        - polars engine: api/engine/engine-polars.md
-        - pyspark engine: api/engine/engine-pyspark.md
+  - cli: sumeh/cli.md
+  - core:
+    - config: sumeh/core/config.md
+    - utils: sumeh/core/utils.md
+  - engines:
+    - engine overview: sumeh/engines/engines.md
+    - bigquery: sumeh/engines/bigquery.md
+    - dask: sumeh/engines/dask.md
+    - duckDB: sumeh/engines/duckdb.md
+    - pandas: sumeh/engines/pandas.md
+    - polars: sumeh/engines/polars.md
+    - pyspark: sumeh/engines/pyspark.md
+  - generators:
+    - generator: sumeh/generators/generator.md
+    - dialects:
+      - base: sumeh/generators/dialects/base.md
+      - athena: sumeh/generators/dialects/athena.md
+      - bigquery: sumeh/generators/dialects/bigquery.md
+      - duckdb: sumeh/generators/dialects/duckdb.md
+      - mysql: sumeh/generators/dialects/mysql.md
+      - postgres: sumeh/generators/dialects/postgres.md
+      - redshift: sumeh/generators/dialects/redshift.md
+      - snowflake: sumeh/generators/dialects/snowflake.md
+      - sqlite: sumeh/generators/dialects/sqlite.md
+  - dash: sumeh/dash/index.md
+
         
 
 markdown_extensions:

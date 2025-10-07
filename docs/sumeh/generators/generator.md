@@ -1,0 +1,3 @@
+# generator
+
+::: sumeh.generators.generator
