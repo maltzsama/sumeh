@@ -1,6 +1,6 @@
 import pytest
-from sumeh.engine.duckdb_engine import __RuleCtx
-from sumeh.engine.duckdb_engine import (
+from sumeh.engines.duckdb_engine import __RuleCtx
+from sumeh.engines.duckdb_engine import (
     _is_in_millions,
     _is_in_billions,
     _is_today,

@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from datetime import datetime, date, timedelta
-from sumeh.engine.pandas_engine import (
+from sumeh.engines.pandas_engine import (
     is_in_millions,
     is_in_billions,
     is_today,
