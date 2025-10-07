@@ -1,6 +1,6 @@
 [tool.poetry]
 name                  = "sumeh"
-version               = "0.3.2"
+version               = "1.0.0-rc.1"
 description           = "Unified Data Quality Validation Framework"
 readme                = "README.md"
 homepage              = "https://github.com/maltzsama/sumeh"
@@ -108,7 +108,12 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.semantic_release]
-version_source = "sumeh/__init__.py"
+version_toml = [
+    "pyproject.toml:tool.poetry.version"
+]
+version_variables = [
+    "sumeh/__init__.py:__version__"
+]
 prerelease_token = "rc"
 
 [tool.semantic_release.branches.main]
