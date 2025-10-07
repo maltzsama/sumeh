@@ -1,6 +1,6 @@
 [tool.poetry]
 name                  = "sumeh"
-version               = "1.0.0-rc.1"
+version               = "1.0.0-rc.2"
 description           = "Unified Data Quality Validation Framework"
 readme                = "README.md"
 homepage              = "https://github.com/maltzsama/sumeh"
