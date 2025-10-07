@@ -363,7 +363,7 @@ Use `get_schema_config()` to retrieve the expected schema from your registry:
 #### BigQuery
 
 ```python
-from sumeh.core.config import get_schema_config
+from sumeh.core import get_schema_config
 
 schema = get_schema_config(
     source="bigquery",

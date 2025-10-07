@@ -86,6 +86,7 @@ pyspark = [
 ]
 
 [tool.poetry.scripts]
+sumeh-validate = "sumeh.cli.validate:run_validation"
 sumeh-config = "sumeh.cli:serve_index"
 sumeh-sql = "sumeh.cli:generate_sql"
 sumeh = "sumeh.cli:main"

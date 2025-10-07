@@ -25,7 +25,7 @@ def serve_index():
         KeyboardInterrupt: If the server is manually interrupted by the user.
     """
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    html_path = os.path.join(base_dir, "services")
+    html_path = os.path.join(base_dir, "dash")
 
     os.chdir(html_path)
 
@@ -195,6 +195,10 @@ Supported tables:
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
+def run_validation():
+    """Execute validation command - TODO: implement"""
+    print("Validation command - coming soon!")
+
 
 def main():
     """Main CLI entry point."""
@@ -204,25 +208,20 @@ def main():
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Config command (existing)
     subparsers.add_parser("config", help="Launch configuration web interface")
-
-    # SQL command (new)
-    subparsers.add_parser(
-        "sql",
-        help="Generate SQL DDL for sumeh tables",
-        add_help=False,  # We'll handle help in generate_sql()
-    )
+    subparsers.add_parser("sql", help="Generate SQL DDL", add_help=False)
+    subparsers.add_parser("validate", help="Validate data", add_help=False)
 
     args, remaining = parser.parse_known_args()
 
     if args.command == "config":
         serve_index()
     elif args.command == "sql":
-        # Pass remaining args to generate_sql
         sys.argv = ["sumeh-sql"] + remaining
         generate_sql()
+    elif args.command == "validate":
+        sys.argv = ["sumeh-validate"] + remaining
+        run_validation()
     else:
         parser.print_help()
 

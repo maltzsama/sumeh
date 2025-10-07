@@ -28,7 +28,7 @@ Imports:
     importlib: Dynamically imports modules based on engine detection.
     typing: Provides type hints for function arguments and return values.
     re: Used for regular expression matching in source string parsing.
-    sumeh.core.config: Contains functions for retrieving configurations and schemas
+    sumeh.core: Contains functions for retrieving configurations and schemas
       from various data sources.
     sumeh.core.utils: Provides utility functions for value conversion and URI parsing.
 

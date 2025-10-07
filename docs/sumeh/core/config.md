@@ -1,3 +1,3 @@
 # config
 
-::: sumeh.core.config
+::: sumeh.core
