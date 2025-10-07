@@ -1,219 +1,558 @@
+"""Sumeh Data Quality Dashboard - The Ultimate Validation Experience"""
+
 import streamlit as st
 import pandas as pd
+import numpy as np
 import sys
 import json
+import tempfile
 from pathlib import Path
+from datetime import datetime
+from typing import Dict, Any, Optional, Tuple
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
-def main():
-    """Main dashboard entry point."""
+def _setup_awesome_style():
+    """Configura o estilo foda do dashboard"""
     st.set_page_config(
-        page_title="Sumeh - Data Quality Report",
+        page_title="🚀 Sumeh - Data Quality Intelligence",
         page_icon="🔍",
-        layout="wide"
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
 
-    # Check if results file was passed as argument
-    if len(sys.argv) > 1:
-        results_file = sys.argv[1]
-        try:
-            with open(results_file, 'r') as f:
-                results = json.load(f)
-            _render_dashboard(results)
-        except Exception as e:
-            st.error(f"Error loading results: {e}")
-            _show_usage()
-    else:
-        _show_usage()
+    st.markdown("""
+    <style>
+    .main-header {
+        font-size: 3.5rem !important;
+        font-weight: 900 !important;
+        background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .success-card {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    }
+
+    .warning-card {
+        background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+    }
+
+    .danger-card {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+    }
+
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, #4ECDC4 0%, #44A08D 100%);
+    }
+
+    .export-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-left: 5px solid #4ECDC4;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
-def _show_usage():
-    """Show usage instructions."""
-    st.error("This dashboard should be launched via `sumeh validate --dashboard`")
+def _render_hero_header(metadata: Dict[str, Any]):
+    """Header épico com gradiente e animação"""
+    col1, col2, col3 = st.columns([1, 2, 1])
 
-    st.code("sumeh validate data.csv rules.csv --dashboard", language="bash")
+    with col2:
+        st.markdown('<h1 class="main-header">🚀 SUMEH DATA QUALITY</h1>',
+                    unsafe_allow_html=True)
 
-    st.info("""
-    **How to use:**
-    
-    1. Run validation with the `--dashboard` flag
-    2. The dashboard will open automatically with your results
-    """)
+        # Badges de status
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <span style="background: #4ECDC4; color: white; padding: 0.5rem 1rem; border-radius: 20px; margin: 0 0.5rem;">
+                🔍 {metadata.get('engine', 'pandas').upper()}
+            </span>
+            <span style="background: #45B7D1; color: white; padding: 0.5rem 1rem; border-radius: 20px; margin: 0 0.5rem;">
+                📊 {metadata.get('total_rows', 0):,} ROWS
+            </span>
+            <span style="background: #96CEB4; color: white; padding: 0.5rem 1rem; border-radius: 20px; margin: 0 0.5rem;">
+                ⚡ {datetime.now().strftime('%Y-%m-%d %H:%M')}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
 
 
-def _render_dashboard(results: dict):
-    """Render the dashboard UI."""
+def _render_kpi_cards(summary: pd.DataFrame):
+    """Cards de KPI com visual foda"""
+    total_checks = len(summary)
+    passed = (summary["status"] == "PASS").sum()
+    failed = (summary["status"] == "FAIL").sum()
+    warning = (summary["status"] == "WARNING").sum() if "WARNING" in summary["status"].values else 0
 
+    pass_rate = (passed / total_checks * 100) if total_checks > 0 else 0
+    risk_score = (failed / total_checks * 100) if total_checks > 0 else 0
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3 style="color: white; margin: 0;">📋 TOTAL</h3>
+            <h1 style="color: white; margin: 0; font-size: 2.5rem;">{total_checks}</h1>
+            <p style="color: white; margin: 0;">Quality Checks</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card success-card">
+            <h3 style="color: white; margin: 0;">✅ PASSED</h3>
+            <h1 style="color: white; margin: 0; font-size: 2.5rem;">{passed}</h1>
+            <p style="color: white; margin: 0;">{pass_rate:.1f}% Success</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card danger-card">
+            <h3 style="color: white; margin: 0;">❌ FAILED</h3>
+            <h1 style="color: white; margin: 0; font-size: 2.5rem;">{failed}</h1>
+            <p style="color: white; margin: 0;">{risk_score:.1f}% Risk</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown(f"""
+        <div class="metric-card warning-card">
+            <h3 style="color: white; margin: 0;">⚠️ WARNING</h3>
+            <h1 style="color: white; margin: 0; font-size: 2.5rem;">{warning}</h1>
+            <p style="color: white; margin: 0;">Needs Attention</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col5:
+        avg_pass_rate = summary['pass_rate'].mean() * 100 if 'pass_rate' in summary.columns else 0
+        st.markdown(f"""
+        <div class="metric-card" style="background: linear-gradient(135deg, #a8e6cf 0%, #56ab2f 100%);">
+            <h3 style="color: white; margin: 0;">📈 QUALITY</h3>
+            <h1 style="color: white; margin: 0; font-size: 2.5rem;">{avg_pass_rate:.1f}%</h1>
+            <p style="color: white; margin: 0;">Avg Pass Rate</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def _render_quality_bars(summary: pd.DataFrame):
+    """Bar chart elegante por coluna, minimalista"""
+    if 'column' not in summary.columns or 'pass_rate' not in summary.columns:
+        return
+
+    col_quality = summary.groupby('column')['pass_rate'].mean().sort_values()
+    fig = go.Figure(go.Bar(
+        x=col_quality.values * 100,
+        y=col_quality.index,
+        orientation='h',
+        marker=dict(
+            color=col_quality.values,
+            colorscale=[[0, 'red'], [0.5, 'yellow'], [1, 'green']],
+            line=dict(color='rgba(0,0,0,0)', width=1)
+        ),
+        text=[f"{v*100:.1f}%" for v in col_quality.values],
+        textposition='inside'
+    ))
+
+    fig.update_layout(
+        title="🔝 Column Pass Rate",
+        xaxis_title="Pass Rate (%)",
+        yaxis_title="Column",
+        yaxis=dict(autorange="reversed"),
+        height=450,
+        margin=dict(l=50, r=20, t=60, b=50),
+        showlegend=False
+    )
+    return fig
+
+
+
+
+def _render_trend_analysis(summary: pd.DataFrame):
+    """Análise de tendências e padrões"""
+    if 'column' not in summary.columns or 'pass_rate' not in summary.columns:
+        return
+
+    # Heatmap de qualidade por coluna
+    quality_pivot = summary.pivot_table(
+        values='pass_rate',
+        index='column',
+        columns='rule',
+        aggfunc='mean'
+    ).fillna(0) * 100
+
+    fig = px.imshow(
+        quality_pivot,
+        aspect="auto",
+        color_continuous_scale="RdYlGn",
+        title="🔥 Quality Heatmap - Columns vs Rules"
+    )
+
+    fig.update_layout(height=400)
+    return fig
+
+
+# =============================================================================
+# SIDEBAR FODA
+# =============================================================================
+
+def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
+    """Sidebar com filtros avançados"""
+    with st.sidebar:
+        st.markdown("## 🎛️ CONTROL PANEL")
+
+        # Filtro de status
+        status_options = summary["status"].unique().tolist()
+        selected_status = st.multiselect(
+            "**FILTER BY STATUS**",
+            options=status_options,
+            default=status_options,
+            help="Select status types to display"
+        )
+
+        # Filtro de coluna
+        column_options = summary["column"].unique().tolist()
+        selected_columns = st.multiselect(
+            "**FILTER BY COLUMN**",
+            options=column_options,
+            default=column_options,
+            help="Select specific columns"
+        )
+
+        # Filtro de regra
+        rule_options = summary["rule"].unique().tolist()
+        selected_rules = st.multiselect(
+            "**FILTER BY RULE**",
+            options=rule_options,
+            default=rule_options,
+            help="Select validation rules"
+        )
+
+        # Search avançado
+        search_term = st.text_input(
+            "**🔍 SMART SEARCH**",
+            "",
+            placeholder="Search columns, rules, patterns..."
+        )
+
+        # Filtro de qualidade
+        min_quality = st.slider(
+            "**MINIMUM PASS RATE**",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.1,
+            help="Filter by minimum pass rate threshold"
+        )
+
+        st.markdown("---")
+        st.markdown("### 📊 QUICK ACTIONS")
+
+        if st.button("🔄 EXPORT FULL REPORT", use_container_width=True):
+            st.session_state.export_full = True
+
+        if st.button("📧 GENERATE SUMMARY", use_container_width=True):
+            st.session_state.generate_summary = True
+
+        return selected_status, selected_columns, selected_rules, search_term, min_quality
+
+
+# =============================================================================
+# DASHBOARD PRINCIPAL
+# =============================================================================
+
+def _render_dashboard(results: Dict[str, Any]):
+    """Renderiza o dashboard completo"""
     summary_data = results.get("summary", [])
     metadata = results.get("metadata", {})
 
-    # Convert to DataFrame if it's a list
+    # Converte para DataFrame
     if isinstance(summary_data, list):
         summary = pd.DataFrame(summary_data)
     else:
         summary = summary_data
 
     if summary.empty:
-        st.warning("No validation results to display")
+        st.error("🚫 No validation results to display")
         return
 
-    # Header
-    st.title("🔍 Data Quality Validation Report")
+    # Setup inicial
+    _setup_awesome_style()
 
-    from datetime import datetime
-    st.markdown(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    # Header épico
+    _render_hero_header(metadata)
 
-    # Metadata
-    with st.expander("📊 Dataset Information", expanded=True):
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Data Source", metadata.get("data_source", "N/A"))
-        col2.metric("Total Rows", f"{metadata.get('total_rows', 0):,}")
-        col3.metric("Engine", metadata.get("engine", "pandas"))
+    # KPIs foda
+    _render_kpi_cards(summary)
 
-    st.divider()
+    st.markdown("---")
 
-    # Summary metrics
-    total_checks = len(summary)
-    passed = (summary["status"] == "PASS").sum()
-    failed = (summary["status"] == "FAIL").sum()
-    pass_rate = (passed / total_checks * 100) if total_checks > 0 else 0
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric("Total Checks", total_checks)
-    col2.metric("✅ Passed", passed, delta=f"{pass_rate:.1f}%")
-    col3.metric("❌ Failed", failed, delta=f"-{100-pass_rate:.1f}%")
-    col4.metric("Pass Rate", f"{pass_rate:.1f}%")
-
-    # Status indicator
-    if failed > 0:
-        st.error(f"⚠️ {failed} check(s) failed")
-    else:
-        st.success("✅ All checks passed!")
-
-    st.divider()
-
-    # Visualizations
-    try:
-        import plotly.express as px
-        import plotly.graph_objects as go
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("Status Distribution")
-
-            status_counts = summary["status"].value_counts()
-            fig_pie = px.pie(
-                values=status_counts.values,
-                names=status_counts.index,
-                color=status_counts.index,
-                color_discrete_map={"PASS": "#4caf50", "FAIL": "#f44336"},
-                hole=0.4
-            )
-            fig_pie.update_layout(showlegend=True, height=300)
-            st.plotly_chart(fig_pie, use_container_width=True)
-
-        with col2:
-            st.subheader("Pass Rate by Check")
-
-            summary_sorted = summary.sort_values("pass_rate")
-            fig_bar = px.bar(
-                summary_sorted,
-                x="pass_rate",
-                y="column",
-                orientation="h",
-                color="status",
-                color_discrete_map={"PASS": "#4caf50", "FAIL": "#f44336"},
-                labels={"pass_rate": "Pass Rate", "column": "Column"}
-            )
-            fig_bar.update_layout(showlegend=False, height=300)
-            st.plotly_chart(fig_bar, use_container_width=True)
-
-    except ImportError:
-        st.warning("Install plotly for charts: `pip install plotly`")
-
-    st.divider()
-
-    # Filters
-    st.subheader("📋 Detailed Results")
-
+    # Visualizações
     col1, col2 = st.columns(2)
+
     with col1:
-        status_filter = st.multiselect(
-            "Filter by Status",
-            options=summary["status"].unique().tolist(),
-            default=summary["status"].unique().tolist()
-        )
+        fig_radar = _render_quality_bars(summary)
+        if fig_radar:
+            st.plotly_chart(fig_radar, use_container_width=True)
 
     with col2:
-        search = st.text_input("Search column/rule", "")
+        fig_trend = _render_trend_analysis(summary)
+        if fig_trend:
+            st.plotly_chart(fig_trend, use_container_width=True)
 
-    # Apply filters
-    filtered = summary[summary["status"].isin(status_filter)]
+    # Filtros
+    selected_status, selected_columns, selected_rules, search_term, min_quality = _render_sidebar_filters(summary)
 
-    if search:
-        filtered = filtered[
-            filtered["column"].astype(str).str.contains(search, case=False, na=False) |
-            filtered["rule"].astype(str).str.contains(search, case=False, na=False)
+    # Aplica filtros
+    filtered_data = summary[
+        summary["status"].isin(selected_status) &
+        summary["column"].isin(selected_columns) &
+        summary["rule"].isin(selected_rules) &
+        (summary["pass_rate"] >= min_quality)
         ]
 
-    # Results table
+    if search_term:
+        filtered_data = filtered_data[
+            filtered_data["column"].astype(str).str.contains(search_term, case=False, na=False) |
+            filtered_data["rule"].astype(str).str.contains(search_term, case=False, na=False)
+            ]
+
+    # Tabela de resultados
+    st.markdown("## 📋 DETAILED VALIDATION RESULTS")
+
+    # Estatísticas dos filtros
+    st.info(f"**Showing {len(filtered_data)} of {len(summary)} checks** "
+            f"({len(filtered_data) / len(summary) * 100:.1f}% of total)")
+
+    # Tabela estilizada
     st.dataframe(
-        filtered,
+        filtered_data,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "status": st.column_config.TextColumn("Status", width="small"),
+            "status": st.column_config.TextColumn(
+                "Status",
+                width="small",
+                help="Validation status"
+            ),
             "pass_rate": st.column_config.ProgressColumn(
                 "Pass Rate",
                 format="%.1f%%",
                 min_value=0,
                 max_value=1,
+                help="Percentage of passing validations"
             ),
-            "violations": st.column_config.NumberColumn("Violations", format="%d"),
+            "violations": st.column_config.NumberColumn(
+                "Violations",
+                format="%d",
+                help="Number of rule violations"
+            ),
+            "column": st.column_config.TextColumn(
+                "Column",
+                width="medium",
+                help="Data column being validated"
+            ),
+            "rule": st.column_config.TextColumn(
+                "Rule",
+                width="large",
+                help="Validation rule applied"
+            )
         }
     )
 
-    # Failed checks detail
-    if failed > 0:
-        st.divider()
-        st.subheader("❌ Failed Checks Detail")
+    # Seção de exportação
+    _render_export_section(filtered_data, metadata)
 
-        failed_df = summary[summary["status"] == "FAIL"]
 
-        for idx, row in failed_df.iterrows():
-            with st.expander(f"🔴 {row['column']} - {row['rule']}"):
-                col1, col2, col3 = st.columns(3)
-                col1.metric("Pass Rate", f"{row.get('pass_rate', 0)*100:.1f}%")
-                col2.metric("Violations", f"{row.get('violations', 0):,}")
-                col3.metric("Total Rows", f"{row.get('rows', 0):,}")
+def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
+    st.markdown("---")
+    st.markdown("## 💾 EXPORT & SHARE")
 
-                st.markdown(f"**Threshold:** {row.get('pass_threshold', 1.0)*100:.1f}%")
+    col1, col2, col3, col4 = st.columns(4)
 
-    # Download options
-    st.divider()
-    st.subheader("💾 Export Results")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    with col1:
+        csv_data = summary.to_csv(index=False)
+        st.download_button(
+            label="📥 CSV REPORT",
+            data=csv_data,
+            file_name=f"sumeh_report_{timestamp}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
+    with col2:
+        json_data = summary.to_json(orient="records", indent=2)
+        st.download_button(
+            label="📥 JSON DATA",
+            data=json_data,
+            file_name=f"sumeh_data_{timestamp}.json",
+            mime="application/json",
+            use_container_width=True
+        )
+
+    with col3:
+        # Relatório executivo em markdown
+        exec_summary = f"""
+# Sumeh Data Quality Report
+**Generated:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Data Source:** {metadata.get('data_source', 'N/A')}
+**Total Rows:** {metadata.get('total_rows', 0):,}
+**Total Checks:** {len(summary)}
+
+## Executive Summary
+- ✅ **Passed:** {(summary['status'] == 'PASS').sum()} checks
+- ❌ **Failed:** {(summary['status'] == 'FAIL').sum()} checks  
+- 📊 **Overall Quality:** {summary['pass_rate'].mean() * 100:.1f}%
+
+## Top Issues
+"""
+
+        failed_checks = summary[summary['status'] == 'FAIL']
+        if not failed_checks.empty:
+            for _, check in failed_checks.head(5).iterrows():
+                exec_summary += f"- **{check['column']}** - {check['rule']} ({check['pass_rate'] * 100:.1f}%)\n"
+
+        st.download_button(
+            label="📄 EXEC SUMMARY",
+            data=exec_summary,
+            file_name=f"sumeh_exec_summary_{timestamp}.md",
+            mime="text/markdown",
+            use_container_width=True
+        )
+
+    with col4:
+        if st.button("🔄 NEW VALIDATION", use_container_width=True):
+            st.info("Return to CLI and run: `sumeh validate data.csv rules.csv --dashboard`")
+
+
+# =============================================================================
+# ENTRY POINTS
+# =============================================================================
+
+def launch_dashboard(validation_results=None, rules_config=None, summary=None, metadata=None):
+    """
+    Launch the ultimate Sumeh dashboard!
+
+    Args:
+        validation_results: Results from validate() function
+        rules_config: Rules configuration
+        summary: Validation summary
+        metadata: Additional metadata
+    """
+    if validation_results is not None:
+        # Prepara dados para o dashboard
+        results = {
+            "summary": summary if summary is not None else [],
+            "metadata": metadata if metadata is not None else {}
+        }
+
+        # Salva em arquivo temporário
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+            json.dump(results, f, default=str)
+            temp_file = f.name
+
+        # Configura sys.argv para o Streamlit
+        sys.argv = [sys.argv[0], temp_file] if len(sys.argv) == 1 else sys.argv
+
+    # Chama o dashboard
+    main()
+
+
+def main():
+    """Main dashboard entry point"""
+    try:
+        if len(sys.argv) > 1:
+            results_file = sys.argv[1]
+            try:
+                with open(results_file, 'r') as f:
+                    results = json.load(f)
+                _render_dashboard(results)
+            except Exception as e:
+                st.error(f"❌ Error loading results: {e}")
+                _show_usage()
+        else:
+            _show_usage()
+    except Exception as e:
+        st.error(f"💥 Dashboard crashed: {e}")
+        st.info("Please report this issue to the Sumeh team!")
+
+
+def _show_usage():
+    """Mostra instruções de uso de forma épica"""
+    st.markdown("""
+    <div style="text-align: center; padding: 4rem 2rem;">
+        <h1 style="font-size: 4rem; margin-bottom: 1rem;">🚀</h1>
+        <h1>Welcome to Sumeh Dashboard!</h1>
+        <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem;">
+            The ultimate data quality validation experience
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        csv = summary.to_csv(index=False)
-        st.download_button(
-            label="📥 Download CSV",
-            data=csv,
-            file_name=f"validation_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv"
-        )
+        st.markdown("### 🎯 Quick Start")
+        st.code("sumeh validate data.csv rules.csv --dashboard", language="bash")
+
+        st.markdown("""
+        **Supported Formats:**
+        - 📁 CSV, Parquet, JSON, Excel
+        - 🗄️ PostgreSQL, MySQL, SQLite
+        - ⚡ Pandas, Polars, Dask
+        """)
 
     with col2:
-        json_str = summary.to_json(orient="records", indent=2)
-        st.download_button(
-            label="📥 Download JSON",
-            data=json_str,
-            file_name=f"validation_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-            mime="application/json"
-        )
+        st.markdown("### 🛠️ Advanced Usage")
+        st.code("""
+# With custom output
+sumeh validate data.parquet rules.csv \
+  --output results.json \
+  --format json \
+  --dashboard
+
+# With different engine
+sumeh validate data.csv rules.csv \
+  --engine polars \
+  --verbose \
+  --dashboard
+        """.strip(), language="bash")
+
+    st.markdown("---")
+    st.markdown("### 📚 Learn More")
+
+    col3, col4, col5 = st.columns(3)
+
+    with col3:
+        st.markdown("**📖 Documentation**  \n"
+                    "Complete guides and examples")
+
+    with col4:
+        st.markdown("**🐛 Issue Tracking**  \n"
+                    "Report bugs and request features")
+
+    with col5:
+        st.markdown("**💡 Examples**  \n"
+                    "Real-world use cases and patterns")
 
 
 if __name__ == "__main__":

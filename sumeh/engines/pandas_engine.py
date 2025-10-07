@@ -284,7 +284,7 @@ def is_greater_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       An additional column 'dq_status' is added to indicate the rule applied in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    viol = df[df[field] > value].copy()
+    viol = df[df[field] <= value].copy()
     viol["dq_status"] = f"{field}:{check}:{value}"
     return viol
 
@@ -307,7 +307,7 @@ def is_greater_or_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         with an additional 'dq_status' column describing the rule applied.
     """
     field, check, value = __extract_params(rule)
-    viol = df[df[field] >= value].copy()
+    viol = df[df[field] < value].copy()
     viol["dq_status"] = f"{field}:{check}:{value}"
     return viol
 
@@ -329,7 +329,7 @@ def is_less_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         the rule applied in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    viol = df[df[field] < value].copy()
+    viol = df[df[field] >= value].copy()
     viol["dq_status"] = f"{field}:{check}:{value}"
     return viol
 
@@ -351,7 +351,7 @@ def is_less_or_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       in the format "{field}:{check}:{value}".
     """
     field, check, value = __extract_params(rule)
-    viol = df[df[field] <= value].copy()
+    viol = df[df[field] > value].copy()
     viol["dq_status"] = f"{field}:{check}:{value}"
     return viol
 
@@ -1262,11 +1262,29 @@ def validate(df: pd.DataFrame, rules: list[dict]) -> Tuple[pd.DataFrame, pd.Data
             continue
         viol = fn(df, rule)
         raw_list.append(viol)
+
     raw = (
         pd.concat(raw_list, ignore_index=True)
         if raw_list
         else pd.DataFrame(columns=df.columns)
     )
+
+    if raw.empty or "dq_status" not in raw.columns:
+
+        executed_rules = [r for r in rules if r.get("execute", True)]
+        warnings.warn(
+            f"No validation results generated.\n"
+            f"  Total rules: {len(rules)}\n"
+            f"  Rules with execute=True: {len(executed_rules)}\n"
+            f"  Rules executed: 0\n"
+            f"  Data columns: {list(df.columns)}\n"
+            f"  Possible causes:\n"
+            f"    - Rule columns don't exist in data\n"
+            f"    - All rules have execute=False\n"
+            f"    - All check_type functions returned empty results"
+        )
+        return df.drop(columns=["_id"]), pd.DataFrame()
+
     summary = raw.groupby("_id")["dq_status"].agg(";".join).reset_index()
     out = df.merge(summary, on="_id", how="left").drop(columns=["_id"])
     return out, raw

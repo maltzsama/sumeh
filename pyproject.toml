@@ -60,6 +60,11 @@ mypy = "^1.0.0"
 coverage = "^7.0.0"
 
 [tool.poetry.extras]
+dashboard = [
+    "streamlit",
+    "plotly"
+]
+
 dev = [
     "coverage",
     "mypy",

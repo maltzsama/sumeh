@@ -377,10 +377,11 @@ Examples:
                 sys.argv = ["streamlit", "run", str(dash_path), "--", temp_file.name]
                 sys.exit(stcli.main())
 
-            except ImportError:
+            except ImportError as e:
                 print("\n⚠️  Dashboard requires streamlit. Install with:", file=sys.stderr)
                 print("   poetry install --with dashboard", file=sys.stderr)
                 print("   or: pip install streamlit plotly", file=sys.stderr)
+                print(e)
                 sys.exit(1)
 
     except FileNotFoundError as e:
