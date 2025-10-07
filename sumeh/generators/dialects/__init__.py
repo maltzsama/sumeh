@@ -9,6 +9,7 @@ from .athena import AthenaDialect
 from .sqlite import SQLiteDialect
 from .snowflake import SnowflakeDialect
 from .redshift import RedshiftDialect
+from .databricks import DatabricksDialect
 
 __all__ = [
     "BaseDialect",
@@ -20,4 +21,5 @@ __all__ = [
     "SQLiteDialect",
     "SnowflakeDialect",
     "RedshiftDialect",
+    "DatabricksDialect",
 ]

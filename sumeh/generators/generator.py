@@ -10,6 +10,7 @@ from .dialects import (
     SQLiteDialect,
     SnowflakeDialect,
     RedshiftDialect,
+    DatabricksDialect,
 )
 
 
@@ -26,6 +27,7 @@ class SQLGenerator:
         "sqlite": SQLiteDialect,
         "snowflake": SnowflakeDialect,
         "redshift": RedshiftDialect,
+        "databricks": DatabricksDialect
     }
 
     TABLE_SCHEMAS = {
