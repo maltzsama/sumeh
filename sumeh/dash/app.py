@@ -2,20 +2,19 @@
 
 import streamlit as st
 import pandas as pd
-import numpy as np
+
 import sys
 import json
 import tempfile
-from pathlib import Path
+
 from datetime import datetime
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Tuple
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
 
 
 def _setup_awesome_style():
-    """Configura o estilo foda do dashboard"""
     st.set_page_config(
         page_title="🚀 Sumeh - Data Quality Intelligence",
         page_icon="🔍",
@@ -70,14 +69,12 @@ def _setup_awesome_style():
 
 
 def _render_hero_header(metadata: Dict[str, Any]):
-    """Header épico com gradiente e animação"""
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
         st.markdown('<h1 class="main-header">🚀 SUMEH DATA QUALITY</h1>',
                     unsafe_allow_html=True)
 
-        # Badges de status
         st.markdown(f"""
         <div style="text-align: center; margin-bottom: 2rem;">
             <span style="background: #4ECDC4; color: white; padding: 0.5rem 1rem; border-radius: 20px; margin: 0 0.5rem;">
@@ -94,7 +91,6 @@ def _render_hero_header(metadata: Dict[str, Any]):
 
 
 def _render_kpi_cards(summary: pd.DataFrame):
-    """Cards de KPI com visual foda"""
     total_checks = len(summary)
     passed = (summary["status"] == "PASS").sum()
     failed = (summary["status"] == "FAIL").sum()
@@ -153,7 +149,6 @@ def _render_kpi_cards(summary: pd.DataFrame):
 
 
 def _render_quality_bars(summary: pd.DataFrame):
-    """Bar chart elegante por coluna, minimalista"""
     if 'column' not in summary.columns or 'pass_rate' not in summary.columns:
         return
 
@@ -186,11 +181,9 @@ def _render_quality_bars(summary: pd.DataFrame):
 
 
 def _render_trend_analysis(summary: pd.DataFrame):
-    """Análise de tendências e padrões"""
     if 'column' not in summary.columns or 'pass_rate' not in summary.columns:
         return
 
-    # Heatmap de qualidade por coluna
     quality_pivot = summary.pivot_table(
         values='pass_rate',
         index='column',
@@ -209,16 +202,11 @@ def _render_trend_analysis(summary: pd.DataFrame):
     return fig
 
 
-# =============================================================================
-# SIDEBAR FODA
-# =============================================================================
-
 def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
-    """Sidebar com filtros avançados"""
+
     with st.sidebar:
         st.markdown("## 🎛️ CONTROL PANEL")
 
-        # Filtro de status
         status_options = summary["status"].unique().tolist()
         selected_status = st.multiselect(
             "**FILTER BY STATUS**",
@@ -227,7 +215,6 @@ def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
             help="Select status types to display"
         )
 
-        # Filtro de coluna
         column_options = summary["column"].unique().tolist()
         selected_columns = st.multiselect(
             "**FILTER BY COLUMN**",
@@ -236,7 +223,6 @@ def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
             help="Select specific columns"
         )
 
-        # Filtro de regra
         rule_options = summary["rule"].unique().tolist()
         selected_rules = st.multiselect(
             "**FILTER BY RULE**",
@@ -245,14 +231,12 @@ def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
             help="Select validation rules"
         )
 
-        # Search avançado
         search_term = st.text_input(
             "**🔍 SMART SEARCH**",
             "",
             placeholder="Search columns, rules, patterns..."
         )
 
-        # Filtro de qualidade
         min_quality = st.slider(
             "**MINIMUM PASS RATE**",
             min_value=0.0,
@@ -273,17 +257,10 @@ def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
 
         return selected_status, selected_columns, selected_rules, search_term, min_quality
 
-
-# =============================================================================
-# DASHBOARD PRINCIPAL
-# =============================================================================
-
 def _render_dashboard(results: Dict[str, Any]):
-    """Renderiza o dashboard completo"""
     summary_data = results.get("summary", [])
     metadata = results.get("metadata", {})
 
-    # Converte para DataFrame
     if isinstance(summary_data, list):
         summary = pd.DataFrame(summary_data)
     else:
@@ -293,18 +270,14 @@ def _render_dashboard(results: Dict[str, Any]):
         st.error("🚫 No validation results to display")
         return
 
-    # Setup inicial
     _setup_awesome_style()
 
-    # Header épico
     _render_hero_header(metadata)
 
-    # KPIs foda
     _render_kpi_cards(summary)
 
     st.markdown("---")
 
-    # Visualizações
     col1, col2 = st.columns(2)
 
     with col1:
@@ -317,10 +290,8 @@ def _render_dashboard(results: Dict[str, Any]):
         if fig_trend:
             st.plotly_chart(fig_trend, use_container_width=True)
 
-    # Filtros
     selected_status, selected_columns, selected_rules, search_term, min_quality = _render_sidebar_filters(summary)
 
-    # Aplica filtros
     filtered_data = summary[
         summary["status"].isin(selected_status) &
         summary["column"].isin(selected_columns) &
@@ -334,14 +305,11 @@ def _render_dashboard(results: Dict[str, Any]):
             filtered_data["rule"].astype(str).str.contains(search_term, case=False, na=False)
             ]
 
-    # Tabela de resultados
     st.markdown("## 📋 DETAILED VALIDATION RESULTS")
 
-    # Estatísticas dos filtros
     st.info(f"**Showing {len(filtered_data)} of {len(summary)} checks** "
             f"({len(filtered_data) / len(summary) * 100:.1f}% of total)")
 
-    # Tabela estilizada
     st.dataframe(
         filtered_data,
         use_container_width=True,
@@ -377,7 +345,6 @@ def _render_dashboard(results: Dict[str, Any]):
         }
     )
 
-    # Seção de exportação
     _render_export_section(filtered_data, metadata)
 
 
@@ -410,7 +377,6 @@ def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
         )
 
     with col3:
-        # Relatório executivo em markdown
         exec_summary = f"""
 # Sumeh Data Quality Report
 **Generated:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -444,11 +410,7 @@ def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
             st.info("Return to CLI and run: `sumeh validate data.csv rules.csv --dashboard`")
 
 
-# =============================================================================
-# ENTRY POINTS
-# =============================================================================
-
-def launch_dashboard(validation_results=None, rules_config=None, summary=None, metadata=None):
+def launch_dashboard(validation_results=None, summary=None, metadata=None):
     """
     Launch the ultimate Sumeh dashboard!
 
@@ -459,26 +421,21 @@ def launch_dashboard(validation_results=None, rules_config=None, summary=None, m
         metadata: Additional metadata
     """
     if validation_results is not None:
-        # Prepara dados para o dashboard
         results = {
             "summary": summary if summary is not None else [],
             "metadata": metadata if metadata is not None else {}
         }
 
-        # Salva em arquivo temporário
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
             json.dump(results, f, default=str)
             temp_file = f.name
 
-        # Configura sys.argv para o Streamlit
         sys.argv = [sys.argv[0], temp_file] if len(sys.argv) == 1 else sys.argv
 
-    # Chama o dashboard
     main()
 
 
 def main():
-    """Main dashboard entry point"""
     try:
         if len(sys.argv) > 1:
             results_file = sys.argv[1]
@@ -497,7 +454,6 @@ def main():
 
 
 def _show_usage():
-    """Mostra instruções de uso de forma épica"""
     st.markdown("""
     <div style="text-align: center; padding: 4rem 2rem;">
         <h1 style="font-size: 4rem; margin-bottom: 1rem;">🚀</h1>

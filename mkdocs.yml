@@ -33,11 +33,16 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          # setup_commands:
-          #   - import sys; sys.path.insert(0, ".")
           options:
-            members: true
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
             show_root_toc_entry: false
+            show_signature_annotations: true
+            line_length: 88
+            merge_init_into_class: true
+            separate_signature: true
+            show_docstring_description: true
 
 
 nav:

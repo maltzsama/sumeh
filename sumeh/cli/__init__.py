@@ -1,4 +1,26 @@
-"""CLI commands for sumeh."""
+"""
+Sumeh Command-Line Interface (CLI)
+
+This module provides the command-line tools for the Sumeh Data Quality framework.
+
+It exposes multiple entry points for different purposes:
+- **config** — launches a lightweight web interface (via Streamlit) for setup and exploration.
+- **sql** — generates SQL DDL definitions for Sumeh metadata tables in multiple dialects.
+- **validate** — validates datasets against quality rules and produces reports or dashboards.
+
+Each command is designed to be modular and extensible, supporting multiple engines and formats.
+
+Example usage:
+    ```bash
+    sumeh config
+    sumeh sql --table rules --dialect postgres
+    sumeh validate data.csv rules.csv --dashboard --engine polars
+    ```
+Environment:
+    The CLI can run in any environment with Python 3.9+.
+    For dashboard rendering, Streamlit and Plotly are required.
+"""
+
 
 import os
 import webbrowser
@@ -10,20 +32,22 @@ from socketserver import TCPServer
 
 def serve_index():
     """
-    Serves the index.html file for initial configuration and opens it in a browser.
+    Serve the local Sumeh configuration UI.
 
-    This function determines the path to the 'index.html' file, changes the
-    working directory to the appropriate location, and starts a simple HTTP server
-    to serve the file. It also automatically opens the served page in the default
-    web browser.
+    Starts a simple HTTP server on http://localhost:8000 and serves the static
+    configuration interface (index.html) located in `sumeh/dash/`.
+    Automatically opens the page in the default browser.
 
-    The server runs on localhost at port 8000. The process continues until
-    interrupted by the user (via a KeyboardInterrupt), at which point the server
-    shuts down.
+    This command is primarily used for initial setup or demo purposes.
 
-    Raises:
-        KeyboardInterrupt: If the server is manually interrupted by the user.
+    Usage:
+        sumeh config
+
+    Notes:
+        - Press Ctrl+C to stop the local server.
+        - Runs only on localhost; not intended for production deployment.
     """
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, "dash")
 
@@ -45,10 +69,28 @@ def serve_index():
 
 def generate_sql():
     """
-    Generate SQL DDL statements for sumeh tables.
+    Generate SQL DDL statements for Sumeh system tables.
 
-    Supports multiple SQL dialects and can generate DDL for individual tables
-    or all tables at once.
+    Allows exporting table definitions (e.g., `rules`, `schema_registry`)
+    in multiple SQL dialects, including PostgreSQL, BigQuery, DuckDB, Snowflake, etc.
+
+    The output can be printed to stdout or saved to a file via `--output`.
+
+    Usage examples:
+        ```bash
+        sumeh sql --table rules --dialect postgres
+        sumeh sql --table schema_registry --dialect bigquery --schema mydataset
+        sumeh sql --list-dialects
+        sumeh sql --list-tables
+        ```
+    Supported dialects:
+        postgres, mysql, bigquery, duckdb, athena, sqlite, snowflake, redshift
+
+    Supported tables:
+        rules, schema_registry, all
+
+    Raises:
+        SystemExit: If invalid arguments or generation errors occur.
     """
     from sumeh.generators import SQLGenerator
 
@@ -197,7 +239,33 @@ Supported tables:
 
 
 def run_validation():
-    """Execute validation command."""
+    """
+    Validate datasets against Sumeh quality rules.
+
+    Executes a complete validation pipeline:
+      1. Loads dataset and rules.
+      2. Runs validation using the selected DataFrame engine.
+      3. Summarizes results and generates reports or dashboards.
+
+    Supports multiple output formats and engines.
+
+    Args:
+        None. Command-line arguments are parsed automatically.
+
+    Supported Engines:
+        - pandas
+        - polars
+        - dask
+
+    Examples:
+        ```bash
+        sumeh validate data.csv rules.csv
+        sumeh validate data.parquet rules.csv --output results.json
+        sumeh validate data.csv rules.csv --dashboard
+        sumeh validate data.csv rules.csv --engine polars --verbose
+        ```
+    """
+
     from sumeh.core.io import load_data, save_results
     from sumeh.core import get_rules_config
     from sumeh.core.validation import validate
@@ -397,7 +465,25 @@ Examples:
 
 
 def main():
-    """Main CLI entry point."""
+    """
+    Sumeh CLI entry point.
+
+    Dispatches subcommands to their respective handlers:
+        config   → serve_index()
+        sql      → generate_sql()
+        validate → run_validation()
+
+    Example:
+        sumeh validate data.csv rules.csv --dashboard
+
+    The command is also registered as the default entry point
+    when Sumeh is installed via pip or Poetry.
+
+    See:
+        `sumeh --help` for global options.
+        `sumeh <command> --help` for command-specific usage.
+    """
+
     parser = argparse.ArgumentParser(
         description="Sumeh CLI tools",
         formatter_class=argparse.RawDescriptionHelpFormatter,

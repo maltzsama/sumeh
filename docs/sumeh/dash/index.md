@@ -1,3 +1,3 @@
-# index
+# dash
 
-::: sumeh.dash
+::: sumeh.dash.app
