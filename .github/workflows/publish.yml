@@ -1,3 +1,5 @@
+name: Publish Python Package
+
 on:
   push:
     branches:
@@ -5,7 +7,34 @@ on:
       - 'release/*'
 
 jobs:
-  release:
+  release-test:
+    if: startsWith(github.ref_name, 'release/')
+    runs-on: ubuntu-latest
+    environment: test-release
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - run: pip install poetry
+      - run: |
+          poetry install --no-root
+          pip install python-semantic-release
+
+      - name: Run semantic-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          PYPI_REPOSITORY: testpypi
+        run: semantic-release publish
+
+  release-prod:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     environment: release
 
@@ -27,5 +56,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-          PYPI_REPOSITORY: ${{ github.ref_name == 'main' && 'pypi' || 'testpypi' }}
+          PYPI_REPOSITORY: pypi
         run: semantic-release publish
