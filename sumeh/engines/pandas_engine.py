@@ -115,7 +115,6 @@ Functions:
 import warnings
 import re
 import pandas as pd
-import numpy as np
 from datetime import datetime, date, timedelta
 from sumeh.core.utils import (
     __convert_value,
@@ -123,6 +122,7 @@ from sumeh.core.utils import (
     __compare_schemas,
     __transform_date_format_in_pattern,
 )
+
 from typing import List, Dict, Any, Tuple
 import uuid
 import numpy as np

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import List, Dict, Any, Tuple, Optional
-from typing import Optional
+import ast
 
 
 def __convert_value(value):
@@ -39,6 +39,22 @@ def __extract_params(rule: dict) -> tuple:
     rule_name = rule["check_type"]
     field = rule["field"]
     raw_value = rule.get("value")
+
+    if isinstance(field, str):
+        field_str = field.strip()
+        if field_str.startswith("[") and field_str.endswith("]"):
+            try:
+                parsed = ast.literal_eval(field_str)
+                if isinstance(parsed, (list, tuple)):
+                    field = list(parsed)
+                else:
+                    field = [field_str]
+            except Exception:
+                field = field_str
+        else:
+
+            field = field_str
+
     if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
         try:
             value = __convert_value(raw_value)
@@ -47,6 +63,7 @@ def __extract_params(rule: dict) -> tuple:
     else:
         value = raw_value
     value = value if value not in (None, "", "NULL") else ""
+
     return field, rule_name, value
 
 
@@ -162,3 +179,39 @@ def __transform_date_format_in_pattern(date_format):
         date_pattern = date_pattern.replace(single_format, pattern)
 
     return date_pattern
+
+
+def __detect_engine(df):
+    """
+    Detects the engine type of the given DataFrame based on its module.
+
+    Args:
+        df: The DataFrame object whose engine type is to be detected.
+
+    Returns:
+        str: A string representing the detected engine type. Possible values are:
+            - "pyspark_engine" for PySpark DataFrames
+            - "dask_engine" for Dask DataFrames
+            - "polars_engine" for Polars DataFrames
+            - "pandas_engine" for Pandas DataFrames
+            - "duckdb_engine" for DuckDB or BigQuery DataFrames
+
+    Raises:
+        TypeError: If the DataFrame type is unsupported.
+    """
+    mod = df.__class__.__module__
+    match mod:
+        case m if m.startswith("pyspark"):
+            return "pyspark_engine"
+        case m if m.startswith("dask"):
+            return "dask_engine"
+        case m if m.startswith("polars"):
+            return "polars_engine"
+        case m if m.startswith("pandas"):
+            return "pandas_engine"
+        case m if m.startswith("duckdb"):
+            return "duckdb_engine"
+        case m if m.startswith("bigquery"):
+            return "duckdb_engine"
+        case _:
+            raise TypeError(f"Unsupported DataFrame type: {type(df)}")

@@ -27,7 +27,7 @@ class SQLGenerator:
         "sqlite": SQLiteDialect,
         "snowflake": SnowflakeDialect,
         "redshift": RedshiftDialect,
-        "databricks": DatabricksDialect
+        "databricks": DatabricksDialect,
     }
 
     TABLE_SCHEMAS = {

@@ -92,7 +92,7 @@ class DatabricksDialect(BaseDialect):
         """
         Format default value for Databricks.
 
-        Databricks supports DEFAULT clause since DBR 8.0+.
+        Detects SQL functions automatically (e.g., CURRENT_TIMESTAMP, NOW(), etc).
 
         Args:
             col_def: Column definition with optional 'default' key
@@ -104,11 +104,13 @@ class DatabricksDialect(BaseDialect):
             >>> dialect = DatabricksDialect()
             >>> dialect.format_default({"default": "active"})
             "DEFAULT 'active'"
+            >>> dialect.format_default({"default": "current_timestamp"})
+            'DEFAULT CURRENT_TIMESTAMP'
             >>> dialect.format_default({"default": True})
             'DEFAULT TRUE'
-            >>> dialect.format_default({"default": 0})
-            'DEFAULT 0'
         """
+        import re
+
         if "default" not in col_def:
             return ""
 
@@ -116,11 +118,25 @@ class DatabricksDialect(BaseDialect):
 
         if default_val is None:
             return ""
-        elif isinstance(default_val, str):
-            return f"DEFAULT '{default_val}'"
         elif isinstance(default_val, bool):
             return f"DEFAULT {str(default_val).upper()}"
+        elif isinstance(default_val, str):
+            # Check if it's a SQL function:
+            # - Ends with () → function call like NOW()
+            # - Matches known SQL keywords → CURRENT_TIMESTAMP, CURRENT_DATE, etc
+            is_function = default_val.endswith("()") or re.match(
+                r"^(current_timestamp|current_date|current_time|current_user)$",
+                default_val,
+                re.IGNORECASE,
+            )
+
+            if is_function:
+                return f"DEFAULT {default_val.upper()}"
+            else:
+                # Regular string literal - quote it
+                return f"DEFAULT '{default_val}'"
         else:
+            # Numbers
             return f"DEFAULT {default_val}"
 
     def _build_column_definition(self, col: Dict[str, Any]) -> str:
@@ -134,17 +150,6 @@ class DatabricksDialect(BaseDialect):
 
         Returns:
             Formatted column definition
-
-        Examples:
-            >>> dialect = DatabricksDialect()
-            >>> col = {
-            ...     "name": "id",
-            ...     "type": "integer",
-            ...     "nullable": False,
-            ...     "comment": "Primary key"
-            ... }
-            >>> dialect._build_column_definition(col)
-            "`id` BIGINT NOT NULL COMMENT 'Primary key'"
         """
         parts = [f"`{col['name']}`", self.map_type(col)]
 
@@ -164,12 +169,12 @@ class DatabricksDialect(BaseDialect):
         return " ".join(parts)
 
     def generate_ddl(
-            self, table_name: str, columns, schema: str = None, **kwargs
+        self, table_name: str, columns, schema: str = None, **kwargs
     ) -> str:
         """
         Generate Databricks DDL with Delta Lake features.
 
-        Supports Unity Catalog, partitioning, clustering, and external tables.
+        Automatically enables allowColumnDefaults feature if any column has defaults.
 
         Args:
             table_name: Name of the table
@@ -190,44 +195,9 @@ class DatabricksDialect(BaseDialect):
             >>> dialect = DatabricksDialect()
             >>> columns = [
             ...     {"name": "id", "type": "integer", "nullable": False},
-            ...     {"name": "name", "type": "varchar", "nullable": True}
+            ...     {"name": "created_at", "type": "timestamp", "default": "current_timestamp"}
             ... ]
-            >>>
-            >>> # Basic table
             >>> ddl = dialect.generate_ddl("users", columns)
-            >>> print(ddl)
-            CREATE TABLE IF NOT EXISTS `users` (
-              `id` BIGINT NOT NULL,
-              `name` STRING
-            )
-            USING DELTA;
-            >>>
-            >>> # With Unity Catalog and partitioning
-            >>> ddl = dialect.generate_ddl(
-            ...     "users",
-            ...     columns,
-            ...     schema="analytics",
-            ...     catalog="prod",
-            ...     partition_by="created_date",
-            ...     cluster_by=["user_id", "status"]
-            ... )
-            >>> print(ddl)
-            CREATE TABLE IF NOT EXISTS `prod`.`analytics`.`users` (
-              `id` BIGINT NOT NULL,
-              `name` STRING
-            )
-            USING DELTA
-            PARTITIONED BY (created_date)
-            CLUSTER BY (user_id, status);
-            >>>
-            >>> # External table
-            >>> ddl = dialect.generate_ddl(
-            ...     "users",
-            ...     columns,
-            ...     schema="default",
-            ...     location="s3://my-bucket/users/",
-            ...     table_comment="User data table"
-            ... )
         """
         # Build full table name with catalog support
         catalog = kwargs.get("catalog")
@@ -278,12 +248,26 @@ class DatabricksDialect(BaseDialect):
         if "table_comment" in kwargs:
             ddl += f"\nCOMMENT '{kwargs['table_comment']}'"
 
-        # Table properties (optional)
-        if "properties" in kwargs:
-            props = kwargs["properties"]
-            if isinstance(props, dict):
-                props_str = ", ".join([f"'{k}' = '{v}'" for k, v in props.items()])
-                ddl += f"\nTBLPROPERTIES ({props_str})"
+        # Table properties
+        properties = kwargs.get("properties", {})
+
+        # Check if any column has defaults
+        has_defaults = any(
+            "default" in col and col["default"] is not None for col in columns
+        )
+
+        # Auto-enable allowColumnDefaults if needed
+        if has_defaults:
+            properties["delta.feature.allowColumnDefaults"] = "enabled"
+
+        # Add recommended Delta properties
+        if "delta.columnMapping.mode" not in properties:
+            properties["delta.columnMapping.mode"] = "name"
+
+        # Generate TBLPROPERTIES
+        if properties:
+            props_str = ",\n  ".join([f"'{k}' = '{v}'" for k, v in properties.items()])
+            ddl += f"\nTBLPROPERTIES (\n  {props_str}\n)"
 
         ddl += ";"
 

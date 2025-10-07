@@ -130,7 +130,6 @@ from pyspark.sql.functions import (
     sum,
     countDistinct,
     current_date,
-    monotonically_increasing_id,
     current_timestamp,
     when,
     trim,
@@ -147,7 +146,6 @@ import operator
 from functools import reduce
 
 from sumeh.core.utils import (
-    __convert_value,
     __extract_params,
     __compare_schemas,
     __transform_date_format_in_pattern,

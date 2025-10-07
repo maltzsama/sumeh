@@ -12,10 +12,6 @@ Functions:
     get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
         Retrieves the schema configuration based on the provided data source.
 
-    __detect_engine(df) -> str:
-
-    validate_schema(df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs) -> Tuple[bool, List[Tuple[str, str]]]:
-
     validate(df, rules, **context):
 
     summarize(df, rules: list[dict], **context):
@@ -46,7 +42,7 @@ import warnings
 from importlib import import_module
 from typing import List, Dict, Any, Tuple
 import re
-from .utils import __convert_value
+from .utils import __convert_value, __detect_engine
 from sumeh.core.config import (
     get_config_from_s3,
     get_config_from_csv,
@@ -285,70 +281,6 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             raise ValueError(f"Unknown source: {source}")
 
 
-def __detect_engine(df):
-    """
-    Detects the engine type of the given DataFrame based on its module.
-
-    Args:
-        df: The DataFrame object whose engine type is to be detected.
-
-    Returns:
-        str: A string representing the detected engine type. Possible values are:
-            - "pyspark_engine" for PySpark DataFrames
-            - "dask_engine" for Dask DataFrames
-            - "polars_engine" for Polars DataFrames
-            - "pandas_engine" for Pandas DataFrames
-            - "duckdb_engine" for DuckDB or BigQuery DataFrames
-
-    Raises:
-        TypeError: If the DataFrame type is unsupported.
-    """
-    mod = df.__class__.__module__
-    match mod:
-        case m if m.startswith("pyspark"):
-            return "pyspark_engine"
-        case m if m.startswith("dask"):
-            return "dask_engine"
-        case m if m.startswith("polars"):
-            return "polars_engine"
-        case m if m.startswith("pandas"):
-            return "pandas_engine"
-        case m if m.startswith("duckdb"):
-            return "duckdb_engine"
-        case m if m.startswith("bigquery"):
-            return "duckdb_engine"
-        case _:
-            raise TypeError(f"Unsupported DataFrame type: {type(df)}")
-
-
-def validate_schema(
-    df_or_conn: Any, expected: List[Dict[str, Any]], engine: str, **engine_kwargs
-) -> Tuple[bool, List[Tuple[str, str]]]:
-    """
-    Validates the schema of a given data source or connection against an expected schema.
-
-    Args:
-        df_or_conn (Any): The data source or connection to validate. This can be a DataFrame,
-                          database connection, or other supported data structure.
-        expected (List[Dict[str, Any]]): A list of dictionaries defining the expected schema.
-                                         Each dictionary should describe a column or field,
-                                         including its name, type, and other attributes.
-        engine (str): The name of the engine to use for validation. This determines the
-                      specific validation logic to apply based on the data source type.
-        **engine_kwargs: Additional keyword arguments to pass to the engine's validation logic.
-
-    Returns:
-        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating
-                                            whether the schema is valid, and the second element is
-                                            a list of tuples containing error messages for any
-                                            validation failures. Each tuple consists of the field
-                                            name and the corresponding error message.
-    """
-    engine_name = __detect_engine(df_or_conn)
-    engine = import_module(f"sumeh.engines.{engine_name}")
-    return engine.validate_schema(df_or_conn, expected=expected, **engine_kwargs)
-
-
 def validate(df, rules, **context):
     """
     Validates a DataFrame against a set of rules using the appropriate engine.
@@ -436,7 +368,7 @@ def summarize(df, rules: list[dict], **context):
             return engine.summarize(df, rules, total_rows=context.get("total_rows"))
 
 
-# TODO: refactor to get better performance
+# TODO: refactor to get better performance or remove
 def report(df, rules: list[dict], name: str = "Quality Check"):
     """
     Performs a quality check on the given DataFrame based on the provided rules.
