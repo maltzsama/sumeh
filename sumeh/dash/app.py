@@ -8,13 +8,13 @@ import json
 import tempfile
 
 from datetime import datetime
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Sequence, Optional
 import plotly.express as px
 import plotly.graph_objects as go
 
 
 
-def _setup_awesome_style():
+def _setup_awesome_style(theme: str = "light"):
     st.set_page_config(
         page_title="🚀 Sumeh - Data Quality Intelligence",
         page_icon="🔍",
@@ -22,9 +22,23 @@ def _setup_awesome_style():
         initial_sidebar_state="expanded"
     )
 
-    st.markdown("""
+    if theme == "dark":
+        bg_color = "#121212"
+        text_color = "#f1f1f1"
+        card_shadow = "0 10px 30px rgba(255,255,255,0.1)"
+    else:
+        bg_color = "#ffffff"
+        text_color = "#222222"
+        card_shadow = "0 10px 30px rgba(0,0,0,0.2)"
+
+    st.markdown(f"""
     <style>
-    .main-header {
+    body {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
+
+    .main-header {{
         font-size: 3.5rem !important;
         font-weight: 900 !important;
         background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1);
@@ -32,43 +46,39 @@ def _setup_awesome_style():
         -webkit-text-fill-color: transparent;
         text-align: center;
         margin-bottom: 2rem;
-    }
+    }}
 
-    .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    .metric-card {{
         border-radius: 15px;
         padding: 1.5rem;
         color: white;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
+        box-shadow: {card_shadow};
+    }}
 
-    .success-card {
+    .success-card {{
         background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
-    }
+    }}
 
-    .warning-card {
+    .warning-card {{
         background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
-    }
+    }}
 
-    .danger-card {
+    .danger-card {{
         background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-    }
+    }}
 
-    .stProgress > div > div > div > div {
-        background: linear-gradient(90deg, #4ECDC4 0%, #44A08D 100%);
-    }
-
-    .export-section {
+    .export-section {{
         background: #f8f9fa;
         border-radius: 10px;
         padding: 1.5rem;
         border-left: 5px solid #4ECDC4;
-    }
+    }}
     </style>
     """, unsafe_allow_html=True)
 
 
-def _render_hero_header(metadata: Dict[str, Any]):
+
+def _render_hero_header(metadata: Dict[str, Any]) -> None:
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
@@ -90,16 +100,15 @@ def _render_hero_header(metadata: Dict[str, Any]):
         """, unsafe_allow_html=True)
 
 
-def _render_kpi_cards(summary: pd.DataFrame):
+def _render_kpi_cards(summary: pd.DataFrame) -> None:
     total_checks = len(summary)
     passed = (summary["status"] == "PASS").sum()
     failed = (summary["status"] == "FAIL").sum()
-    warning = (summary["status"] == "WARNING").sum() if "WARNING" in summary["status"].values else 0
 
     pass_rate = (passed / total_checks * 100) if total_checks > 0 else 0
     risk_score = (failed / total_checks * 100) if total_checks > 0 else 0
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.markdown(f"""
@@ -129,15 +138,6 @@ def _render_kpi_cards(summary: pd.DataFrame):
         """, unsafe_allow_html=True)
 
     with col4:
-        st.markdown(f"""
-        <div class="metric-card warning-card">
-            <h3 style="color: white; margin: 0;">⚠️ WARNING</h3>
-            <h1 style="color: white; margin: 0; font-size: 2.5rem;">{warning}</h1>
-            <p style="color: white; margin: 0;">Needs Attention</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col5:
         avg_pass_rate = summary['pass_rate'].mean() * 100 if 'pass_rate' in summary.columns else 0
         st.markdown(f"""
         <div class="metric-card" style="background: linear-gradient(135deg, #a8e6cf 0%, #56ab2f 100%);">
@@ -148,7 +148,7 @@ def _render_kpi_cards(summary: pd.DataFrame):
         """, unsafe_allow_html=True)
 
 
-def _render_quality_bars(summary: pd.DataFrame):
+def _render_quality_bars(summary: pd.DataFrame) -> Optional[go.Figure]:
     if 'column' not in summary.columns or 'pass_rate' not in summary.columns:
         return
 
@@ -178,9 +178,7 @@ def _render_quality_bars(summary: pd.DataFrame):
     return fig
 
 
-
-
-def _render_trend_analysis(summary: pd.DataFrame):
+def _render_trend_analysis(summary: pd.DataFrame) -> Optional[px.imshow]:
     if 'column' not in summary.columns or 'pass_rate' not in summary.columns:
         return
 
@@ -202,7 +200,7 @@ def _render_trend_analysis(summary: pd.DataFrame):
     return fig
 
 
-def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
+def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[Sequence[str], Sequence[str], Sequence[str], Optional[str], float]:
 
     with st.sidebar:
         st.markdown("## 🎛️ CONTROL PANEL")
@@ -249,15 +247,15 @@ def _render_sidebar_filters(summary: pd.DataFrame) -> Tuple[list, str]:
         st.markdown("---")
         st.markdown("### 📊 QUICK ACTIONS")
 
-        if st.button("🔄 EXPORT FULL REPORT", use_container_width=True):
+        if st.button("🔄 EXPORT FULL REPORT", width='content'):
             st.session_state.export_full = True
 
-        if st.button("📧 GENERATE SUMMARY", use_container_width=True):
+        if st.button("📧 GENERATE SUMMARY", width='content'):
             st.session_state.generate_summary = True
 
         return selected_status, selected_columns, selected_rules, search_term, min_quality
 
-def _render_dashboard(results: Dict[str, Any]):
+def _render_dashboard(results: Dict[str, Any]) -> None:
     summary_data = results.get("summary", [])
     metadata = results.get("metadata", {})
 
@@ -270,7 +268,8 @@ def _render_dashboard(results: Dict[str, Any]):
         st.error("🚫 No validation results to display")
         return
 
-    _setup_awesome_style()
+    theme = st.session_state.get("theme", "light")
+    _setup_awesome_style(theme)
 
     _render_hero_header(metadata)
 
@@ -283,12 +282,12 @@ def _render_dashboard(results: Dict[str, Any]):
     with col1:
         fig_radar = _render_quality_bars(summary)
         if fig_radar:
-            st.plotly_chart(fig_radar, use_container_width=True)
+            st.plotly_chart(fig_radar, width='content')
 
     with col2:
         fig_trend = _render_trend_analysis(summary)
         if fig_trend:
-            st.plotly_chart(fig_trend, use_container_width=True)
+            st.plotly_chart(fig_trend, width='content')
 
     selected_status, selected_columns, selected_rules, search_term, min_quality = _render_sidebar_filters(summary)
 
@@ -312,7 +311,7 @@ def _render_dashboard(results: Dict[str, Any]):
 
     st.dataframe(
         filtered_data,
-        use_container_width=True,
+        width='content',
         hide_index=True,
         column_config={
             "status": st.column_config.TextColumn(
@@ -348,7 +347,7 @@ def _render_dashboard(results: Dict[str, Any]):
     _render_export_section(filtered_data, metadata)
 
 
-def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
+def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]) -> None:
     st.markdown("---")
     st.markdown("## 💾 EXPORT & SHARE")
 
@@ -363,7 +362,7 @@ def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
             data=csv_data,
             file_name=f"sumeh_report_{timestamp}.csv",
             mime="text/csv",
-            use_container_width=True
+            width='content'
         )
 
     with col2:
@@ -373,7 +372,7 @@ def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
             data=json_data,
             file_name=f"sumeh_data_{timestamp}.json",
             mime="application/json",
-            use_container_width=True
+            width='content'
         )
 
     with col3:
@@ -402,15 +401,15 @@ def _render_export_section(summary: pd.DataFrame, metadata: Dict[str, Any]):
             data=exec_summary,
             file_name=f"sumeh_exec_summary_{timestamp}.md",
             mime="text/markdown",
-            use_container_width=True
+            width='content'
         )
 
     with col4:
-        if st.button("🔄 NEW VALIDATION", use_container_width=True):
+        if st.button("🔄 NEW VALIDATION", width='content'):
             st.info("Return to CLI and run: `sumeh validate data.csv rules.csv --dashboard`")
 
 
-def launch_dashboard(validation_results=None, summary=None, metadata=None):
+def launch_dashboard(validation_results=None, summary=None, metadata=None) -> None:
     """
     Launch the ultimate Sumeh dashboard!
 
@@ -435,7 +434,7 @@ def launch_dashboard(validation_results=None, summary=None, metadata=None):
     main()
 
 
-def main():
+def main() -> None:
     try:
         if len(sys.argv) > 1:
             results_file = sys.argv[1]
@@ -453,7 +452,7 @@ def main():
         st.info("Please report this issue to the Sumeh team!")
 
 
-def _show_usage():
+def _show_usage() -> None:
     st.markdown("""
     <div style="text-align: center; padding: 4rem 2rem;">
         <h1 style="font-size: 4rem; margin-bottom: 1rem;">🚀</h1>
