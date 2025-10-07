@@ -195,9 +195,204 @@ Supported tables:
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
+
 def run_validation():
-    """Execute validation command - TODO: implement"""
-    print("Validation command - coming soon!")
+    """Execute validation command."""
+    from sumeh.core.io import load_data, save_results
+    from sumeh.core import get_rules_config
+    from sumeh.core.validation import validate
+    from sumeh.core.summarize import summarize
+    from sumeh.core.report import generate_markdown_report
+    import json
+
+    parser = argparse.ArgumentParser(
+        description="Validate data against quality rules",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  sumeh validate data.csv rules.csv
+  sumeh validate data.parquet rules.csv --output results.json
+  sumeh validate data.csv rules.csv --format html --output report.html
+  sumeh validate data.csv rules.csv --dashboard
+  sumeh validate data.csv rules.csv --engine polars --verbose
+        """
+    )
+
+    parser.add_argument(
+        "data_source",
+        help="Path to data file (CSV, Parquet, JSON, Excel)"
+    )
+
+    parser.add_argument(
+        "rules_source",
+        help="Path to rules file (CSV)"
+    )
+
+    parser.add_argument(
+        "--output", "-o",
+        help="Output file path (default: print to stdout)"
+    )
+
+    parser.add_argument(
+        "--format", "-f",
+        choices=["json", "csv", "html", "markdown"],
+        default="json",
+        help="Output format (default: json)"
+    )
+
+    parser.add_argument(
+        "--engine",
+        choices=["pandas", "polars", "dask"],
+        default="pandas",
+        help="DataFrame engine to use (default: pandas)"
+    )
+
+    parser.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="Launch interactive Streamlit dashboard"
+    )
+
+    parser.add_argument(
+        "--fail-on-error",
+        action="store_true",
+        help="Exit with code 1 if any check fails"
+    )
+
+    parser.add_argument(
+        "--verbose", "-v",
+        action="count",
+        default=0,
+        help="Increase verbosity (use -vv for more)"
+    )
+
+    args = parser.parse_args()
+
+    try:
+        # 1. Load data
+        if args.verbose:
+            print(f"📂 Loading data from: {args.data_source}")
+
+        df = load_data(args.data_source, engine=args.engine)
+
+        if args.verbose:
+            print(f"✓ Loaded {len(df)} rows")
+
+        # 2. Load rules
+        if args.verbose:
+            print(f"📋 Loading rules from: {args.rules_source}")
+
+        rules = get_rules_config(source=args.rules_source)
+
+        if args.verbose:
+            print(f"✓ Loaded {len(rules)} rules")
+
+        # 3. Run validation
+        if args.verbose:
+            print("🔍 Running validation...")
+
+        invalid_raw, invalid_agg = validate(df, rules)
+
+        # 4. Generate summary
+        summary = summarize(invalid_raw, rules, total_rows=len(df))
+
+        # 5. Build results
+        results = {
+            "summary": summary,
+            "metadata": {
+                "data_source": args.data_source,
+                "rules_source": args.rules_source,
+                "total_rows": len(df),
+                "engine": args.engine
+            }
+        }
+
+        # 6. Output results (if not launching dashboard)
+        if not args.dashboard:
+            if args.output:
+                save_results(results, args.output, args.format)
+                print(f"✓ Results saved to: {args.output}")
+            else:
+                # Print to stdout
+                if args.format == "json":
+                    # Convert DataFrame to dict for JSON serialization
+                    summary_dict = summary.to_dict(orient="records") if hasattr(summary, 'to_dict') else summary
+                    output = {
+                        "summary": summary_dict,
+                        "metadata": results["metadata"]
+                    }
+                    print(json.dumps(output, indent=2, default=str))
+                elif args.format == "markdown":
+                    print(generate_markdown_report(results))
+                else:
+                    print(summary)
+
+        # 7. Check if failed
+        import pandas as pd
+        if isinstance(summary, pd.DataFrame):
+            failed_checks = (summary["status"] == "FAIL").sum()
+        else:
+            failed_checks = 0
+
+        if failed_checks > 0 and not args.dashboard:
+            print(f"\n⚠️  {failed_checks} check(s) failed", file=sys.stderr)
+
+            if args.fail_on_error:
+                sys.exit(1)
+        elif not args.dashboard:
+            print("\n✓ All checks passed!")
+
+        # 8. Launch dashboard if requested
+        if args.dashboard:
+            try:
+                from sumeh.dash.app import launch_dashboard
+
+                # Pass results to dashboard
+                import streamlit.web.cli as stcli
+                import tempfile
+                from pathlib import Path
+
+                # Save results to temp file
+                temp_file = tempfile.NamedTemporaryFile(
+                    mode='w',
+                    suffix='.json',
+                    delete=False
+                )
+
+                # Convert DataFrame to dict for JSON
+                summary_dict = summary.to_dict(orient="records") if hasattr(summary, 'to_dict') else summary
+                json.dump({
+                    "summary": summary_dict,
+                    "metadata": results["metadata"]
+                }, temp_file, default=str)
+                temp_file.close()
+
+                # Launch Streamlit with temp file as argument
+                dash_path = Path(__file__).parent.parent / "dash" / "app.py"
+
+                print(f"\n🚀 Launching dashboard...")
+                print(f"   Dashboard will open in your browser")
+                print(f"   Press Ctrl+C to stop\n")
+
+                sys.argv = ["streamlit", "run", str(dash_path), "--", temp_file.name]
+                sys.exit(stcli.main())
+
+            except ImportError:
+                print("\n⚠️  Dashboard requires streamlit. Install with:", file=sys.stderr)
+                print("   poetry install --with dashboard", file=sys.stderr)
+                print("   or: pip install streamlit plotly", file=sys.stderr)
+                sys.exit(1)
+
+    except FileNotFoundError as e:
+        print(f"❌ File not found: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        if args.verbose >= 2:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 
 def main():

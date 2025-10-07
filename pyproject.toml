@@ -35,6 +35,12 @@ classifiers = [
 "Bug Tracker"   = "https://github.com/maltzsama/sumeh/issues"
 "Documentation" = "https://maltzsama.github.io/sumeh"
 
+[tool.poetry.group.dashboard]
+optional = true
+
+[tool.poetry.group.dashboard.dependencies]
+streamlit = "^1.28.0"
+plotly = "^5.17.0"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -94,3 +100,4 @@ sumeh = "sumeh.cli:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
