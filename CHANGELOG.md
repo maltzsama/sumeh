@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.1.0 (2025-10-08)
+
+### Features
+
+- **schema**: Decouple schema extraction and improve validation output
+  ([`852c36b`](https://github.com/maltzsama/sumeh/commit/852c36b2205385dbe0a6946341ba7428b6254ae2))
+
+### Refactoring
+
+- **core, duckdb**: Minor cleanup and improved schema error formatting
+  ([`cfbb695`](https://github.com/maltzsama/sumeh/commit/cfbb695f08f969c25682eec86f4de6b7e4f671d7))
+
+
 ## v1.0.1 (2025-10-08)
 
 ### Bug Fixes
