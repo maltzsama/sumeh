@@ -9,7 +9,7 @@ from pyspark.sql.types import (
     IntegerType,
     DoubleType,
 )
-import sumeh.engine.pyspark_engine as engine
+import sumeh.engines.pyspark_engine as engine
 
 
 class TestPySparkEngine(unittest.TestCase):

@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import dask.dataframe as dd
 from datetime import date, timedelta
-from sumeh.engine.dask_engine import (
+from sumeh.engines.dask_engine import (
     validate_date_format,
     is_future_date,
     is_past_date,

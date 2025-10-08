@@ -8,23 +8,27 @@ theme:
   favicon: img/favicon.png
 
   palette:
-  - media: "(prefers-color-scheme: light)"
-    logo: img/sumeh.svg
-    primary: white
-    scheme: default
-    toggle:
-      icon: material/brightness-7
-      name: Switch to dark mode
+    - media: "(prefers-color-scheme: light)"
+      logo: img/sumeh.svg
+      primary: white
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
 
-  - media: "(prefers-color-scheme: dark)"
-    logo: img/sumeh.svg
-    primary: black
-    scheme: slate
-    toggle:
-      icon: material/brightness-4
-      name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      logo: img/sumeh.svg
+      primary: black
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
-
+  features:
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
 
 plugins:
   - search
@@ -33,33 +37,71 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          # setup_commands:
-          #   - import sys; sys.path.insert(0, ".")
           options:
-            members: true
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
             show_root_toc_entry: false
+            show_signature_annotations: true
+            line_length: 88
+            merge_init_into_class: true
+            separate_signature: true
+            show_docstring_description: true
 
 nav:
   - home: index.md
   - quickstart: quickstart.md
-  - api:
-      - cli: api/cli.md
-      - core: api/core.md    
-      - services:
-        - services overview: api/services/services.md
-        - services config: api/services/services-config.md
-        - services utils: api/services/services-utils.md
-      - engines:
-        - engine overview: api/engine/engines.md
-        - dask engine: api/engine/engine-dask.md
-        - duckDB engine: api/engine/engine-duckdb.md
-        - pandas engine: api/engine/engine-pandas.md
-        - polars engine: api/engine/engine-polars.md
-        - pyspark engine: api/engine/engine-pyspark.md
-        
+  - cli: sumeh/cli.md
+  - core:
+    - config: sumeh/core/config.md
+    - utils: sumeh/core/utils.md
+  - engines:
+    - engine overview: sumeh/engines/engines.md
+    - bigquery: sumeh/engines/bigquery.md
+    - dask: sumeh/engines/dask.md
+    - duckDB: sumeh/engines/duckdb.md
+    - pandas: sumeh/engines/pandas.md
+    - polars: sumeh/engines/polars.md
+    - pyspark: sumeh/engines/pyspark.md
+  - generators:
+    - generator: sumeh/generators/generator.md
+    - dialects:
+      - base: sumeh/generators/dialects/base.md
+      - athena: sumeh/generators/dialects/athena.md
+      - bigquery: sumeh/generators/dialects/bigquery.md
+      - databricks: sumeh/generators/dialects/databricks.md
+      - duckdb: sumeh/generators/dialects/duckdb.md
+      - mysql: sumeh/generators/dialects/mysql.md
+      - postgres: sumeh/generators/dialects/postgres.md
+      - redshift: sumeh/generators/dialects/redshift.md
+      - snowflake: sumeh/generators/dialects/snowflake.md
+      - sqlite: sumeh/generators/dialects/sqlite.md
+  - dash: sumeh/dash/index.md
 
 markdown_extensions:
   - toc:
       permalink: true
+      toc_depth: 3
   - admonition
-  - codehilite
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - attr_list
+  - md_in_html
+  - tables
