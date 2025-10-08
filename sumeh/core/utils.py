@@ -145,7 +145,7 @@ def __compare_schemas(
 
     Notes:
         - A field is considered "missing" if it exists in the expected schema but not in the actual schema.
-        - A "type mismatch" occurs if the data type of a field in the actual schema does not match
+        - A "type mismatch" occurs if the data type of field in the actual schema does not match
           the expected data type.
         - A field is considered "nullable but expected non-nullable" if it is nullable in the actual
           schema but not nullable in the expected schema.
@@ -158,47 +158,55 @@ def __compare_schemas(
 
     for fld, exp in exp_map.items():
         if fld not in act_map:
-            errors.append({
-                "field": fld,
-                "error_type": "missing_field",
-                "expected": exp,
-                "actual": None
-            })
+            errors.append(
+                {
+                    "field": fld,
+                    "error_type": "missing_field",
+                    "expected": exp,
+                    "actual": None,
+                }
+            )
             continue
 
         act = act_map[fld]
 
         # Type mismatch
         if act["data_type"] != exp["data_type"]:
-            errors.append({
-                "field": fld,
-                "error_type": "type_mismatch",
-                "expected_type": exp["data_type"],
-                "actual_type": act["data_type"],
-                "expected": exp,
-                "actual": act
-            })
+            errors.append(
+                {
+                    "field": fld,
+                    "error_type": "type_mismatch",
+                    "expected_type": exp["data_type"],
+                    "actual_type": act["data_type"],
+                    "expected": exp,
+                    "actual": act,
+                }
+            )
 
         # Nullable mismatch
         if act["nullable"] and not exp["nullable"]:
-            errors.append({
-                "field": fld,
-                "error_type": "nullable_mismatch",
-                "expected_nullable": exp["nullable"],
-                "actual_nullable": act["nullable"],
-                "expected": exp,
-                "actual": act
-            })
+            errors.append(
+                {
+                    "field": fld,
+                    "error_type": "nullable_mismatch",
+                    "expected_nullable": exp["nullable"],
+                    "actual_nullable": act["nullable"],
+                    "expected": exp,
+                    "actual": act,
+                }
+            )
 
     # Extra fields
     extras = set(act_map) - set(exp_map)
     for fld in extras:
-        errors.append({
-            "field": fld,
-            "error_type": "extra_field",
-            "expected": None,
-            "actual": act_map[fld]
-        })
+        errors.append(
+            {
+                "field": fld,
+                "error_type": "extra_field",
+                "expected": None,
+                "actual": act_map[fld],
+            }
+        )
 
     return len(errors) == 0, errors
 

@@ -58,6 +58,9 @@ import duckdb as dk
 import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
+
+from duckdb import DuckDBPyRelation
+
 from sumeh.core.utils import __compare_schemas
 
 
@@ -370,7 +373,7 @@ def _is_in(r: __RuleCtx) -> str:
     Returns:
         str: A string indicating whether the rule context is contained.
     """
-    return is_contained_in(r)
+    return _is_contained_in(r)
 
 
 def _not_contained_in(r: __RuleCtx) -> str:
@@ -398,7 +401,7 @@ def _not_in(r: __RuleCtx) -> str:
     Returns:
         str: A string representation indicating the "not in" condition.
     """
-    return not_contained_in(r)
+    return _not_contained_in(r)
 
 
 def _satisfies(r: __RuleCtx) -> str:
@@ -581,7 +584,7 @@ def _all_date_checks(r: __RuleCtx) -> str:
     Returns:
         str: The result of the date check, typically indicating whether the date is in the past.
     """
-    return is_past_date(r)
+    return _is_past_date(r)
 
 
 def _is_today(r: __RuleCtx) -> str:
@@ -784,7 +787,7 @@ def _is_on_sunday(r: __RuleCtx) -> str:
 
 def validate(
     df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection
-) -> dk.DuckDBPyRelation:
+) -> tuple[DuckDBPyRelation, DuckDBPyRelation]:
     """
     Validates a DuckDB relation against a set of rules and returns the processed relation.
 
