@@ -1,11 +1,47 @@
+name: Publish Python Package
+
 on:
   push:
     branches:
       - main
       - 'release/*'
 
+permissions:
+  contents: write
+  id-token: write  # ← CRÍTICO para Trusted Publishers
+
 jobs:
-  release:
+  release-test:
+    if: startsWith(github.ref_name, 'release/')
+    runs-on: ubuntu-latest
+    environment: test-release
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - run: pip install poetry python-semantic-release
+
+      - name: Create version with semantic-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release version
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish to TestPyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  release-prod:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     environment: release
 
@@ -18,14 +54,15 @@ jobs:
         with:
           python-version: '3.x'
 
-      - run: pip install poetry
-      - run: |
-          poetry install --no-root
-          pip install python-semantic-release
+      - run: pip install poetry python-semantic-release
 
-      - name: Run semantic-release
+      - name: Create version with semantic-release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
-          PYPI_REPOSITORY: ${{ github.ref_name == 'main' && 'pypi' || 'testpypi' }}
-        run: semantic-release publish
+        run: semantic-release version
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1

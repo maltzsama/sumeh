@@ -35,25 +35,75 @@ def __convert_value(value):
         return int(value)
 
 
+def __try_ast_parse(field_str):
+    try:
+        parsed = ast.literal_eval(field_str)
+        if isinstance(parsed, (list, tuple)):
+            return list(parsed)
+    except:
+        pass
+    return None
+
+
+def __parse_field_list(field_input):
+
+    if not isinstance(field_input, str):
+        return field_input
+
+    field_str = field_input.strip()
+
+    if (field_str.startswith('"') and field_str.endswith('"')) or (
+        field_str.startswith("'") and field_str.endswith("'")
+    ):
+        field_str = field_str[1:-1].strip()
+
+    if field_str.startswith("[") and field_str.endswith("]"):
+        inner = field_str[1:-1].strip()
+
+        if not inner:
+            return ""
+
+        if "," not in inner:
+            return inner.strip(" \"'")
+
+        strategies = [
+            lambda: __try_ast_parse(field_str),
+            lambda: [item.strip(" \"'") for item in inner.split(",") if item.strip()],
+        ]
+
+        for strategy in strategies:
+            try:
+                result = strategy()
+                if result and isinstance(result, list) and len(result) > 1:
+                    return result
+                elif result and isinstance(result, list) and len(result) == 1:
+                    return result[0]
+            except:
+                continue
+
+        return inner.strip(" \"'")
+
+    elif "," in field_str:
+        items = [item.strip(" \"'") for item in field_str.split(",") if item.strip()]
+        if len(items) > 1:
+            return items
+        elif len(items) == 1:
+            return items[0]
+        else:
+            return ""
+
+    else:
+        return field_str.strip(" \"'")
+
+
 def __extract_params(rule: dict) -> tuple:
+
     rule_name = rule["check_type"]
     field = rule["field"]
     raw_value = rule.get("value")
 
     if isinstance(field, str):
-        field_str = field.strip()
-        if field_str.startswith("[") and field_str.endswith("]"):
-            try:
-                parsed = ast.literal_eval(field_str)
-                if isinstance(parsed, (list, tuple)):
-                    field = list(parsed)
-                else:
-                    field = [field_str]
-            except Exception:
-                field = field_str
-        else:
-
-            field = field_str
+        field = __parse_field_list(field)
 
     if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
         try:

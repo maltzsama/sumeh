@@ -40,7 +40,7 @@ Imports:
 from cuallee import Check, CheckLevel
 import warnings
 from importlib import import_module
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 import re
 from .utils import __convert_value, __detect_engine
 from sumeh.core.config import (
@@ -231,7 +231,7 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_schema_from_csv(s, **kwargs)
 
         case "mysql":
-            # Aceita conn OU (host, user, password, database)
+
             if "conn" not in kwargs:
                 required_params = ["host", "user", "password", "database"]
                 for param in required_params:
@@ -244,7 +244,7 @@ def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
             return get_schema_from_mysql(**kwargs)
 
         case "postgresql":
-            # Aceita conn OU (host, user, password, database)
+
             if "conn" not in kwargs:
                 required_params = ["host", "user", "password", "database"]
                 for param in required_params:
