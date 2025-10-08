@@ -11,7 +11,7 @@ from .core import (
     get_rules_config,
     get_schema_config,
 )
-from .core.schema import extract_schema_data, validate_schema, types_are_compatible
+from .core.schema import extract_schema, validate_schema
 
 __all__ = [
     "report",
@@ -20,7 +20,6 @@ __all__ = [
     "validate_schema",
     "get_rules_config",
     "get_schema_config",
-    "extract_schema_data",
-    "types_are_compatible",
+    "extract_schema",
     "__version__",
 ]

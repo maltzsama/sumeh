@@ -20,7 +20,7 @@ from typing import List, Dict, Any, Tuple
 from sumeh.core.utils import __compare_schemas
 
 
-def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:
+def extract_schema(table: bigquery.Table) -> List[Dict[str, Any]]:
     """
     Converts a BigQuery table schema into a list of dictionaries representing the schema fields.
 
@@ -38,7 +38,7 @@ def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:
     return [
         {
             "field": fld.name,
-            "data_type": fld.field_type.lower(),
+            "data_type": fld.field_type,
             "nullable": fld.is_nullable,
             "max_length": None,
         }
@@ -48,7 +48,7 @@ def __bigquery_schema_to_list(table: bigquery.Table) -> List[Dict[str, Any]]:
 
 def validate_schema(
     client: bigquery.Client, expected: List[Dict[str, Any]], table_ref: str
-) -> Tuple[bool, List[Tuple[str, str]]]:
+) -> tuple[bool, list[dict[str, Any]]]:
     """
     Validates the schema of a BigQuery table against an expected schema.
 
@@ -66,5 +66,7 @@ def validate_schema(
     """
 
     table = client.get_table(table_ref)
-    actual = __bigquery_schema_to_list(table)
-    return __compare_schemas(actual, expected)
+    actual = extract_schema(table)
+
+    result, errors = __compare_schemas(actual, expected)
+    return result, errors

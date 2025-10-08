@@ -58,6 +58,9 @@ import duckdb as dk
 import ast, warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
+
+from duckdb import DuckDBPyRelation
+
 from sumeh.core.utils import __compare_schemas
 
 
@@ -370,7 +373,7 @@ def _is_in(r: __RuleCtx) -> str:
     Returns:
         str: A string indicating whether the rule context is contained.
     """
-    return is_contained_in(r)
+    return _is_contained_in(r)
 
 
 def _not_contained_in(r: __RuleCtx) -> str:
@@ -398,7 +401,7 @@ def _not_in(r: __RuleCtx) -> str:
     Returns:
         str: A string representation indicating the "not in" condition.
     """
-    return not_contained_in(r)
+    return _not_contained_in(r)
 
 
 def _satisfies(r: __RuleCtx) -> str:
@@ -581,7 +584,7 @@ def _all_date_checks(r: __RuleCtx) -> str:
     Returns:
         str: The result of the date check, typically indicating whether the date is in the past.
     """
-    return is_past_date(r)
+    return _is_past_date(r)
 
 
 def _is_today(r: __RuleCtx) -> str:
@@ -784,7 +787,7 @@ def _is_on_sunday(r: __RuleCtx) -> str:
 
 def validate(
     df_rel: dk.DuckDBPyRelation, rules: List[Dict], conn: dk.DuckDBPyConnection
-) -> dk.DuckDBPyRelation:
+) -> tuple[DuckDBPyRelation, DuckDBPyRelation]:
     """
     Validates a DuckDB relation against a set of rules and returns the processed relation.
 
@@ -977,9 +980,7 @@ def summarize(
     return conn.sql(sql)
 
 
-def __duckdb_schema_to_list(
-    conn: dk.DuckDBPyConnection, table: str
-) -> List[Dict[str, Any]]:
+def extract_schema(conn: dk.DuckDBPyConnection, table: str) -> List[Dict[str, Any]]:
     """
     Retrieve the schema of a DuckDB table as a list of dictionaries.
     This function queries the schema of the specified table in a DuckDB database
@@ -1000,7 +1001,7 @@ def __duckdb_schema_to_list(
     return [
         {
             "field": row["name"],
-            "data_type": row["type"].lower(),
+            "data_type": row["type"],
             "nullable": not bool(row["notnull"]),
             "max_length": None,
         }
@@ -1010,7 +1011,7 @@ def __duckdb_schema_to_list(
 
 def validate_schema(
     conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
-) -> Tuple[bool, List[Tuple[str, str]]]:
+) -> tuple[bool, list[dict[str, Any]]]:
     """
     Validates the schema of a DuckDB table against an expected schema.
 
@@ -1026,8 +1027,10 @@ def validate_schema(
             of tuples describing the mismatches (if any). Each tuple contains the column name and
             a description of the mismatch.
     """
-    actual = __duckdb_schema_to_list(conn, table)
-    return __compare_schemas(actual, expected)
+    actual = extract_schema(conn, table)
+
+    result, errors = __compare_schemas(actual, expected)
+    return result, errors
 
 
 __RULE_DISPATCH: dict[str, Callable[[__RuleCtx], str]] = {
