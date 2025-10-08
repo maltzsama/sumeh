@@ -1568,7 +1568,7 @@ def summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.Da
     return dd.from_pandas(summary, npartitions=1)
 
 
-def __dask_schema_to_list(df: dd.DataFrame) -> List[Dict[str, Any]]:
+def extract_schema(df: dd.DataFrame) -> List[Dict[str, Any]]:
     """
     Convert the schema of a Dask DataFrame into a list of dictionaries.
 
@@ -1590,7 +1590,7 @@ def __dask_schema_to_list(df: dd.DataFrame) -> List[Dict[str, Any]]:
     return [
         {
             "field": col,
-            "data_type": str(dtype).lower(),
+            "data_type": str(dtype),
             "nullable": True,
             "max_length": None,
         }
@@ -1600,7 +1600,7 @@ def __dask_schema_to_list(df: dd.DataFrame) -> List[Dict[str, Any]]:
 
 def validate_schema(
     df: dd.DataFrame, expected: List[Dict[str, Any]]
-) -> Tuple[bool, List[Tuple[str, str]]]:
+) -> tuple[bool, list[dict[str, Any]]]:
     """
     Validates the schema of a Dask DataFrame against an expected schema.
 
@@ -1614,5 +1614,6 @@ def validate_schema(
             whether the schema matches the expected schema, and the second element is a list of
             tuples containing mismatched column names and their respective issues.
     """
-    actual = __dask_schema_to_list(df)
-    return __compare_schemas(actual, expected)
+    actual = extract_schema(df)
+    result, errors = __compare_schemas(actual, expected)
+    return result, errors

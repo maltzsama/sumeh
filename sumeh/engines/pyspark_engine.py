@@ -144,6 +144,7 @@ from pyspark.sql.functions import (
 from typing import List, Dict, Any, Tuple
 import operator
 from functools import reduce
+from datetime import datetime
 
 from sumeh.core.utils import (
     __extract_params,
@@ -787,7 +788,7 @@ def is_legit(df: DataFrame, rule: dict) -> DataFrame:
         in the format "field:check:value".
     """
     field, check, value = __extract_params(rule)
-    pattern_legit = "\S*"
+    pattern_legit = r"\S*"
     return df.filter(
         ~(col(field).isNotNull() & col(field).rlike(pattern_legit))
     ).withColumn(
@@ -1594,37 +1595,27 @@ def summarize(df: DataFrame, rules: List[Dict], total_rows) -> DataFrame:
     return summary
 
 
-def __pyspark_schema_to_list(df: DataFrame) -> List[Dict[str, Any]]:
-    """
-    Convert the schema of a PySpark DataFrame into a list of dictionaries.
+def extract_schema(df) -> List[Dict[str, Any]]:
+    """Extract schema from PySpark DataFrame."""
+    schema = []
+    now = datetime.now()
 
-    Each dictionary in the output list represents a field in the DataFrame schema
-    and contains the following keys:
-        - "field": The name of the field.
-        - "data_type": The data type of the field as a lowercase string.
-        - "nullable": A boolean indicating whether the field allows null values.
-        - "max_length": Always set to None (reserved for future use).
+    for field in df.schema.fields:
+        dtype_str = str(field.dataType)
 
-    Args:
-        df (DataFrame): The PySpark DataFrame whose schema is to be converted.
-
-    Returns:
-        List[Dict[str, Any]]: A list of dictionaries representing the schema of the DataFrame.
-    """
-    out: List[Dict[str, Any]] = []
-    for f in df.schema.fields:
-        out.append(
+        schema.append(
             {
-                "field": f.name,
-                "data_type": f.dataType.simpleString().lower(),
-                "nullable": f.nullable,
+                "field": field.name,
+                "data_type": dtype_str,
+                "nullable": field.nullable,
                 "max_length": None,
             }
         )
-    return out
+
+    return schema
 
 
-def validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(df: DataFrame, expected) -> tuple[bool, list[dict[str, Any]]]:
     """
     Validates the schema of a PySpark DataFrame against an expected schema.
 
@@ -1640,6 +1631,6 @@ def validate_schema(df: DataFrame, expected) -> Tuple[bool, List[Tuple[str, str]
             - A list of tuples representing the mismatched columns, where each tuple
               contains the column name and the reason for the mismatch.
     """
-    actual = __pyspark_schema_to_list(df)
+    actual = extract_schema(df)
     result, errors = __compare_schemas(actual, expected)
     return result, errors

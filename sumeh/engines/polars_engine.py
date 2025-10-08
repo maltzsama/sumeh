@@ -1552,7 +1552,7 @@ def summarize(qc_df: pl.DataFrame, rules: list[dict], total_rows: int) -> pl.Dat
     return summary
 
 
-def __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
+def extract_schema(df) -> List[Dict[str, Any]]:
     """
     Converts the schema of a Polars DataFrame into a list of dictionaries,
     where each dictionary represents a field in the schema.
@@ -1570,15 +1570,15 @@ def __polars_schema_to_list(df: pl.DataFrame) -> List[Dict[str, Any]]:
     return [
         {
             "field": name,
-            "data_type": str(dtype).lower(),
-            "nullable": True,  # Polars não expõe nullability no schema
+            "data_type": str(dtype),
+            "nullable": True,
             "max_length": None,
         }
         for name, dtype in df.schema.items()
     ]
 
 
-def validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(df, expected) -> tuple[bool, list[dict[str, Any]]]:
     """
     Validates the schema of a given DataFrame against an expected schema.
 
@@ -1593,6 +1593,6 @@ def validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
             - A list of tuples representing the errors, where each tuple contains
               the column name and a description of the mismatch.
     """
-    actual = __polars_schema_to_list(df)
+    actual = extract_schema(df)
     result, errors = __compare_schemas(actual, expected)
     return result, errors

@@ -97,13 +97,17 @@ def __parse_field_list(field_input):
 
 
 def __extract_params(rule: dict) -> tuple:
-
     rule_name = rule["check_type"]
     field = rule["field"]
     raw_value = rule.get("value")
 
     if isinstance(field, str):
-        field = __parse_field_list(field)
+        parsed_field = __parse_field_list(field)
+
+        if isinstance(parsed_field, list) and len(parsed_field) == 1:
+            field = parsed_field[0]
+        else:
+            field = parsed_field
 
     if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
         try:
@@ -123,7 +127,7 @@ SchemaDef = Dict[str, Any]
 def __compare_schemas(
     actual: List[SchemaDef],
     expected: List[SchemaDef],
-) -> Tuple[bool, List[Tuple[str, str]]]:
+) -> Tuple[bool, List[Dict[str, Any]]]:
     """
     Compare two lists of schema definitions and identify discrepancies.
 
@@ -141,7 +145,7 @@ def __compare_schemas(
 
     Notes:
         - A field is considered "missing" if it exists in the expected schema but not in the actual schema.
-        - A "type mismatch" occurs if the data type of a field in the actual schema does not match
+        - A "type mismatch" occurs if the data type of field in the actual schema does not match
           the expected data type.
         - A field is considered "nullable but expected non-nullable" if it is nullable in the actual
           schema but not nullable in the expected schema.
@@ -150,32 +154,59 @@ def __compare_schemas(
 
     exp_map = {c["field"]: c for c in expected}
     act_map = {c["field"]: c for c in actual}
-    errors: List[Tuple[str, str]] = []
+    errors: List[Dict[str, Any]] = []
 
     for fld, exp in exp_map.items():
         if fld not in act_map:
-            errors.append((fld, "missing"))
+            errors.append(
+                {
+                    "field": fld,
+                    "error_type": "missing_field",
+                    "expected": exp,
+                    "actual": None,
+                }
+            )
             continue
 
         act = act_map[fld]
 
-        exp_type = exp["data_type"].strip().lower()
-        act_type = act["data_type"].strip().lower()
-
-        if act_type != exp_type:
+        # Type mismatch
+        if act["data_type"] != exp["data_type"]:
             errors.append(
-                (
-                    fld,
-                    f"type mismatch (got '{act['data_type']}', expected '{exp['data_type']}')",
-                )
+                {
+                    "field": fld,
+                    "error_type": "type_mismatch",
+                    "expected_type": exp["data_type"],
+                    "actual_type": act["data_type"],
+                    "expected": exp,
+                    "actual": act,
+                }
             )
 
+        # Nullable mismatch
         if act["nullable"] and not exp["nullable"]:
-            errors.append((fld, "nullable but expected non-nullable"))
+            errors.append(
+                {
+                    "field": fld,
+                    "error_type": "nullable_mismatch",
+                    "expected_nullable": exp["nullable"],
+                    "actual_nullable": act["nullable"],
+                    "expected": exp,
+                    "actual": act,
+                }
+            )
 
+    # Extra fields
     extras = set(act_map) - set(exp_map)
     for fld in extras:
-        errors.append((fld, "extra column"))
+        errors.append(
+            {
+                "field": fld,
+                "error_type": "extra_field",
+                "expected": None,
+                "actual": act_map[fld],
+            }
+        )
 
     return len(errors) == 0, errors
 

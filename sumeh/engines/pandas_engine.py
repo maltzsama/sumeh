@@ -1408,20 +1408,20 @@ def summarize(qc_df: pd.DataFrame, rules: list[dict], total_rows: int) -> pd.Dat
     ]
 
 
-def __pandas_schema_to_list(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+def extract_schema(df) -> List[Dict[str, Any]]:
     actual = [
         {
             "field": c,
-            "data_type": str(dtype).lower(),
+            "data_type": str(dtype),
             "nullable": True,
             "max_length": None,
         }
         for c, dtype in df.dtypes.items()
     ]
-    return __compare_schemas(actual, expected)
+    return actual
 
 
-def validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
+def validate_schema(df, expected) -> tuple[bool, list[dict[str, Any]]]:
     """
     Validates the schema of a given DataFrame against an expected schema.
 
@@ -1436,6 +1436,6 @@ def validate_schema(df, expected) -> Tuple[bool, List[Tuple[str, str]]]:
             - A list of tuples representing the errors, where each tuple contains
               the column name and a description of the mismatch.
     """
-    actual = __pandas_schema_to_list(df)
+    actual = extract_schema(df)
     result, errors = __compare_schemas(actual, expected)
     return result, errors
