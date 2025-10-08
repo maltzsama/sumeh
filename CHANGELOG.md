@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.0 (2025-10-08)
+
+### Bug Fixes
+
+- Sync version numbers with latest release tag
+  ([`b65b420`](https://github.com/maltzsama/sumeh/commit/b65b42082290d3d1f462292c2f1b6ac99b868c05))
+
+
 ## v1.0.0-rc.1 (2025-10-07)
 
 ### Bug Fixes
