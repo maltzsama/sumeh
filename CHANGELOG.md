@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.1 (2025-10-08)
+
+### Bug Fixes
+
+- Correctly parse field lists and handle complex string inputs
+  ([`66a5a39`](https://github.com/maltzsama/sumeh/commit/66a5a393705c149c9b8c7cbb1fd91545295813f7))
+
+
 ## v1.0.0 (2025-10-08)
 
 ### Bug Fixes
