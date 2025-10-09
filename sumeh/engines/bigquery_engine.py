@@ -23,13 +23,14 @@ from sumeh.core.utils import __compare_schemas
 @dataclass(slots=True)
 class __RuleCtx:
     """
-        Context for validation rule execution.
+    Context for validation rule execution.
 
-        Attributes:
-            column: Column name(s) to validate (str or list of str)
-            value: Threshold or comparison value for the rule
-            name: Check type identifier
+    Attributes:
+        column: Column name(s) to validate (str or list of str)
+        value: Threshold or comparison value for the rule
+        name: Check type identifier
     """
+
     column: Any
     value: Any
     name: str

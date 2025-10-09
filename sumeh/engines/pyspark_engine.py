@@ -263,6 +263,7 @@ def is_complete(df: DataFrame, rule: dict) -> DataFrame:
     )
 
 
+# TODO: refactor
 def validate_date_format(df: DataFrame, rule: dict) -> DataFrame:
     """
     Filters a DataFrame to identify rows where a specified field has wrong date format based in the format from the rule

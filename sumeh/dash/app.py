@@ -445,7 +445,6 @@ def launch_dashboard(validation_results=None, summary=None, metadata=None) -> No
 
     Args:
         validation_results: Results from validate() function
-        rules_config: Rules configuration
         summary: Validation summary
         metadata: Additional metadata
     """
