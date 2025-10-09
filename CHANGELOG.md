@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.2.0 (2025-10-09)
+
+### Chores
+
+- **deps**: Update AWS, caching, and core dependencies
+  ([`e6821e0`](https://github.com/maltzsama/sumeh/commit/e6821e03c02aa435a901a09239c0bc9a1e2250d2))
+
+### Documentation
+
+- Show private members in MkDocs API documentation
+  ([`3f447e5`](https://github.com/maltzsama/sumeh/commit/3f447e54308c001a628daa494822949a21e29da0))
+
+### Features
+
+- **bigquery**: Implement native Data Quality validation and summarization
+  ([`eeaf615`](https://github.com/maltzsama/sumeh/commit/eeaf615fb5040d093a70e58cec8730dab271c8eb))
+
+- **bigquery**: Rewrite validation to use 100% SQLGlot and improve docs
+  ([`5ad0d7f`](https://github.com/maltzsama/sumeh/commit/5ad0d7f760ae07a86c482144c58fa2438b068971))
+
+
 ## v1.1.0 (2025-10-08)
 
 ### Features
