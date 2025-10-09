@@ -375,7 +375,12 @@ def summarize(df, rules: list[dict], **context):
                 raise ValueError(
                     "BigQuery engine requires 'client' and 'table_ref' in context."
                 )
-            return engine.summarize(df, rules, total_rows=context.get("total_rows"), client=context.get("client"))
+            return engine.summarize(
+                df,
+                rules,
+                total_rows=context.get("total_rows"),
+                client=context.get("client"),
+            )
         case "duckdb_engine":
             return engine.summarize(
                 df_rel=df,
