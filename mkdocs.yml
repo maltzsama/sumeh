@@ -47,7 +47,8 @@ plugins:
             merge_init_into_class: true
             separate_signature: true
             show_docstring_description: true
-
+            show_private: true
+            show_private_members: true
 nav:
   - home: index.md
   - quickstart: quickstart.md

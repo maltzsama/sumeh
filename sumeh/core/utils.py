@@ -262,7 +262,7 @@ def __transform_date_format_in_pattern(date_format):
     return date_pattern
 
 
-def __detect_engine(df):
+def __detect_engine(df, **context):
     """
     Detects the engine type of the given DataFrame based on its module.
 
@@ -280,6 +280,9 @@ def __detect_engine(df):
     Raises:
         TypeError: If the DataFrame type is unsupported.
     """
+    if "client" in context and "table_ref" in context:
+        return "bigquery_engine"
+
     mod = df.__class__.__module__
     match mod:
         case m if m.startswith("pyspark"):
@@ -292,7 +295,12 @@ def __detect_engine(df):
             return "pandas_engine"
         case m if m.startswith("duckdb"):
             return "duckdb_engine"
-        case m if m.startswith("bigquery"):
-            return "duckdb_engine"
+        case m if "bigquery" in m:
+            return "bigquery_engine"
         case _:
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
+
+
+def ___where_statment(query) -> str:
+    # monta a base da query
+    pass
