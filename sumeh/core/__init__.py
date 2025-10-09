@@ -71,7 +71,7 @@ def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
     returning a list of parsed rule dictionaries.
 
     Supported sources:
-      - `bigquery://<project>.<dataset>.<table>`
+      - `"bigquery" <project>.<dataset>.<table>`
       - `s3://<bucket>/<path>`
       - `<file>.csv`
       - `"mysql"` or `"postgresql"` (requires host/user/etc. in kwargs)
@@ -310,10 +310,21 @@ def validate(df, rules, **context):
         - For "duckdb_engine", a database connection object should be provided in the
           context under the key "conn".
     """
-    engine_name = __detect_engine(df)
+    engine_name = __detect_engine(df, **context)
     engine = import_module(f"sumeh.engines.{engine_name}")
 
     match engine_name:
+        case "bigquery_engine":
+            client = context.get("client")
+            table_ref = context.get("table_ref")
+
+            if client is None or table_ref is None:
+                raise ValueError(
+                    "BigQuery engine requires 'client' and 'table_ref' in context."
+                )
+
+            return engine.validate(client=client, table_ref=table_ref, rules=rules)
+
         case "duckdb_engine":
             return engine.validate(df, rules, context.get("conn"))
         case _:
@@ -354,9 +365,22 @@ def summarize(df, rules: list[dict], **context):
     Example:
         summarized_df = summarize(df, rules=[{"operation": "sum", "column": "sales"}], conn=my_conn)
     """
-    engine_name = __detect_engine(df)
+    engine_name = __detect_engine(df, **context)
     engine = import_module(f"sumeh.engines.{engine_name}")
     match engine_name:
+        case "bigquery_engine":
+            client = context.get("client")
+
+            if client is None:
+                raise ValueError(
+                    "BigQuery engine requires 'client' and 'table_ref' in context."
+                )
+            return engine.summarize(
+                df,
+                rules,
+                total_rows=context.get("total_rows"),
+                client=context.get("client"),
+            )
         case "duckdb_engine":
             return engine.summarize(
                 df_rel=df,

@@ -67,6 +67,8 @@ Functions:
         Infers the basic data type of given value.
 """
 from io import StringIO
+
+import warnings
 from dateutil import parser
 from typing import List, Dict, Any, Tuple, Optional
 from datetime import date, datetime
@@ -230,48 +232,78 @@ def get_config_from_bigquery(
     dataset_id: str,
     table_id: str,
     credentials_path: Optional[str] = None,
+    client: Optional[Any] = None,
     query: Optional[str] = None,
-) -> List[Dict[str, str]]:
+) -> List[Dict[str, Any]]:
     """
     Retrieves configuration data from a Google BigQuery table.
 
     Args:
-        project_id (str): Google Cloud project ID.
-        dataset_id (str): BigQuery dataset ID.
-        table_id (str): BigQuery table ID.
-        credentials_path (Optional[str]): Path to service account credentials file (if not provided, defaults to default credentials).
-        query (Optional[str]): Custom SQL query to fetch data (if not provided, defaults to SELECT *).
+        project_id: Google Cloud project ID.
+        dataset_id: BigQuery dataset ID.
+        table_id: BigQuery table ID.
+        credentials_path: Path to service account credentials file (if not provided, uses default credentials).
+        client: Optional instance of google.cloud.bigquery.Client. If provided, it will be used and credentials_path ignored.
+        query: Optional custom SQL query. If not provided, defaults to SELECT * FROM `project.dataset.table`.
 
     Returns:
-        List[Dict[str, str]]: A list of dictionaries representing the parsed configuration data.
+        List[Dict[str, Any]]: A list of records (dicts) returned by BigQuery (optionally parsed by __parse_data).
 
     Raises:
-        RuntimeError: If there is an error while querying BigQuery.
+        RuntimeError: If there is an error while querying BigQuery or with credentials.
     """
     from google.cloud import bigquery
     from google.oauth2 import service_account
     from google.auth.exceptions import DefaultCredentialsError
 
-    if query is None:
-        query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}`"
+    base_query = f"SELECT * FROM `{project_id}.{dataset_id}.{table_id}`"
+
+    if query:
+
+        where_clause = query.strip()
+        if where_clause.lower().startswith("where"):
+            where_clause = where_clause[5:].strip()
+
+        if where_clause.endswith(";"):
+            where_clause = where_clause[:-1].strip()
+
+        if where_clause:
+            full_query = f"{base_query} WHERE {where_clause}"
+        else:
+            full_query = base_query
+    else:
+        full_query = base_query
+
+    if client is not None and credentials_path:
+        warnings.warn(
+            "Both 'client' and 'credentials_path' were provided. 'client' will be used and 'credentials_path' will be ignored."
+        )
 
     try:
-        if credentials_path:
-            credentials = service_account.Credentials.from_service_account_file(
-                credentials_path
-            )
-            client = bigquery.Client(project=project_id, credentials=credentials)
-        else:
-            client = bigquery.Client(project=project_id)
 
-        data = client.query(query).to_dataframe()
-        data_dict = data.to_dict(orient="records")
-        return __parse_data(data_dict)
+        if client is None:
+            if credentials_path:
+                credentials = service_account.Credentials.from_service_account_file(
+                    credentials_path
+                )
+                client = bigquery.Client(project=project_id, credentials=credentials)
+            else:
+                client = bigquery.Client(project=project_id)
+
+        job = client.query(full_query)
+        df = job.result().to_dataframe()
+        data_dict = df.to_dict(orient="records")
+
+        try:
+            return __parse_data(data_dict)
+        except NameError:
+            return data_dict
 
     except DefaultCredentialsError as e:
+        warnings.warn("Default credentials error while accessing BigQuery")
         raise RuntimeError(f"Credentials error: {e}") from e
-
     except Exception as e:
+        warnings.warn("Error occurred while querying BigQuery")
         raise RuntimeError(f"Error occurred while querying BigQuery: {e}") from e
 
 
