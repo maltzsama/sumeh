@@ -3,45 +3,9 @@
 """
 BigQuery data quality validation engine for Sumeh.
 
-This module provides a complete BigQuery implementation of the Sumeh data quality framework,
-using SQLGlot for SQL generation and BigQuery client for execution. It supports all standard
-Sumeh validation rules through SQL-based validation queries.
-
-Key Features:
-    - SQL-based validation using SQLGlot AST generation
-    - Support for all Sumeh validation rules (completeness, uniqueness, ranges, patterns, dates)
-    - Schema validation against expected schemas
-    - Efficient UNION-based query generation for multiple rules
-    - BigQuery-specific SQL dialect optimization
-
-Functions:
-    validate(client, table_ref, rules): Validates data against quality rules
-    summarize(df, rules, total_rows, client): Generates validation summary report
-    count_rows(client, table_ref): Counts total rows in a table
-    extract_schema(table): Extracts schema from BigQuery table
-    validate_schema(client, expected, table_ref): Validates table schema
-
-Supported Rules:
-    - Completeness: is_complete, are_complete
-    - Uniqueness: is_unique, are_unique, is_primary_key, is_composite_key
-    - Numeric: is_positive, is_negative, is_greater_than, is_less_than, is_between
-    - Patterns: has_pattern, is_contained_in, not_contained_in
-    - Dates: is_future_date, is_past_date, is_date_between, validate_date_format
-    - Custom: satisfies (custom SQL expressions)
-
-Dependencies:
-    - google.cloud.bigquery: BigQuery client and table operations
-    - sqlglot: SQL AST generation and dialect conversion
-    - sumeh.core.utils: Schema comparison utilities
-
-Example:
-    >>> from google.cloud import bigquery
-    >>> from sumeh.engines.bigquery_engine import validate, summarize
-    >>>
-    >>> client = bigquery.Client()
-    >>> rules = [{"field": "email", "check_type": "is_complete", "threshold": 0.95}]
-    >>> result, raw = validate(client, "project.dataset.table", rules)
-    >>> summary = summarize(raw, rules, 1000, client)
+This module provides validation functions for data quality rules in BigQuery using SQLGlot
+for SQL generation. It supports various validation types including completeness, uniqueness,
+pattern matching, date validations, and numeric comparisons.
 """
 
 from google.cloud import bigquery
@@ -58,6 +22,14 @@ from sumeh.core.utils import __compare_schemas
 
 @dataclass(slots=True)
 class __RuleCtx:
+    """
+        Context for validation rule execution.
+
+        Attributes:
+            column: Column name(s) to validate (str or list of str)
+            value: Threshold or comparison value for the rule
+            name: Check type identifier
+    """
     column: Any
     value: Any
     name: str
@@ -65,26 +37,17 @@ class __RuleCtx:
 
 def _parse_table_ref(table_ref: str) -> exp.Table:
     """
-    Parses a table reference string into a sqlglot Table expression.
+    Parses a table reference string into a SQLGlot Table expression.
 
     Args:
-        table_ref (str): String containing the table reference in one of these formats:
-            - "project.dataset.table"
-            - "dataset.table"
-            - "table"
+        table_ref: Table reference in format "project.dataset.table", "dataset.table", or "table"
 
     Returns:
-        exp.Table: A sqlglot Table expression representing the parsed table reference
+        SQLGlot Table expression with appropriate catalog, database, and table identifiers
 
     Examples:
-        >>> _parse_table_ref("project.dataset.table")
-        Table(catalog=Identifier("project"), db=Identifier("dataset"), this=Identifier("table"))
-
-        >>> _parse_table_ref("dataset.table")
-        Table(db=Identifier("dataset"), this=Identifier("table"))
-
-        >>> _parse_table_ref("table")
-        Table(this=Identifier("table"))
+        >>> _parse_table_ref("my-project.my_dataset.my_table")
+        Table(catalog=Identifier("my-project"), db=Identifier("my_dataset"), this=Identifier("my_table"))
     """
     parts = table_ref.split(".")
 
@@ -105,27 +68,26 @@ def _parse_table_ref(table_ref: str) -> exp.Table:
 
 def _is_complete(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column is complete (non-null).
+    Generates SQL expression to validate column completeness (non-null).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing the column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for completeness validation.
+        SQLGlot expression checking if column IS NOT NULL
     """
     return exp.Is(this=exp.Column(this=r.column), expression=exp.Not(this=exp.Null()))
 
 
 def _are_complete(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if multiple columns are complete (non-null).
+    Generates SQL expression to validate multiple columns are complete (all non-null).
 
     Args:
-        r (__RuleCtx): Rule context containing the columns to validate. The `column` attribute
-            should be a list of column names to check for completeness.
+        r: Rule context with column list to validate
 
     Returns:
-        exp.Expression: SQLGlot expression that evaluates to True if all specified columns are non-null.
+        SQLGlot AND expression checking all columns are NOT NULL
     """
     conditions = [
         exp.Is(this=exp.Column(this=c), expression=exp.Not(this=exp.Null()))
@@ -160,14 +122,16 @@ def _is_unique(r: __RuleCtx, table_expr: exp.Table) -> exp.Expression:
 
 def _are_unique(r: __RuleCtx, table_expr: exp.Table) -> exp.Expression:
     """
-    Creates a subquery expression to verify composite key uniqueness.
+    Generates SQL subquery expression to verify composite key uniqueness.
+
+    Concatenates multiple columns with '|' separator and checks for uniqueness.
 
     Args:
-        r: Rule context containing columns and validation parameters
-        table_expr: SQLGlot table expression for the source table
+        r: Rule context containing list of columns forming composite key
+        table_expr: SQLGlot table expression for source table
 
     Returns:
-        exp.Expression: SQLGlot expression for composite uniqueness validation
+        SQLGlot expression checking concatenated columns are unique
     """
 
     def concat_cols(table_alias):
@@ -200,39 +164,39 @@ def _are_unique(r: __RuleCtx, table_expr: exp.Table) -> exp.Expression:
 
 def _is_positive(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column contains positive values.
+    Generates SQL expression to detect negative values (violation for positive rule).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for positivity validation.
+        SQLGlot expression checking if column < 0 (violation condition)
     """
     return exp.LT(this=exp.Column(this=r.column), expression=exp.Literal.number(0))
 
 
 def _is_negative(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column contains negative values.
+    Generates SQL expression to detect non-negative values (violation for negative rule).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for negativity validation.
+        SQLGlot expression checking if column >= 0 (violation condition)
     """
     return exp.GTE(this=exp.Column(this=r.column), expression=exp.Literal.number(0))
 
 
 def _is_greater_than(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is greater than a specified value.
+    Generates SQL expression to detect values not greater than threshold (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the value to compare.
+        r: Rule context containing column and threshold value
 
     Returns:
-        exp.Expression: SQLGlot expression for the greater-than validation.
+        SQLGlot expression checking if column <= threshold (violation condition)
     """
     return exp.LTE(
         this=exp.Column(this=r.column), expression=exp.Literal.number(r.value)
@@ -241,13 +205,13 @@ def _is_greater_than(r: __RuleCtx) -> exp.Expression:
 
 def _is_less_than(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is less than a specified value.
+    Generates SQL expression to detect values not less than threshold (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the value to compare.
+        r: Rule context containing column and threshold value
 
     Returns:
-        exp.Expression: SQLGlot expression for the less-than validation.
+        SQLGlot expression checking if column >= threshold (violation condition)
     """
     return exp.GTE(
         this=exp.Column(this=r.column), expression=exp.Literal.number(r.value)
@@ -256,13 +220,13 @@ def _is_less_than(r: __RuleCtx) -> exp.Expression:
 
 def _is_greater_or_equal_than(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is greater than or equal to a specified value.
+    Generates SQL expression to detect values less than threshold (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the value to compare.
+        r: Rule context containing column and threshold value
 
     Returns:
-        exp.Expression: SQLGlot expression for the greater-or-equal-than validation.
+        SQLGlot expression checking if column < threshold (violation condition)
     """
     return exp.LT(
         this=exp.Column(this=r.column), expression=exp.Literal.number(r.value)
@@ -271,13 +235,13 @@ def _is_greater_or_equal_than(r: __RuleCtx) -> exp.Expression:
 
 def _is_less_or_equal_than(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is less than or equal to a specified value.
+    Generates SQL expression to detect values greater than threshold (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the value to compare.
+        r: Rule context containing column and threshold value
 
     Returns:
-        exp.Expression: SQLGlot expression for the less-or-equal-than validation.
+        SQLGlot expression checking if column > threshold (violation condition)
     """
     return exp.GT(
         this=exp.Column(this=r.column), expression=exp.Literal.number(r.value)
@@ -286,13 +250,13 @@ def _is_less_or_equal_than(r: __RuleCtx) -> exp.Expression:
 
 def _is_equal_than(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is equal to a specified value.
+    Generates SQL expression to detect values not equal to specified value (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the value to compare.
+        r: Rule context containing column and comparison value
 
     Returns:
-        exp.Expression: SQLGlot expression for the equal-than validation.
+        SQLGlot expression checking if column != value (violation condition)
     """
     return exp.EQ(
         this=exp.Column(this=r.column), expression=exp.Literal.number(r.value)
@@ -301,13 +265,13 @@ def _is_equal_than(r: __RuleCtx) -> exp.Expression:
 
 def _is_in_millions(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is in the millions (>= 1,000,000).
+    Generates SQL expression to detect values less than one million (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the millions' validation.
+        SQLGlot expression checking if column < 1,000,000 (violation condition)
     """
     return exp.GTE(
         this=exp.Column(this=r.column), expression=exp.Literal.number(1000000)
@@ -316,13 +280,13 @@ def _is_in_millions(r: __RuleCtx) -> exp.Expression:
 
 def _is_in_billions(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is in the billions (>= 1,000,000,000).
+    Generates SQL expression to detect values less than one billion (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the billions' validation.
+        SQLGlot expression checking if column < 1,000,000,000 (violation condition)
     """
     return exp.GTE(
         this=exp.Column(this=r.column), expression=exp.Literal.number(1000000000)
@@ -331,13 +295,13 @@ def _is_in_billions(r: __RuleCtx) -> exp.Expression:
 
 def _is_between(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is between two specified values.
+    Generates SQL expression to validate column value is within specified range.
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the range values.
+        r: Rule context containing column and range values (as list/tuple or comma-separated string)
 
     Returns:
-        exp.Expression: SQLGlot expression for the between validation.
+        SQLGlot BETWEEN expression checking if value is in [low, high] range
     """
     val = r.value
     if isinstance(val, (list, tuple)):
@@ -354,13 +318,13 @@ def _is_between(r: __RuleCtx) -> exp.Expression:
 
 def _has_pattern(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value matches a specified pattern.
+    Generates SQL expression to validate column matches regex pattern.
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the pattern to match.
+        r: Rule context containing column and regex pattern
 
     Returns:
-        exp.Expression: SQLGlot expression for the pattern validation.
+        SQLGlot REGEXP_CONTAINS expression for pattern matching
     """
     return exp.RegexpLike(
         this=exp.Cast(this=exp.Column(this=r.column), to=exp.DataType.build("STRING")),
@@ -370,13 +334,13 @@ def _has_pattern(r: __RuleCtx) -> exp.Expression:
 
 def _is_contained_in(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is contained in a specified list of values.
+    Generates SQL expression to validate column value is in allowed list.
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the list of values.
+        r: Rule context containing column and allowed values (as list/tuple or comma-separated string)
 
     Returns:
-        exp.Expression: SQLGlot expression for the contained-in validation.
+        SQLGlot IN expression checking if value is in allowed list
     """
     if isinstance(r.value, (list, tuple)):
         seq = r.value
@@ -389,20 +353,26 @@ def _is_contained_in(r: __RuleCtx) -> exp.Expression:
 
 def _is_in(r: __RuleCtx) -> exp.Expression:
     """
-    Alias for _is_contained_in. Checks if a column's value is in a specified list of values.
+    Alias for _is_contained_in. Validates column value is in allowed list.
+
+    Args:
+        r: Rule context containing column and allowed values
+
+    Returns:
+        SQLGlot IN expression
     """
     return _is_contained_in(r)
 
 
 def _not_contained_in(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's value is not contained in a specified list of values.
+    Generates SQL expression to validate column value is not in blocked list.
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the list of values.
+        r: Rule context containing column and blocked values (as list/tuple or comma-separated string)
 
     Returns:
-        exp.Expression: SQLGlot expression for the not-contained-in validation.
+        SQLGlot NOT IN expression checking if value is not in blocked list
     """
     if isinstance(r.value, (list, tuple)):
         seq = r.value
@@ -415,33 +385,41 @@ def _not_contained_in(r: __RuleCtx) -> exp.Expression:
 
 def _not_in(r: __RuleCtx) -> exp.Expression:
     """
-    Alias for _not_contained_in. Checks if a column's value is not in a specified list of values.
+    Alias for _not_contained_in. Validates column value is not in blocked list.
+
+    Args:
+        r: Rule context containing column and blocked values
+
+    Returns:
+        SQLGlot NOT IN expression
     """
     return _not_contained_in(r)
 
 
 def _satisfies(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression from a custom SQL string provided in the rule context.
+    Generates SQL expression from custom SQL condition string.
 
     Args:
-        r (__RuleCtx): Rule context containing the custom SQL string in the value attribute.
+        r: Rule context containing custom SQL expression string in value attribute
 
     Returns:
-        exp.Expression: SQLGlot expression parsed from the custom SQL string.
+        SQLGlot expression parsed from custom SQL string
     """
     return sqlglot.parse_one(str(r.value), dialect="bigquery")
 
 
 def _validate_date_format(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to validate the date format of a column using a specified format string.
+    Generates SQL expression to validate date string format using regex.
+
+    Supports tokens: DD (day), MM (month), YYYY (4-digit year), YY (2-digit year)
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the date format string.
+        r: Rule context containing column and date format pattern (e.g., "DD/MM/YYYY")
 
     Returns:
-        exp.Expression: SQLGlot expression for the date format validation.
+        SQLGlot expression checking if column IS NULL or doesn't match format (violation)
     """
     fmt = r.value
     token_map = {
@@ -468,39 +446,39 @@ def _validate_date_format(r: __RuleCtx) -> exp.Expression:
 
 def _is_future_date(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is in the future.
+    Generates SQL expression to detect future dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the future date validation.
+        SQLGlot expression checking if column > CURRENT_DATE() (violation)
     """
     return exp.GT(this=exp.Column(this=r.column), expression=exp.CurrentDate())
 
 
 def _is_past_date(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is in the past.
+    Generates SQL expression to detect past dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the past date validation.
+        SQLGlot expression checking if column < CURRENT_DATE() (violation)
     """
     return exp.LT(this=exp.Column(this=r.column), expression=exp.CurrentDate())
 
 
 def _is_date_after(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is after a specified date.
+    Generates SQL expression to detect dates not after specified date (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the date to compare.
+        r: Rule context containing column and threshold date string
 
     Returns:
-        exp.Expression: SQLGlot expression for the date-after validation.
+        SQLGlot expression checking if column < threshold_date (violation)
     """
     return exp.LT(
         this=exp.Column(this=r.column),
@@ -512,13 +490,13 @@ def _is_date_after(r: __RuleCtx) -> exp.Expression:
 
 def _is_date_before(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is before a specified date.
+    Generates SQL expression to detect dates not before specified date (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the date to compare.
+        r: Rule context containing column and threshold date string
 
     Returns:
-        exp.Expression: SQLGlot expression for the date-before validation.
+        SQLGlot expression checking if column > threshold_date (violation)
     """
     return exp.GT(
         this=exp.Column(this=r.column),
@@ -530,13 +508,13 @@ def _is_date_before(r: __RuleCtx) -> exp.Expression:
 
 def _is_date_between(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is between two specified dates.
+    Generates SQL expression to detect dates outside specified range (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column and the date range.
+        r: Rule context containing column and date range as "[start,end]"
 
     Returns:
-        exp.Expression: SQLGlot expression for the date-between validation.
+        SQLGlot expression checking if column NOT BETWEEN start AND end (violation)
     """
     start, end = [d.strip() for d in r.value.strip("[]").split(",")]
     return exp.Not(
@@ -550,39 +528,39 @@ def _is_date_between(r: __RuleCtx) -> exp.Expression:
 
 def _all_date_checks(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value passes all date checks (default: is_past_date).
+    Applies all standard date validations. Currently defaults to past date check.
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the all-date-checks validation.
+        SQLGlot expression for comprehensive date validation
     """
     return _is_past_date(r)
 
 
 def _is_today(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is today.
+    Generates SQL expression to detect dates that are not today (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the today validation.
+        SQLGlot expression checking if column != CURRENT_DATE() (violation)
     """
     return exp.EQ(this=exp.Column(this=r.column), expression=exp.CurrentDate())
 
 
 def _is_yesterday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is yesterday.
+    Generates SQL expression to detect dates that are not yesterday (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the yesterday validation.
+        SQLGlot expression checking if column != CURRENT_DATE() - 1 DAY (violation)
     """
     return exp.EQ(
         this=exp.Column(this=r.column),
@@ -597,20 +575,26 @@ def _is_yesterday(r: __RuleCtx) -> exp.Expression:
 
 def _is_t_minus_1(r: __RuleCtx) -> exp.Expression:
     """
-    Alias for _is_yesterday. Checks if a column's date value is yesterday.
+    Alias for _is_yesterday. Validates date is T-1 (yesterday).
+
+    Args:
+        r: Rule context containing date column to validate
+
+    Returns:
+        SQLGlot expression for yesterday validation
     """
     return _is_yesterday(r)
 
 
 def _is_t_minus_2(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is two days ago (T-2).
+    Generates SQL expression to detect dates that are not T-2 (2 days ago).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the T-2 validation.
+        SQLGlot expression checking if column != CURRENT_DATE() - 2 DAYS (violation)
     """
     return exp.EQ(
         this=exp.Column(this=r.column),
@@ -625,13 +609,13 @@ def _is_t_minus_2(r: __RuleCtx) -> exp.Expression:
 
 def _is_t_minus_3(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value is three days ago (T-3).
+    Generates SQL expression to detect dates that are not T-3 (3 days ago).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the T-3 validation.
+        SQLGlot expression checking if column != CURRENT_DATE() - 3 DAYS (violation)
     """
     return exp.EQ(
         this=exp.Column(this=r.column),
@@ -646,13 +630,13 @@ def _is_t_minus_3(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_weekday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a weekday (Monday to Friday).
+    Generates SQL expression to detect weekend dates (violation for weekday rule).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the weekday validation.
+        SQLGlot expression checking if DAYOFWEEK NOT BETWEEN 2 AND 6 (violation)
     """
     dayofweek = exp.Extract(
         this=exp.Var(this="DAYOFWEEK"), expression=exp.Column(this=r.column)
@@ -664,13 +648,13 @@ def _is_on_weekday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_weekend(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a weekend (Saturday or Sunday).
+    Generates SQL expression to detect weekday dates (violation for weekend rule).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the weekend validation.
+        SQLGlot expression checking if DAYOFWEEK is 1 (Sunday) or 7 (Saturday)
     """
     dayofweek = exp.Extract(
         this=exp.Var(this="DAYOFWEEK"), expression=exp.Column(this=r.column)
@@ -683,13 +667,13 @@ def _is_on_weekend(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_monday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Monday.
+    Generates SQL expression to detect non-Monday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Monday validation.
+        SQLGlot expression checking if DAYOFWEEK != 2 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -701,13 +685,13 @@ def _is_on_monday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_tuesday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Tuesday.
+    Generates SQL expression to detect non-Tuesday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Tuesday validation.
+        SQLGlot expression checking if DAYOFWEEK != 3 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -719,13 +703,13 @@ def _is_on_tuesday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_wednesday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Wednesday.
+    Generates SQL expression to detect non-Wednesday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Wednesday validation.
+        SQLGlot expression checking if DAYOFWEEK != 4 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -737,13 +721,13 @@ def _is_on_wednesday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_thursday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Thursday.
+    Generates SQL expression to detect non-Thursday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Thursday validation.
+        SQLGlot expression checking if DAYOFWEEK != 5 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -755,13 +739,13 @@ def _is_on_thursday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_friday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Friday.
+    Generates SQL expression to detect non-Friday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Friday validation.
+        SQLGlot expression checking if DAYOFWEEK != 6 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -773,13 +757,13 @@ def _is_on_friday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_saturday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Saturday.
+    Generates SQL expression to detect non-Saturday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Saturday validation.
+        SQLGlot expression checking if DAYOFWEEK != 7 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -791,13 +775,13 @@ def _is_on_saturday(r: __RuleCtx) -> exp.Expression:
 
 def _is_on_sunday(r: __RuleCtx) -> exp.Expression:
     """
-    Generates a SQL expression to check if a column's date value falls on a Sunday.
+    Generates SQL expression to detect non-Sunday dates (violation).
 
     Args:
-        r (__RuleCtx): Rule context containing the column to validate.
+        r: Rule context containing date column to validate
 
     Returns:
-        exp.Expression: SQLGlot expression for the Sunday validation.
+        SQLGlot expression checking if DAYOFWEEK != 1 (violation)
     """
     return exp.EQ(
         this=exp.Extract(
@@ -856,14 +840,20 @@ __RULE_DISPATCH_WITH_TABLE: dict[
 
 def _build_union_sql(rules: List[Dict], table_ref: str) -> str:
     """
-    Builds validation SQL using SQLGlot AST generation.
+    Constructs UNION ALL SQL query for all validation rules using SQLGlot.
+
+    Generates a SQL query that checks each rule and returns violating rows with
+    a dq_status column indicating which rule was violated.
 
     Args:
-        rules: List of validation rules
-        table_ref: BigQuery table reference
+        rules: List of validation rule dictionaries containing field, check_type, value, execute
+        table_ref: Fully qualified BigQuery table reference (project.dataset.table)
 
     Returns:
-        str: Generated SQL query with UNION of all rule violations
+        SQL query string with UNION ALL of all rule validations
+
+    Warnings:
+        UserWarning: Issued for unknown rule types
     """
 
     table_expr = _parse_table_ref(table_ref)
@@ -937,15 +927,21 @@ def validate(
     client: bigquery.Client, table_ref: str, rules: List[Dict]
 ) -> Tuple[bigquery.table.RowIterator, bigquery.table.RowIterator]:
     """
-    Validates data using specified quality rules.
+    Validates BigQuery table data against specified quality rules.
+
+    Executes two queries:
+    1. Raw violations - all violating rows with individual dq_status
+    2. Aggregated violations - rows grouped with concatenated dq_status
 
     Args:
-        client: BigQuery client instance
-        table_ref: Table reference (project.dataset.table)
+        client: Authenticated BigQuery client instance
+        table_ref: Fully qualified table reference (project.dataset.table)
         rules: List of validation rule dictionaries
 
     Returns:
-        Tuple[RowIterator, RowIterator]: (aggregated_results, raw_violations)
+        Tuple containing:
+            - Aggregated results with grouped violations
+            - Raw results with individual violations
     """
 
     union_sql = _build_union_sql(rules, table_ref)
@@ -994,13 +990,16 @@ def validate(
 
 def __rules_to_bq_sql(rules: List[Dict]) -> str:
     """
-    Generates SQL representation of rules using SQLGlot.
+    Converts rule definitions into SQL representation using SQLGlot.
+
+    Generates SQL query that represents each rule as a row with columns:
+    col, rule, pass_threshold, value
 
     Args:
-        rules: List of validation rules
+        rules: List of validation rule dictionaries
 
     Returns:
-        str: SQL query representing all rules
+        SQL query string with DISTINCT rule definitions
     """
 
     queries = []
@@ -1077,16 +1076,31 @@ def summarize(
     client: bigquery.Client,
 ) -> List[Dict[str, Any]]:
     """
-    Generates validation summary report from violation results.
+    Generates validation summary report with pass/fail status for each rule.
+
+    Analyzes violation results and compares against rule thresholds to determine
+    pass/fail status for each validation rule.
 
     Args:
-        df: Row iterator containing validation violations
-        rules: List of validation rules that were applied
-        total_rows: Total number of rows in the dataset
-        client: BigQuery client instance
+        df: Row iterator containing validation violations from validate()
+        rules: List of validation rules that were executed
+        total_rows: Total number of rows in validated table
+        client: BigQuery client instance (for compatibility, not actively used)
 
     Returns:
-        List[Dict]: Summary report with pass/fail status for each rule
+        List of summary dictionaries, each containing:
+            - id: Unique identifier for the summary record
+            - timestamp: Validation execution timestamp
+            - check: Check category (always "Quality Check")
+            - level: Severity level (always "WARNING")
+            - column: Column name(s) validated
+            - rule: Rule type applied
+            - value: Rule threshold/comparison value
+            - rows: Total rows evaluated
+            - violations: Number of violating rows
+            - pass_rate: Percentage of passing rows (0.0-1.0)
+            - pass_threshold: Required pass rate from rule
+            - status: "PASS" or "FAIL" based on pass_rate vs pass_threshold
     """
 
     violations_count = {}
@@ -1141,14 +1155,14 @@ def summarize(
 
 def count_rows(client: bigquery.Client, table_ref: str) -> int:
     """
-    Counts total rows in a BigQuery table.
+    Counts total number of rows in a BigQuery table using SQLGlot.
 
     Args:
-        client: BigQuery client instance
-        table_ref: Table reference (project.dataset.table)
+        client: Authenticated BigQuery client instance
+        table_ref: Fully qualified table reference (project.dataset.table)
 
     Returns:
-        int: Total number of rows in the table
+        Total row count as integer
     """
 
     table_expr = _parse_table_ref(table_ref)
@@ -1164,18 +1178,17 @@ def count_rows(client: bigquery.Client, table_ref: str) -> int:
 
 def extract_schema(table: bigquery.Table) -> List[Dict[str, Any]]:
     """
-    Converts a BigQuery table schema into a list of dictionaries representing the schema fields.
+    Extracts schema definition from BigQuery table object.
 
     Args:
-        table (bigquery.Table): The BigQuery table whose schema is to be converted.
+        table: BigQuery Table object with schema information
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries where each dictionary represents a field in the schema.
-            Each dictionary contains the following keys:
-                - "field": The name of the field.
-                - "data_type": The data type of the field, converted to lowercase.
-                - "nullable": A boolean indicating whether the field is nullable.
-                - "max_length": Always set to None (reserved for future use).
+        List of schema field dictionaries, each containing:
+            - field: Field name
+            - data_type: BigQuery data type
+            - nullable: Whether field allows NULL values
+            - max_length: Always None (reserved for future use)
     """
     return [
         {
@@ -1192,19 +1205,20 @@ def validate_schema(
     client: bigquery.Client, expected: List[Dict[str, Any]], table_ref: str
 ) -> tuple[bool, list[dict[str, Any]]]:
     """
-    Validates the schema of a BigQuery table against an expected schema.
+    Validates BigQuery table schema against expected schema definition.
+
+    Compares actual table schema with expected schema and identifies mismatches
+    in field names, data types, and nullability constraints.
 
     Args:
-        client (bigquery.Client): The BigQuery client used to interact with the BigQuery service.
-        expected (List[Dict[str, Any]]): The expected schema as a list of dictionaries, where each dictionary
-            represents a field with its attributes (e.g., name, type, mode).
-        table_ref (str): The reference to the BigQuery table (e.g., "project.dataset.table").
+        client: Authenticated BigQuery client instance
+        expected: List of expected schema field dictionaries
+        table_ref: Fully qualified table reference (project.dataset.table)
 
     Returns:
-        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating whether
-            the actual schema matches the expected schema, and the second element is a list of tuples
-            describing the differences (if any) between the schemas. Each tuple contains a description
-            of the difference and the corresponding field name.
+        Tuple containing:
+            - Boolean indicating if schemas match exactly
+            - List of error dictionaries describing any mismatches
     """
 
     table = client.get_table(table_ref)
