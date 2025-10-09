@@ -2,8 +2,10 @@
 
 from typing import Any, Tuple, List, Dict
 
+from sumeh.core.rules.rule_model import RuleDef
 
-def validate(df: Any, rules: List[Dict], **context) -> Tuple[Any, Any]:
+
+def validate(df: Any, rules: List[RuleDef], **context) -> Tuple[Any, Any]:
     """
     Validate DataFrame against rules.
 
