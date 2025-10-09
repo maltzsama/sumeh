@@ -1,6 +1,7 @@
 """AWS Athena dialect for DDL generation."""
 
 from typing import Dict, Any
+
 from .base import BaseDialect
 
 

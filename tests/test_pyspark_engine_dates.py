@@ -1,7 +1,9 @@
+from datetime import date, timedelta
+
 import pytest
-from datetime import date, timedelta, datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
+
 from sumeh.engines.pyspark_engine import (
     is_in_millions,
     is_in_billions,
@@ -10,8 +12,6 @@ from sumeh.engines.pyspark_engine import (
     is_t_minus_3,
     is_today,
     is_yesterday,
-    is_on_weekday,
-    is_on_weekend,
     is_on_monday,
     is_on_tuesday,
     is_on_wednesday,

@@ -1,8 +1,9 @@
-import pytest
+from datetime import datetime
+
 import dask.dataframe as dd
 import pandas as pd
-import numpy as np
-from datetime import datetime
+import pytest
+
 from sumeh.engines.dask_engine import (
     validate,
     summarize,

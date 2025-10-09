@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict, Any, Tuple, Optional
 import ast
+from typing import List, Dict, Any, Tuple, Optional
 
 
 def __convert_value(value):

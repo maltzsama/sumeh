@@ -1,16 +1,11 @@
-import pytest
 import duckdb
+import pytest
+
 from sumeh.engines.duckdb_engine import (
     __escape_single_quotes,
     __format_sequence,
     __RuleCtx,
     _validate_date_format,
-    _is_future_date,
-    _is_past_date,
-    _is_date_after,
-    _is_date_before,
-    _is_date_between,
-    _all_date_checks,
     validate,
     summarize,
     _build_union_sql,

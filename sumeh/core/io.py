@@ -1,9 +1,10 @@
 """I/O operations for loading data and saving results."""
 
-import pandas as pd
+import json
 from pathlib import Path
 from typing import Dict, Any
-import json
+
+import pandas as pd
 
 
 def load_data(source: str, engine: str = "pandas", **kwargs) -> Any:

@@ -1,6 +1,8 @@
-import pytest
-import polars as pl
 from datetime import date, timedelta
+
+import polars as pl
+import pytest
+
 from sumeh.engines.polars_engine import (
     is_in_millions,
     is_in_billions,

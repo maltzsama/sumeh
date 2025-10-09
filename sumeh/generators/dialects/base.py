@@ -1,7 +1,7 @@
 """Base dialect class for SQL DDL generation."""
 
-from typing import List, Dict, Any
 from abc import ABC, abstractmethod
+from typing import List, Dict, Any
 
 
 class BaseDialect(ABC):

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import unittest
-import pandas as pd
 import os
-from unittest.mock import patch
-from sumeh import report
+import unittest
+
+import pandas as pd
+
 from sumeh import get_rules_config
+from sumeh import report
 
 
 class TestQualityFunction(unittest.TestCase):

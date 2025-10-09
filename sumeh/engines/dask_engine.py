@@ -149,17 +149,17 @@ Functions:
     Validates the schema of a Dask DataFrame against an expected schema.
 """
 
-import re
-import warnings
 import operator
+import re
 import uuid
-from functools import reduce
+import warnings
 from datetime import datetime, date
+from functools import reduce
 from typing import List, Dict, Any, Tuple
 
-import pandas as pd
 import dask.dataframe as dd
 import numpy as np
+import pandas as pd
 
 from sumeh.core.utils import __convert_value, __extract_params, __compare_schemas
 

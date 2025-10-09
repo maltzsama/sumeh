@@ -112,10 +112,14 @@ Functions:
 
     validate_schema: Validates the schema of a DataFrame against an expected schema and returns a boolean result and a list of errors.
 """
-import warnings
 import re
-import pandas as pd
+import uuid
+import warnings
 from datetime import datetime, date, timedelta
+from typing import List, Dict, Any, Tuple
+
+import numpy as np
+import pandas as pd
 
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.core.utils import (
@@ -123,10 +127,6 @@ from sumeh.core.utils import (
     __compare_schemas,
     __transform_date_format_in_pattern,
 )
-
-from typing import List, Dict, Any, Tuple
-import uuid
-import numpy as np
 
 
 def is_positive(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
@@ -538,7 +538,9 @@ def is_legit(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
                       that caused the violation in the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
 
-    mask = df[rule.field].notna() & df[rule.field].astype(str).str.contains(r"^\S+$", na=False)
+    mask = df[rule.field].notna() & df[rule.field].astype(str).str.contains(
+        r"^\S+$", na=False
+    )
     viol = df[~mask].copy()
     viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
@@ -758,7 +760,9 @@ def validate_date_format(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     fmt = rule.value
     pattern = __transform_date_format_in_pattern(fmt)
-    mask = ~df[rule.field].astype(str).str.match(pattern, na=False) | df[rule.field].isna()
+    mask = (
+        ~df[rule.field].astype(str).str.match(pattern, na=False) | df[rule.field].isna()
+    )
     viol = df[mask].copy()
     viol["dq_status"] = f"{rule.field}:{rule.check_type}:{fmt}"
     return viol
@@ -1211,7 +1215,9 @@ def is_on_sunday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     return _day_of_week(df, rule, 6)
 
 
-def validate(df: pd.DataFrame, rules: List[RuleDef]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def validate(
+    df: pd.DataFrame, rules: List[RuleDef]
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Validates a pandas DataFrame against a set of rules.
 
@@ -1327,12 +1333,14 @@ def __build_rules_df(rules: List[RuleDef]) -> pd.DataFrame:
         else:
             val_str = str(rule.value)
 
-        rows.append({
-            "column": col,
-            "rule": rule.check_type,
-            "pass_threshold": rule.threshold,
-            "value": val_str,  # Sempre string agora
-        })
+        rows.append(
+            {
+                "column": col,
+                "rule": rule.check_type,
+                "pass_threshold": rule.threshold,
+                "value": val_str,  # Sempre string agora
+            }
+        )
 
     df_rules = pd.DataFrame(rows)
 

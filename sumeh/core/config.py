@@ -66,12 +66,13 @@ Functions:
     infer_basic_type(val: str) -> str:
         Infers the basic data type of given value.
 """
-from io import StringIO
-
 import warnings
-from dateutil import parser
-from typing import List, Dict, Any, Tuple, Optional
 from datetime import date, datetime
+from io import StringIO
+from typing import List, Dict, Any, Tuple, Optional
+
+from dateutil import parser
+
 from .rules.rule_model import RuleDef
 
 

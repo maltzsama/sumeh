@@ -1,10 +1,11 @@
-import pytest
 from datetime import datetime
+
+import pytest
+
 from sumeh.core.utils import (
     __convert_value as convert_value,
     __extract_params as extract_params,
     __compare_schemas as compare_schemas,
-    SchemaDef,
 )
 
 

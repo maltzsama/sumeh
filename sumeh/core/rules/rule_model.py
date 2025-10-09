@@ -1,9 +1,11 @@
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, date
-from typing import Any, List, Union, Optional
-from dateutil import parser
 import ast
 import re
+from dataclasses import dataclass, asdict
+from datetime import datetime, date
+from typing import Any, List, Union, Optional
+
+from dateutil import parser
+
 from .regristry import RuleRegistry
 
 
@@ -27,6 +29,7 @@ class RuleDef:
         created_at: Rule creation timestamp
         updated_at: Rule update timestamp
     """
+
     field: Union[str, List[str]]
     check_type: str
     value: Any = None
@@ -49,7 +52,7 @@ class RuleDef:
             )
 
         if self.engine and not RuleRegistry.is_rule_supported(
-                self.check_type, self.engine
+            self.check_type, self.engine
         ):
             supported = rule_def.get("engines", [])
             raise ValueError(
@@ -148,8 +151,9 @@ class RuleDef:
         field_str = field_input.strip()
 
         # Remove outer quotes
-        if (field_str.startswith('"') and field_str.endswith('"')) or \
-                (field_str.startswith("'") and field_str.endswith("'")):
+        if (field_str.startswith('"') and field_str.endswith('"')) or (
+            field_str.startswith("'") and field_str.endswith("'")
+        ):
             field_str = field_str[1:-1].strip()
 
         # Handle empty
@@ -172,18 +176,22 @@ class RuleDef:
 
             # Fallback: manual split
             if "," in inner:
-                items = [item.strip(' "\'') for item in inner.split(",") if item.strip()]
+                items = [
+                    item.strip(" \"'") for item in inner.split(",") if item.strip()
+                ]
                 return items if len(items) > 1 else (items[0] if items else "")
             else:
-                return inner.strip(' "\'')
+                return inner.strip(" \"'")
 
         # Handle comma-separated without brackets: "col1, col2"
         elif "," in field_str:
-            items = [item.strip(' "\'') for item in field_str.split(",") if item.strip()]
+            items = [
+                item.strip(" \"'") for item in field_str.split(",") if item.strip()
+            ]
             return items if len(items) > 1 else (items[0] if items else "")
 
         # Single column
-        return field_str.strip(' "\'')
+        return field_str.strip(" \"'")
 
     @staticmethod
     def _parse_value(value_input: Any) -> Any:
@@ -230,14 +238,14 @@ class RuleDef:
                     # Fallback: manual split
                     inner = value_str[1:-1].strip()
                     if inner:
-                        items = [item.strip(' "\'') for item in inner.split(",")]
+                        items = [item.strip(" \"'") for item in inner.split(",")]
                         return RuleDef._parse_value_list(items)
 
             # Try date parsing (YYYY-MM-DD or DD/MM/YYYY)
             try:
-                if re.match(r'^\d{4}-\d{2}-\d{2}$', value_str):
+                if re.match(r"^\d{4}-\d{2}-\d{2}$", value_str):
                     return datetime.strptime(value_str, "%Y-%m-%d").date()
-                elif re.match(r'^\d{2}/\d{2}/\d{4}$', value_str):
+                elif re.match(r"^\d{2}/\d{2}/\d{4}$", value_str):
                     return datetime.strptime(value_str, "%d/%m/%Y").date()
             except ValueError:
                 pass
@@ -270,7 +278,7 @@ class RuleDef:
         parsed = []
         for item in items:
             if isinstance(item, str):
-                item = item.strip(' "\'')
+                item = item.strip(" \"'")
                 # Try numeric
                 try:
                     if "." in item:
@@ -286,7 +294,7 @@ class RuleDef:
 
     @staticmethod
     def _parse_timestamp(
-            value: Any, default: Optional[datetime] = None
+        value: Any, default: Optional[datetime] = None
     ) -> Optional[datetime]:
         """Parse timestamp from various formats."""
         if value is None:

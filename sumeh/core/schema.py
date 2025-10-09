@@ -4,8 +4,9 @@
 Schema extraction, validation, and type compatibility utilities.
 """
 
-from typing import List, Dict, Any, Tuple
 from importlib import import_module
+from typing import List, Dict, Any, Tuple
+
 from .utils import __detect_engine
 
 

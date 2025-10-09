@@ -1,5 +1,8 @@
-import pytest
+from datetime import date, timedelta
+
 import polars as pl
+import pytest
+
 from sumeh.engines.polars_engine import (
     validate,
     summarize,
@@ -18,8 +21,6 @@ from sumeh.engines.polars_engine import (
     all_date_checks,
     __build_rules_df,
 )
-from datetime import datetime, date, timedelta
-import numpy as np
 
 
 @pytest.fixture

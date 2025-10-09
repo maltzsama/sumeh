@@ -54,11 +54,12 @@ Functions:
 
 from __future__ import annotations
 
-import duckdb as dk
-import ast, warnings
+import ast
+import warnings
 from dataclasses import dataclass
 from typing import List, Dict, Callable, Any, Optional, Tuple
 
+import duckdb as dk
 from duckdb import DuckDBPyRelation
 
 from sumeh.core.utils import __compare_schemas

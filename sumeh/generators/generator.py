@@ -1,6 +1,7 @@
 """Core SQL DDL generator for sumeh tables."""
 
-from typing import Dict, Any, List
+from typing import List
+
 from .dialects import (
     PostgresDialect,
     MySQLDialect,

@@ -1,4 +1,5 @@
 import pytest
+
 from sumeh.engines.duckdb_engine import __RuleCtx
 from sumeh.engines.duckdb_engine import (
     _is_in_millions,
