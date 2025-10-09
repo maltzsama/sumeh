@@ -516,9 +516,54 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery_engine.__bigquery_schema_to_list" class="md-nav__link">
+  <a href="#sumeh.engines.bigquery_engine.__RuleCtx" class="md-nav__link">
     <span class="md-ellipsis">
-      __bigquery_schema_to_list
+      __RuleCtx
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.__rules_to_bq_sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rules_to_bq_sql
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.count_rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      count_rows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.summarize" class="md-nav__link">
+    <span class="md-ellipsis">
+      summarize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate
     </span>
   </a>
   
@@ -1072,9 +1117,54 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery_engine.__bigquery_schema_to_list" class="md-nav__link">
+  <a href="#sumeh.engines.bigquery_engine.__RuleCtx" class="md-nav__link">
     <span class="md-ellipsis">
-      __bigquery_schema_to_list
+      __RuleCtx
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.__rules_to_bq_sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      __rules_to_bq_sql
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.count_rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      count_rows
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.summarize" class="md-nav__link">
+    <span class="md-ellipsis">
+      summarize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.bigquery_engine.validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate
     </span>
   </a>
   
@@ -1125,38 +1215,99 @@
 
     <div class="doc doc-contents first">
 
-        <p>This module provides utility functions for working with Google BigQuery schemas and validating them.</p>
+        <p>BigQuery data quality validation engine for Sumeh.</p>
+<p>This module provides validation functions for data quality rules in BigQuery using SQLGlot
+for SQL generation. It supports various validation types including completeness, uniqueness,
+pattern matching, date validations, and numeric comparisons.</p>
 
 
-<p><span class="doc-section-title">Functions:</span></p>
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sumeh.engines.bigquery_engine.__RuleCtx" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">__RuleCtx</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#sumeh.engines.bigquery_engine.__RuleCtx" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__RuleCtx</span><span class="p">(</span><span class="n">column</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+        <p>Context for validation rule execution.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
     <table>
       <thead>
         <tr>
           <th>Name</th>
+          <th>Type</th>
           <th>Description</th>
         </tr>
       </thead>
       <tbody>
-            <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="__bigquery_schema_to_list (sumeh.engines.bigquery_engine.__bigquery_schema_to_list)" href="#sumeh.engines.bigquery_engine.__bigquery_schema_to_list">__bigquery_schema_to_list</a></code></td>
-              <td>
-                <div class="doc-md-description">
-                  <p>bigquery.Table) -&gt; List[Dict[str, Any]]:</p>
-                </div>
-              </td>
-            </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sumeh.engines.bigquery_engine.__RuleCtx.column">column</span></code></td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Column name(s) to validate (str or list of str)</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sumeh.engines.bigquery_engine.__RuleCtx.value">value</span></code></td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Threshold or comparison value for the rule</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sumeh.engines.bigquery_engine.__RuleCtx.name">name</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Check type identifier</p>
+              </div>
+            </td>
+          </tr>
       </tbody>
     </table>
 
 
-<details class="dependencies" open>
-  <summary>Dependencies</summary>
-  <ul>
-<li>google.cloud.bigquery: Provides the BigQuery client and table schema functionality.</li>
-<li>typing: Used for type annotations.</li>
-<li>sumeh.core.utils.__compare_schemas: A utility function for comparing schemas.</li>
-</ul>
-</details>
 
 
 
@@ -1177,20 +1328,31 @@
 
 
 
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
 <div class="doc doc-object doc-function">
 
 
-<h3 id="sumeh.engines.bigquery_engine.__bigquery_schema_to_list" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">__bigquery_schema_to_list</span>
+<h3 id="sumeh.engines.bigquery_engine.__rules_to_bq_sql" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">__rules_to_bq_sql</span>
 
 
-<a href="#sumeh.engines.bigquery_engine.__bigquery_schema_to_list" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__bigquery_schema_to_list</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="n">Table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+<a href="#sumeh.engines.bigquery_engine.__rules_to_bq_sql" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__rules_to_bq_sql</span><span class="p">(</span><span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Converts a BigQuery table schema into a list of dictionaries representing the schema fields.</p>
+        <p>Converts rule definitions into SQL representation using SQLGlot.</p>
+<p>Generates SQL query that represents each rule as a row with columns:
+col, rule, pass_threshold, value</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1206,14 +1368,14 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>table</code>
+                <code>rules</code>
             </td>
             <td>
-                  <code><span title="google.cloud.bigquery.Table">Table</span></code>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The BigQuery table whose schema is to be converted.</p>
+                <p>List of validation rule dictionaries</p>
               </div>
             </td>
             <td>
@@ -1235,16 +1397,11 @@
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>List[Dict[str, Any]]: A list of dictionaries where each dictionary represents a field in the schema.
-Each dictionary contains the following keys:
-    - "field": The name of the field.
-    - "data_type": The data type of the field, converted to lowercase.
-    - "nullable": A boolean indicating whether the field is nullable.
-    - "max_length": Always set to None (reserved for future use).</p>
+                <p>SQL query string with DISTINCT rule definitions</p>
               </div>
             </td>
           </tr>
@@ -1259,17 +1416,17 @@ Each dictionary contains the following keys:
 <div class="doc doc-object doc-function">
 
 
-<h3 id="sumeh.engines.bigquery_engine.validate_schema" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">validate_schema</span>
+<h3 id="sumeh.engines.bigquery_engine.count_rows" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">count_rows</span>
 
 
-<a href="#sumeh.engines.bigquery_engine.validate_schema" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">table_ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
+<a href="#sumeh.engines.bigquery_engine.count_rows" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">count_rows</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span><span class="p">,</span> <span class="n">table_ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Validates the schema of a BigQuery table against an expected schema.</p>
+        <p>Counts total number of rows in a BigQuery table using SQLGlot.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1292,24 +1449,7 @@ Each dictionary contains the following keys:
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The BigQuery client used to interact with the BigQuery service.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>expected</code>
-            </td>
-            <td>
-                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>The expected schema as a list of dictionaries, where each dictionary
-represents a field with its attributes (e.g., name, type, mode).</p>
+                <p>Authenticated BigQuery client instance</p>
               </div>
             </td>
             <td>
@@ -1325,7 +1465,7 @@ represents a field with its attributes (e.g., name, type, mode).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The reference to the BigQuery table (e.g., "project.dataset.table").</p>
+                <p>Fully qualified table reference (project.dataset.table)</p>
               </div>
             </td>
             <td>
@@ -1347,14 +1487,446 @@ represents a field with its attributes (e.g., name, type, mode).</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="bool">bool</span>, <span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]]]</code>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating whether
-the actual schema matches the expected schema, and the second element is a list of tuples
-describing the differences (if any) between the schemas. Each tuple contains a description
-of the difference and the corresponding field name.</p>
+                <p>Total row count as integer</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.bigquery_engine.extract_schema" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">extract_schema</span>
+
+
+<a href="#sumeh.engines.bigquery_engine.extract_schema" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">extract_schema</span><span class="p">(</span><span class="n">table</span><span class="p">:</span> <span class="n">Table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Extracts schema definition from BigQuery table object.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>table</code>
+            </td>
+            <td>
+                  <code><span title="google.cloud.bigquery.Table">Table</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>BigQuery Table object with schema information</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of schema field dictionaries, each containing:
+- field: Field name
+- data_type: BigQuery data type
+- nullable: Whether field allows NULL values
+- max_length: Always None (reserved for future use)</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.bigquery_engine.summarize" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">summarize</span>
+
+
+<a href="#sumeh.engines.bigquery_engine.summarize" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">summarize</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">RowIterator</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">total_rows</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">Client</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Generates validation summary report with pass/fail status for each rule.</p>
+<p>Analyzes violation results and compares against rule thresholds to determine
+pass/fail status for each validation rule.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>df</code>
+            </td>
+            <td>
+                  <code><span title="google.cloud.bigquery.table.RowIterator">RowIterator</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Row iterator containing validation violations from validate()</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>rules</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of validation rules that were executed</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>total_rows</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Total number of rows in validated table</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><span title="google.cloud.bigquery.Client">Client</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>BigQuery client instance (for compatibility, not actively used)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of summary dictionaries, each containing:
+- id: Unique identifier for the summary record
+- timestamp: Validation execution timestamp
+- check: Check category (always "Quality Check")
+- level: Severity level (always "WARNING")
+- column: Column name(s) validated
+- rule: Rule type applied
+- value: Rule threshold/comparison value
+- rows: Total rows evaluated
+- violations: Number of violating rows
+- pass_rate: Percentage of passing rows (0.0-1.0)
+- pass_threshold: Required pass rate from rule
+- status: "PASS" or "FAIL" based on pass_rate vs pass_threshold</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.bigquery_engine.validate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">validate</span>
+
+
+<a href="#sumeh.engines.bigquery_engine.validate" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span><span class="p">,</span> <span class="n">table_ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">bigquery</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">RowIterator</span><span class="p">,</span> <span class="n">bigquery</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">RowIterator</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Validates BigQuery table data against specified quality rules.</p>
+<p>Executes two queries:
+1. Raw violations - all violating rows with individual dq_status
+2. Aggregated violations - rows grouped with concatenated dq_status</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><span title="google.cloud.bigquery.Client">Client</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Authenticated BigQuery client instance</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table_ref</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Fully qualified table reference (project.dataset.table)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>rules</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of validation rule dictionaries</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="google.cloud.bigquery.table.RowIterator">RowIterator</span>, <span title="google.cloud.bigquery.table.RowIterator">RowIterator</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple containing:
+- Aggregated results with grouped violations
+- Raw results with individual violations</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.bigquery_engine.validate_schema" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">validate_schema</span>
+
+
+<a href="#sumeh.engines.bigquery_engine.validate_schema" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">table_ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Validates BigQuery table schema against expected schema definition.</p>
+<p>Compares actual table schema with expected schema and identifies mismatches
+in field names, data types, and nullability constraints.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>client</code>
+            </td>
+            <td>
+                  <code><span title="google.cloud.bigquery.Client">Client</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Authenticated BigQuery client instance</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>expected</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of expected schema field dictionaries</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table_ref</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Fully qualified table reference (project.dataset.table)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="tuple">tuple</span>[<span title="bool">bool</span>, <span title="list">list</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple containing:
+- Boolean indicating if schemas match exactly
+- List of error dictionaries describing any mismatches</p>
               </div>
             </td>
           </tr>

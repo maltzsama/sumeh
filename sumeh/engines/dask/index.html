@@ -539,15 +539,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.dask_engine.__dask_schema_to_list" class="md-nav__link">
-    <span class="md-ellipsis">
-      __dask_schema_to_list
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sumeh.engines.dask_engine.all_date_checks" class="md-nav__link">
     <span class="md-ellipsis">
       all_date_checks
@@ -569,6 +560,15 @@
   <a href="#sumeh.engines.dask_engine.are_unique" class="md-nav__link">
     <span class="md-ellipsis">
       are_unique
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.dask_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
     </span>
   </a>
   
@@ -1567,15 +1567,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.dask_engine.__dask_schema_to_list" class="md-nav__link">
-    <span class="md-ellipsis">
-      __dask_schema_to_list
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sumeh.engines.dask_engine.all_date_checks" class="md-nav__link">
     <span class="md-ellipsis">
       all_date_checks
@@ -1597,6 +1588,15 @@
   <a href="#sumeh.engines.dask_engine.are_unique" class="md-nav__link">
     <span class="md-ellipsis">
       are_unique
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.dask_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
     </span>
   </a>
   
@@ -2532,97 +2532,6 @@ results and schema comparison.</p>
 <div class="doc doc-object doc-function">
 
 
-<h3 id="sumeh.engines.dask_engine.__dask_schema_to_list" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">__dask_schema_to_list</span>
-
-
-<a href="#sumeh.engines.dask_engine.__dask_schema_to_list" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__dask_schema_to_list</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
-</span></code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Convert the schema of a Dask DataFrame into a list of dictionaries.</p>
-<p>Each dictionary in the resulting list represents a column in the DataFrame
-and contains metadata about the column, including its name, data type,
-nullability, and maximum length.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>df</code>
-            </td>
-            <td>
-                  <code><span title="dask.dataframe.DataFrame">DataFrame</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>The Dask DataFrame whose schema is to be converted.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>List[Dict[str, Any]]: A list of dictionaries, where each dictionary</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>contains the following keys:
-- "field" (str): The name of the column.
-- "data_type" (str): The data type of the column, converted to a lowercase string.
-- "nullable" (bool): Always set to True, indicating the column is nullable.
-- "max_length" (None): Always set to None, as maximum length is not determined.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
 <h3 id="sumeh.engines.dask_engine.all_date_checks" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">all_date_checks</span>
 
@@ -2916,6 +2825,97 @@ include the fields to check, the type of check, and the expected value.</p>
             <td>
               <div class="doc-md-description">
                 <p>with an additional column <code>dq_status</code> indicating the rule that was violated.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.dask_engine.extract_schema" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">extract_schema</span>
+
+
+<a href="#sumeh.engines.dask_engine.extract_schema" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">extract_schema</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Convert the schema of a Dask DataFrame into a list of dictionaries.</p>
+<p>Each dictionary in the resulting list represents a column in the DataFrame
+and contains metadata about the column, including its name, data type,
+nullability, and maximum length.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>df</code>
+            </td>
+            <td>
+                  <code><span title="dask.dataframe.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The Dask DataFrame whose schema is to be converted.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List[Dict[str, Any]]: A list of dictionaries, where each dictionary</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>contains the following keys:
+- "field" (str): The name of the column.
+- "data_type" (str): The data type of the column, converted to a lowercase string.
+- "nullable" (bool): Always set to True, indicating the column is nullable.
+- "max_length" (None): Always set to None, as maximum length is not determined.</p>
               </div>
             </td>
           </tr>
@@ -8553,7 +8553,7 @@ are returned with an additional column indicating the validation status.</p>
 
 
 <a href="#sumeh.engines.dask_engine.validate_schema" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -8620,7 +8620,7 @@ Each dictionary should define the expected column name and its properties.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="bool">bool</span>, <span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]]]</code>
+                  <code><span title="tuple">tuple</span>[<span title="bool">bool</span>, <span title="list">list</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]]</code>
             </td>
             <td>
               <div class="doc-md-description">

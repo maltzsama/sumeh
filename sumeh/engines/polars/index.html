@@ -617,15 +617,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.polars_engine.__polars_schema_to_list" class="md-nav__link">
-    <span class="md-ellipsis">
-      __polars_schema_to_list
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sumeh.engines.polars_engine.all_date_checks" class="md-nav__link">
     <span class="md-ellipsis">
       all_date_checks
@@ -647,6 +638,15 @@
   <a href="#sumeh.engines.polars_engine.are_unique" class="md-nav__link">
     <span class="md-ellipsis">
       are_unique
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.polars_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
     </span>
   </a>
   
@@ -1576,15 +1576,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.polars_engine.__polars_schema_to_list" class="md-nav__link">
-    <span class="md-ellipsis">
-      __polars_schema_to_list
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sumeh.engines.polars_engine.all_date_checks" class="md-nav__link">
     <span class="md-ellipsis">
       all_date_checks
@@ -1606,6 +1597,15 @@
   <a href="#sumeh.engines.polars_engine.are_unique" class="md-nav__link">
     <span class="md-ellipsis">
       are_unique
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.polars_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
     </span>
   </a>
   
@@ -2546,7 +2546,7 @@ pattern matching, and schema validation.</p>
               </td>
             </tr>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="__polars_schema_to_list (sumeh.engines.polars_engine.__polars_schema_to_list)" href="#sumeh.engines.polars_engine.__polars_schema_to_list">__polars_schema_to_list</a></code></td>
+              <td><code><span title="sumeh.engines.polars_engine.__polars_schema_to_list">__polars_schema_to_list</span></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Converts a Polars DataFrame schema into a list of dictionaries.</p>
@@ -2661,85 +2661,6 @@ represents a rule. Each rule dictionary may contain the following keys:
 - "rule" (str): The type of rule or check.
 - "pass_threshold" (float): The pass threshold for the rule.
 - "value" (str): The value associated with the rule, or an empty string if not provided.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="sumeh.engines.polars_engine.__polars_schema_to_list" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">__polars_schema_to_list</span>
-
-
-<a href="#sumeh.engines.polars_engine.__polars_schema_to_list" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__polars_schema_to_list</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
-</span></code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Converts the schema of a Polars DataFrame into a list of dictionaries,
-where each dictionary represents a field in the schema.</p>
-
-
-<p><span class="doc-section-title">Parameters:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Default</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <code>df</code>
-            </td>
-            <td>
-                  <code><span title="polars.DataFrame">DataFrame</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>The Polars DataFrame whose schema is to be converted.</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-    <p><span class="doc-section-title">Returns:</span></p>
-    <table>
-      <thead>
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>List[Dict[str, Any]]: A list of dictionaries, each containing the following keys:
-- "field" (str): The name of the field.
-- "data_type" (str): The data type of the field, converted to lowercase.
-- "nullable" (bool): Always set to True, as Polars does not expose nullability in the schema.
-- "max_length" (None): Always set to None, as max length is not applicable.</p>
               </div>
             </td>
           </tr>
@@ -3043,6 +2964,85 @@ data quality status column.</p>
           the specified fields. An additional column, "dq_status",
           is added to indicate the data quality status in the format
           "{fields}:{check}:{value}".</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.polars_engine.extract_schema" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">extract_schema</span>
+
+
+<a href="#sumeh.engines.polars_engine.extract_schema" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">extract_schema</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Converts the schema of a Polars DataFrame into a list of dictionaries,
+where each dictionary represents a field in the schema.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>df</code>
+            </td>
+            <td>
+                  <code><span title="polars.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The Polars DataFrame whose schema is to be converted.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List[Dict[str, Any]]: A list of dictionaries, each containing the following keys:
+- "field" (str): The name of the field.
+- "data_type" (str): The data type of the field, converted to lowercase.
+- "nullable" (bool): Always set to True, as Polars does not expose nullability in the schema.
+- "max_length" (None): Always set to None, as max length is not applicable.</p>
               </div>
             </td>
           </tr>
@@ -8431,7 +8431,7 @@ should contain the following keys:
 
 
 <a href="#sumeh.engines.polars_engine.validate_schema" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -8496,7 +8496,7 @@ should contain the following keys:
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="bool">bool</span>, <span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]]]</code>
+                  <code><span title="tuple">tuple</span>[<span title="bool">bool</span>, <span title="list">list</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]]</code>
             </td>
             <td>
               <div class="doc-md-description">

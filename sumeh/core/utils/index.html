@@ -1189,7 +1189,7 @@
 
 
 <a href="#sumeh.core.utils.__compare_schemas" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__compare_schemas</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">],</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__compare_schemas</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">],</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SchemaDef</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1265,7 +1265,7 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]]</code>
+                  <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1275,7 +1275,7 @@
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="bool">bool</span>, <span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]]]</code>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="bool">bool</span>, <span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1294,7 +1294,7 @@
   <summary>Notes</summary>
   <ul>
 <li>A field is considered "missing" if it exists in the expected schema but not in the actual schema.</li>
-<li>A "type mismatch" occurs if the data type of a field in the actual schema does not match
+<li>A "type mismatch" occurs if the data type of field in the actual schema does not match
   the expected data type.</li>
 <li>A field is considered "nullable but expected non-nullable" if it is nullable in the actual
   schema but not nullable in the expected schema.</li>
@@ -1412,7 +1412,7 @@ a floating-point number (float), or an integer (int).</p>
 
 
 <a href="#sumeh.core.utils.__detect_engine" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__detect_engine</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__detect_engine</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="o">**</span><span class="n">context</span><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">

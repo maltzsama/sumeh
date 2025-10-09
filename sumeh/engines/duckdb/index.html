@@ -571,15 +571,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.duckdb_engine.__duckdb_schema_to_list" class="md-nav__link">
-    <span class="md-ellipsis">
-      __duckdb_schema_to_list
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sumeh.engines.duckdb_engine.__escape_single_quotes" class="md-nav__link">
     <span class="md-ellipsis">
       __escape_single_quotes
@@ -601,6 +592,15 @@
   <a href="#sumeh.engines.duckdb_engine.__rules_to_duckdb_df" class="md-nav__link">
     <span class="md-ellipsis">
       __rules_to_duckdb_df
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.duckdb_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
     </span>
   </a>
   
@@ -1135,15 +1135,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.duckdb_engine.__duckdb_schema_to_list" class="md-nav__link">
-    <span class="md-ellipsis">
-      __duckdb_schema_to_list
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sumeh.engines.duckdb_engine.__escape_single_quotes" class="md-nav__link">
     <span class="md-ellipsis">
       __escape_single_quotes
@@ -1165,6 +1156,15 @@
   <a href="#sumeh.engines.duckdb_engine.__rules_to_duckdb_df" class="md-nav__link">
     <span class="md-ellipsis">
       __rules_to_duckdb_df
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.duckdb_engine.extract_schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_schema
     </span>
   </a>
   
@@ -1559,38 +1559,6 @@ and schema validation.</p>
 <div class="doc doc-object doc-function">
 
 
-<h3 id="sumeh.engines.duckdb_engine.__duckdb_schema_to_list" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">__duckdb_schema_to_list</span>
-
-
-<a href="#sumeh.engines.duckdb_engine.__duckdb_schema_to_list" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">__duckdb_schema_to_list</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">DuckDBPyConnection</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
-</span></code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Retrieve the schema of a DuckDB table as a list of dictionaries.
-This function queries the schema of the specified table in a DuckDB database
-and returns a list of dictionaries where each dictionary represents a column
-in the table, including its name, data type, nullability, and maximum length.
-Args:
-    conn (dk.DuckDBPyConnection): The DuckDB connection object.
-    table (str): The name of the table whose schema is to be retrieved.
-Returns:
-    List[Dict[str, Any]]: A list of dictionaries, each containing the following keys:
-        - "field" (str): The name of the column.
-        - "data_type" (str): The data type of the column in lowercase.
-        - "nullable" (bool): Whether the column allows NULL values.
-        - "max_length" (None): Always None, as DuckDB does not provide maximum length information.</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
 <h3 id="sumeh.engines.duckdb_engine.__escape_single_quotes" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">__escape_single_quotes</span>
 
@@ -1821,6 +1789,38 @@ Returns:
 <div class="doc doc-object doc-function">
 
 
+<h3 id="sumeh.engines.duckdb_engine.extract_schema" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">extract_schema</span>
+
+
+<a href="#sumeh.engines.duckdb_engine.extract_schema" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">extract_schema</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">DuckDBPyConnection</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Retrieve the schema of a DuckDB table as a list of dictionaries.
+This function queries the schema of the specified table in a DuckDB database
+and returns a list of dictionaries where each dictionary represents a column
+in the table, including its name, data type, nullability, and maximum length.
+Args:
+    conn (dk.DuckDBPyConnection): The DuckDB connection object.
+    table (str): The name of the table whose schema is to be retrieved.
+Returns:
+    List[Dict[str, Any]]: A list of dictionaries, each containing the following keys:
+        - "field" (str): The name of the column.
+        - "data_type" (str): The data type of the column in lowercase.
+        - "nullable" (bool): Whether the column allows NULL values.
+        - "max_length" (None): Always None, as DuckDB does not provide maximum length information.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="sumeh.engines.duckdb_engine.summarize" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">summarize</span>
 
@@ -1960,7 +1960,7 @@ Returns:
 
 
 <a href="#sumeh.engines.duckdb_engine.validate" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate</span><span class="p">(</span><span class="n">df_rel</span><span class="p">:</span> <span class="n">DuckDBPyRelation</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">conn</span><span class="p">:</span> <span class="n">DuckDBPyConnection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">dk</span><span class="o">.</span><span class="n">DuckDBPyRelation</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate</span><span class="p">(</span><span class="n">df_rel</span><span class="p">:</span> <span class="n">DuckDBPyRelation</span><span class="p">,</span> <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">conn</span><span class="p">:</span> <span class="n">DuckDBPyConnection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DuckDBPyRelation</span><span class="p">,</span> <span class="n">DuckDBPyRelation</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2042,7 +2042,7 @@ Returns:
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="duckdb.DuckDBPyRelation">DuckDBPyRelation</span></code>
+                  <code><span title="tuple">tuple</span>[<span title="duckdb.DuckDBPyRelation">DuckDBPyRelation</span>, <span title="duckdb.DuckDBPyRelation">DuckDBPyRelation</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2077,7 +2077,7 @@ Returns:
 
 
 <a href="#sumeh.engines.duckdb_engine.validate_schema" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">DuckDBPyConnection</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_schema</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">DuckDBPyConnection</span><span class="p">,</span> <span class="n">expected</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -2160,7 +2160,7 @@ Each dictionary should define the expected attributes of the schema, such as col
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Tuple">Tuple</span>[<span title="bool">bool</span>, <span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]]]</code>
+                  <code><span title="tuple">tuple</span>[<span title="bool">bool</span>, <span title="list">list</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]]]</code>
             </td>
             <td>
               <div class="doc-md-description">
