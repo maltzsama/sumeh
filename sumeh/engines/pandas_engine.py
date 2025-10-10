@@ -113,10 +113,9 @@ Functions:
     validate_schema: Validates the schema of a DataFrame against an expected schema and returns a boolean result and a list of errors.
 """
 import re
-import uuid
 import warnings
-from datetime import datetime, date, timedelta
-from typing import List, Dict, Any, Tuple
+from datetime import date, timedelta
+from typing import List, Dict, Any, Tuple, Optional
 
 import numpy as np
 import pandas as pd
@@ -587,141 +586,372 @@ def has_min(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     return viol
 
 
-def has_std(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
+def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
-    Checks if the standard deviation of a specified field in the DataFrame exceeds a given value.
-
-    Parameters:
-        df (pd.DataFrame): The input DataFrame to evaluate.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field': The column name in the DataFrame to calculate the standard deviation for.
-            - 'check': A string representing the type of check (not used in the logic but included in the output).
-            - 'value': A numeric threshold to compare the standard deviation against.
-
-    Returns:
-        pd.DataFrame:
-            - If the standard deviation of the specified field exceeds the given value,
-              returns a copy of the DataFrame with an additional column 'dq_status' indicating the rule details.
-            - If the standard deviation does not exceed the value, returns an empty DataFrame with the same structure as the input.
-    """
-
-    std_val = df[rule.field].std(skipna=True) or 0.0
-    if std_val > rule.value:
-        out = df.copy()
-        out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
-        return out
-    return df.iloc[0:0].copy()
-
-
-def has_mean(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
-    """
-    Checks if the mean of a specified column in a DataFrame satisfies a given condition.
-
-    Parameters:
-        df (pd.DataFrame): The input DataFrame to evaluate.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field' (str): The column name to calculate the mean for.
-            - 'check' (str): The condition to check (e.g., 'greater_than').
-            - 'value' (float): The threshold value to compare the mean against.
-
-    Returns:
-        pd.DataFrame: A copy of the input DataFrame with an additional column 'dq_status'
-        if the condition is met. The 'dq_status' column contains a string in the format
-        "{rule.field}:{rule.check_type}:{rule.value}". If the condition is not met, an empty DataFrame is returned.
-    """
-
-    mean_val = df[rule.field].mean(skipna=True) or 0.0
-    if mean_val > rule.value:
-        out = df.copy()
-        out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
-        return out
-    return df.iloc[0:0].copy()
-
-
-def has_sum(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
-    """
-    Checks if the sum of values in a specified column of a DataFrame exceeds a given threshold.
+    Validates that the standard deviation of the specified column meets the expected threshold.
+    Supports both range-based validation (for thresholds < 1.0) and simple comparison.
 
     Args:
-        df (pd.DataFrame): The input DataFrame containing the data to be checked.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field' (str): The column name to calculate the sum for.
-            - 'check' (str): A descriptive label for the check (used in the output).
-            - 'value' (float): The threshold value to compare the sum against.
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate the standard deviation for.
+            - value (float): The expected standard deviation value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, creates an acceptable range around the expected value.
 
     Returns:
-        pd.DataFrame:
-            - If the sum of the specified column exceeds the threshold, returns a copy of the input DataFrame
-              with an additional column 'dq_status' indicating the rule that was applied.
-            - If the sum does not exceed the threshold, returns an empty DataFrame with the same structure as the input.
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed standard deviation
+            - message (str): Description of failure or error, None if passed
     """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
 
-    sum_val = df[rule.field].sum(skipna=True) or 0.0
-    if sum_val > rule.value:
-        out = df.copy()
-        out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
-        return out
-    return df.iloc[0:0].copy()
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_std"
+        }
+
+    try:
+        actual = float(df[field].std())
+
+        # Option 1: Range (more common for std)
+        if threshold < 1.0:
+            min_val = expected * threshold
+            max_val = expected * (2 - threshold)  # If threshold=0.8, accepts between 0.8x and 1.2x
+            passed = min_val <= actual <= max_val
+            msg = f"Std {actual:.2f} outside range [{min_val:.2f}, {max_val:.2f}]"
+        else:
+            # Option 2: Simple >=
+            passed = actual >= expected
+            msg = f"Std {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}"
+        }
 
 
-def has_cardinality(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
+def has_mean(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
-    Checks if the cardinality (number of unique values) of a specified field in the DataFrame
-    exceeds a given value and returns a modified DataFrame if the condition is met.
-
-    Parameters:
-        df (pd.DataFrame): The input DataFrame to check.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field': The column name in the DataFrame to check.
-            - 'check': The type of check being performed (e.g., 'cardinality').
-            - 'value': The threshold value for the cardinality.
-
-    Returns:
-        pd.DataFrame:
-            - If the cardinality of the specified field exceeds the given value,
-              a copy of the DataFrame is returned with an additional column 'dq_status'
-              indicating the field, check, and value.
-            - If the cardinality does not exceed the value, an empty DataFrame is returned.
-    """
-    card = df[rule.field].nunique(dropna=True) or 0
-    if card > rule.value:
-        out = df.copy()
-        out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
-        return out
-    return df.iloc[0:0].copy()
-
-
-def has_infogain(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
-    """
-    Checks if the given DataFrame satisfies the information gain criteria
-    defined by the provided rule. This function internally delegates the
-    operation to the `has_cardinality` function.
+    Validates that the mean (average) value of the specified column meets the expected threshold.
+    Applies tolerance logic where threshold < 1.0 represents a percentage of the expected value.
 
     Args:
-        df (pd.DataFrame): The input DataFrame to be evaluated.
-        rule (dict): A dictionary defining the rule for information gain.
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate the mean for.
+            - value (float): The expected mean value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
 
     Returns:
-        pd.DataFrame: The resulting DataFrame after applying the rule.
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed mean
+            - message (str): Description of failure or error, None if passed
     """
-    return has_cardinality(df, rule)
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_mean"
+        }
+
+    try:
+        actual = float(df[field].mean())
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Mean {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Mean {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}"
+        }
 
 
-def has_entropy(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
+def has_sum(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
-    Checks if the given DataFrame satisfies a specific rule related to entropy.
-
-    This function is a wrapper around the `has_cardinality` function, delegating
-    the rule-checking logic to it.
+    Validates that the sum of values in the specified column meets the expected threshold.
+    Applies tolerance logic where threshold < 1.0 represents a percentage of the expected value.
 
     Args:
-        df (pd.DataFrame): The input DataFrame to be evaluated.
-        rule (dict): A dictionary containing the rule to be applied.
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate the sum for.
+            - value (float): The expected sum value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
 
     Returns:
-        pd.DataFrame: The resulting DataFrame after applying the rule.
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed sum
+            - message (str): Description of failure or error, None if passed
     """
-    return has_cardinality(df, rule)
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_sum"
+        }
+
+    try:
+        actual = float(df[field].sum())
+
+        # If threshold < 1.0, it's a tolerance (ex: 0.95 = accepts 95% of value)
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Sum {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            # threshold >= 1.0: accepts >= expected
+            passed = actual >= expected
+            msg = f"Sum {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}"
+        }
+
+
+def has_cardinality(df: pd.DataFrame, rule: RuleDef) -> dict:
+    """
+    Validates that the number of distinct values (cardinality) in the specified column
+    meets the expected threshold. Applies tolerance logic for partial matches.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate cardinality for.
+            - value (int): The expected number of distinct values to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
+
+    Returns:
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (int): The expected threshold value
+            - actual (int): The actual computed cardinality
+            - message (str): Description of failure or error, None if passed
+    """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_cardinality"
+        }
+
+    try:
+        actual = int(df[field].nunique())
+
+        if threshold < 1.0:
+            min_expected = int(expected * threshold)
+            passed = actual >= min_expected
+            msg = f"Cardinality {actual} < minimum {min_expected} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Cardinality {actual} < expected {expected}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}"
+        }
+
+def has_infogain(df: pd.DataFrame, rule: RuleDef) -> dict:
+    """
+    Validates the information gain of the specified column.
+    Information gain measures how much useful variability the column possesses.
+    Calculated as normalized entropy by the maximum possible entropy.
+
+    Value ranges from 0 to 1:
+    - 1.0 = perfectly uniform distribution (maximum information)
+    - 0.0 = all values are identical (no information)
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate information gain for.
+            - value (float): The expected information gain value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
+
+    Returns:
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed information gain
+            - message (str): Description of failure or error, None if passed
+    """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined"
+        }
+
+    try:
+        # Calculate current entropy
+        value_counts = df[field].value_counts()
+        probabilities = value_counts / len(df)
+        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
+
+        # Calculate maximum possible entropy (uniform distribution)
+        n_unique = len(value_counts)
+        max_entropy = np.log2(n_unique) if n_unique > 1 else 1.0
+
+        # Normalized information gain (0 to 1)
+        info_gain = entropy / max_entropy if max_entropy > 0 else 0.0
+        actual = float(info_gain)
+
+        min_acceptable = expected * threshold
+        passed = actual >= min_acceptable
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else f"Info gain {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}"
+        }
+
+def has_entropy(df: pd.DataFrame, rule: RuleDef) -> dict:
+    """
+    Validates the Shannon entropy of the specified column.
+    Entropy measures the randomness/disorder in data distribution:
+    - High entropy = data is widely distributed across values
+    - Low entropy = data is concentrated in few values
+
+    Formula: H(X) = -Σ(p(x) * log2(p(x)))
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate entropy for.
+            - value (float): The expected entropy value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
+
+    Returns:
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed entropy
+            - message (str): Description of failure or error, None if passed
+    """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined"
+        }
+
+    try:
+        # Calculate probabilities for each value
+        value_counts = df[field].value_counts()
+        probabilities = value_counts / len(df)
+
+        # Calculate Shannon entropy: -Σ(p * log2(p))
+        # Avoid log(0) using mask
+        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
+        actual = float(entropy)
+
+        min_acceptable = expected * threshold
+        passed = actual >= min_acceptable
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else f"Entropy {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}"
+        }
 
 
 def satisfies(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
@@ -1216,7 +1446,7 @@ def is_on_sunday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
 
 
 def validate_row_level(
-    df: pd.DataFrame, rules: List[RuleDef]
+        df: pd.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Validates a pandas DataFrame against a set of rules.
@@ -1227,13 +1457,12 @@ def validate_row_level(
 
     Returns:
         Tuple containing:
-            - Processed DataFrame with validation statuses merged
-            - DataFrame containing rows that violated validation rules
+            - DataFrame with ONLY rows that failed validation + 'dq_status' column
+            - DataFrame with violations exploded (one row per violation per rule)
 
     Notes:
-        - Input DataFrame is copied to avoid modifying original data
-        - '_id' column temporarily tracks row indices during validation
-        - 'dq_status' column summarizes validation issues per row
+        - Only returns rows that violated at least one rule
+        - 'dq_status' column summarizes all validation issues per row
     """
     engine = "pandas"
     rules_valid = []
@@ -1260,7 +1489,7 @@ def validate_row_level(
         warnings.warn(
             f"No valid rules to execute for level='row_level' and engine='{engine}'."
         )
-        return df.copy(), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
 
     df = df.copy().reset_index(drop=True)
     df["_id"] = df.index
@@ -1293,27 +1522,211 @@ def validate_row_level(
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
             continue
 
-    # Consolidate violations
     raw = (
         pd.concat(raw_list, ignore_index=True)
         if raw_list
-        else pd.DataFrame(columns=df.columns)
+        else pd.DataFrame()
     )
 
-    # Handle empty results
     if raw.empty or "dq_status" not in raw.columns:
-        warnings.warn(
-            f"No validation results generated.\n"
-            f"  Valid rules: {len(rules_valid)}\n"
-            f"  Data columns: {list(df.columns)}"
-        )
-        return df.drop(columns=["_id"]), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
 
-    # Merge violations back to original DataFrame
     summary = raw.groupby("_id")["dq_status"].agg(";".join).reset_index()
-    out = df.merge(summary, on="_id", how="left").drop(columns=["_id"])
+
+    out = df.merge(summary, on="_id", how="inner").drop(columns=["_id"])
 
     return out, raw
+
+
+import uuid
+from datetime import datetime
+
+
+def validate_table_level(
+        df: pd.DataFrame,
+        rules: List[RuleDef]
+) -> pd.DataFrame:
+    """
+    Valida regras em nível de tabela (agregações e schema).
+
+    Returns:
+        DataFrame com uma linha por regra:
+        - id: UUID único da validação
+        - timestamp: quando foi executada
+        - level: sempre "TABLE"
+        - category: categoria da regra
+        - check_type: nome da validação
+        - field: coluna validada
+        - status: "PASS" ou "FAIL"
+        - expected: valor esperado
+        - actual: valor real calculado
+        - message: descrição (apenas se FAIL)
+    """
+
+    # Filtrar regras aplicáveis
+    engine: str = "pandas"
+    rules_valid = []
+    rules_ignored = []
+    ignored_reasons = {}
+
+    for rule in rules:
+        skip_reason = rule.get_skip_reason(target_level="table_level", engine=engine)
+
+        if skip_reason:
+            rules_ignored.append(rule)
+            ignored_reasons[skip_reason] = ignored_reasons.get(skip_reason, 0) + 1
+        else:
+            rules_valid.append(rule)
+
+    # Avisar sobre regras ignoradas
+    if rules_ignored:
+        warnings.warn(
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n" +
+            "\n".join(f"  • {reason}: {count} rule(s)"
+                      for reason, count in ignored_reasons.items())
+        )
+
+    # Se não há regras válidas, retornar DataFrame vazio
+    if not rules_valid:
+        warnings.warn(
+            f"No valid rules to execute for level='table_level' and engine='{engine}'."
+        )
+        return pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type",
+            "field", "status", "expected", "actual", "message"
+        ])
+
+    # Timestamp único para todas as validações desta execução
+    execution_time = datetime.utcnow()
+
+    # Lista para armazenar resultados
+    results = []
+
+    for rule in rules_valid:
+        check_type = rule.check_type
+
+        # Get validation function
+        fn = globals().get(check_type)
+        if fn is None:
+            warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
+            results.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": execution_time,
+                "level": "TABLE",
+                "category": rule.category or "unknown",
+                "check_type": check_type,
+                "field": str(rule.field),
+                "status": "ERROR",
+                "expected": rule.value,
+                "actual": None,
+                "message": f"Function '{check_type}' not implemented"
+            })
+            continue
+
+        try:
+            # Executar validação table-level
+            result = fn(df, rule)
+
+            # Padronizar formato
+            results.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": execution_time,
+                "level": "TABLE",
+                "category": rule.category or "unknown",
+                "check_type": check_type,
+                "field": str(rule.field),
+                "status": result.get("status", "ERROR"),
+                "expected": result.get("expected"),
+                "actual": result.get("actual"),
+                "message": result.get("message")
+            })
+
+        except Exception as e:
+            warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
+            results.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": execution_time,
+                "level": "TABLE",
+                "category": rule.category or "unknown",
+                "check_type": check_type,
+                "field": str(rule.field),
+                "status": "ERROR",
+                "expected": rule.value,
+                "actual": None,
+                "message": f"Execution error: {str(e)}"
+            })
+
+    # Converter para DataFrame
+    if not results:
+        return pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type",
+            "field", "status", "expected", "actual", "message"
+        ])
+
+    summary_df = pd.DataFrame(results)
+
+    # Reordenar colunas
+    column_order = [
+        "id", "timestamp", "level", "category", "check_type",
+        "field", "status", "expected", "actual", "message"
+    ]
+    summary_df = summary_df[column_order]
+
+    # Ordenar: FAIL primeiro, depois PASS
+    status_order = {"FAIL": 0, "ERROR": 1, "PASS": 2}
+    summary_df["_sort"] = summary_df["status"].map(status_order)
+    summary_df = summary_df.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+
+    return summary_df
+
+def validate(
+        df: pd.DataFrame,
+        rules: List[RuleDef]
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Executa validações de data quality em múltiplos níveis.
+
+    Args:
+        df: DataFrame a ser validado
+        rules: Lista de regras (podem ser row-level e/ou table-level)
+        engine: Engine de execução (default: "pandas")
+
+    Returns:
+        Tupla com 3 DataFrames:
+        - df_with_status: dados originais + coluna 'dq_status' (row-level)
+        - row_violations: violações detalhadas (row-level)
+        - table_summary: resumo de validações table-level
+    """
+    engine: str = "pandas"
+    # Separar regras por nível
+    row_rules = [r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"]
+    table_rules = [r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "TABLE"]
+
+    # Avisar se há regras sem level definido
+    no_level = [r for r in rules if not r.level]
+    if no_level:
+        warnings.warn(
+            f"⚠️  {len(no_level)} rule(s) without level defined. "
+            f"These will be skipped. Please set 'level' to 'ROW' or 'TABLE'."
+        )
+
+    # Executar validações row-level
+    if row_rules:
+        df_with_status, row_violations = validate_row_level(df, row_rules)
+    else:
+        df_with_status = df.copy()
+        row_violations = pd.DataFrame()
+
+    # Executar validações table-level
+    if table_rules:
+        table_summary = validate_table_level(df, table_rules)
+    else:
+        table_summary = pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type",
+            "field", "status", "expected", "actual", "message"
+        ])
+
+    return df_with_status, row_violations, table_summary
 
 
 def __build_rules_df(rules: List[RuleDef]) -> pd.DataFrame:
@@ -1367,29 +1780,35 @@ def __build_rules_df(rules: List[RuleDef]) -> pd.DataFrame:
                 "check_type": rule.check_type,
                 "rule": rule.check_type,
                 "pass_threshold": rule.threshold,
-                "value": val_str,
+                "expected": val_str,
             }
         )
 
     df_rules = pd.DataFrame(rows)
 
     if df_rules.empty:
-        return pd.DataFrame(columns=["column", "rule", "pass_threshold", "value"])
+        return pd.DataFrame(columns=["column", "rule", "pass_threshold", "expected"])
 
-    df_rules = df_rules.drop_duplicates(subset=["column", "rule", "value"])
+    df_rules = df_rules.drop_duplicates(subset=["column", "rule", "expected"])
 
     return df_rules
 
 
 
-def summarize(qc_df: pd.DataFrame, rules: List[RuleDef], total_rows: int) -> pd.DataFrame:
+def summarize(
+    rules: List[RuleDef],
+    total_rows: int,
+    df_with_status: Optional[pd.DataFrame] = None,
+    table_summary: Optional[pd.DataFrame] = None
+) -> pd.DataFrame:
     """
     Summarizes quality check results for a given DataFrame based on specified rules.
 
     Args:
-        qc_df: DataFrame containing 'dq_status' column with format 'column:rule:value'
         rules: List of RuleDef objects representing quality check rules
         total_rows: Total number of rows in the original dataset
+        df_with_status: DataFrame with 'dq_status' column from row-level validations
+        table_summary: DataFrame with table-level validation results
 
     Returns:
         DataFrame with columns:
@@ -1408,43 +1827,111 @@ def summarize(qc_df: pd.DataFrame, rules: List[RuleDef], total_rows: int) -> pd.
             - status: PASS or FAIL based on pass rate
     """
     # Parse violations from dq_status
-    split = qc_df["dq_status"].str.split(";").explode().dropna()
-    parts = split.str.split(":", expand=True)
-    parts.columns = ["column", "rule", "value"]
-    viol_count = (
-        parts.groupby(["column", "rule", "value"]).size().reset_index(name="violations")
-    )
+    summaries = []
 
-    # Build rules DataFrame with level and category
-    rules_df = __build_rules_df(rules)
+    # ========== ROW-LEVEL SUMMARY ==========
+    row_rules = [r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"]
 
-    # Merge violations with rules
-    df = rules_df.merge(viol_count, on=["column", "rule", "value"], how="left")
-    df["violations"] = df["violations"].fillna(0).astype(int)
-    df["rows"] = total_rows
-    df["pass_rate"] = (total_rows - df["violations"]) / total_rows
-    df["status"] = np.where(df["pass_rate"] >= df["pass_threshold"], "PASS", "FAIL")
-    df["timestamp"] = datetime.now().replace(second=0, microsecond=0)
+    if row_rules and df_with_status is not None:
+        # Parse violations do dq_status
+        if "dq_status" in df_with_status.columns:
+            violations_series = df_with_status["dq_status"].dropna()
 
-    df.insert(0, "id", np.array([uuid.uuid4() for _ in range(len(df))], dtype="object"))
+            if not violations_series.empty:
+                split = violations_series.str.split(";").explode()
+                parts = split.str.split(":", expand=True, n=2)
 
-    return df[
-        [
-            "id",
-            "timestamp",
-            "level",
-            "category",
-            "check_type",
-            "column",
-            "rule",
-            "value",
-            "rows",
-            "violations",
-            "pass_rate",
-            "pass_threshold",
-            "status",
-        ]
-    ]
+                if len(parts.columns) >= 2:
+                    parts.columns = ["check_type", "field", "details"] if len(parts.columns) == 3 else ["check_type",
+                                                                                                        "field"]
+                    viol_count = (
+                        parts.groupby(["check_type", "field"])
+                        .size()
+                        .reset_index(name="violations")
+                    )
+                else:
+                    viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
+            else:
+                viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
+        else:
+            viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
+
+
+        for rule in row_rules:
+            field_str = rule.field if isinstance(rule.field, str) else ",".join(rule.field)
+
+            mask = (viol_count["check_type"] == rule.check_type) & (viol_count["field"] == field_str)
+            violations = int(viol_count.loc[mask, "violations"].sum()) if mask.any() else 0
+
+            pass_count = total_rows - violations
+            pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
+            pass_threshold = rule.threshold if rule.threshold else 1.0
+
+            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
+
+            summaries.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": datetime.utcnow(),
+                "level": "ROW",
+                "category": rule.category or "unknown",
+                "check_type": rule.check_type,
+                "field": field_str,
+                "rows": total_rows,
+                "violations": violations,
+                "pass_rate": round(pass_rate, 4),
+                "pass_threshold": pass_threshold,
+                "status": status,
+                "expected": rule.value,
+                "actual": None,
+                "message": None if status == "PASS" else f"{violations} row(s) failed validation"
+            })
+
+    # ========== TABLE-LEVEL SUMMARY ==========
+    if table_summary is not None and not table_summary.empty:
+        for _, row in table_summary.iterrows():
+
+            expected = row.get("expected")
+            actual = row.get("actual")
+
+            compliance_rate = None
+            if expected is not None and actual is not None and expected != 0:
+                compliance_rate = round(actual / expected, 4)
+
+            summaries.append({
+                "id": row["id"],
+                "timestamp": row["timestamp"],
+                "level": "TABLE",
+                "category": row["category"],
+                "check_type": row["check_type"],
+                "field": row["field"],
+                "rows": total_rows,
+                "violations": None,
+                "pass_rate": compliance_rate,
+                "pass_threshold": row.get("threshold"),
+                "status": row["status"],
+                "expected": expected,
+                "actual": actual,
+                "message": row.get("message")
+            })
+
+    if not summaries:
+        return pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type", "field",
+            "rows", "violations", "pass_rate", "pass_threshold",
+            "status", "expected", "actual", "message"
+        ])
+
+    summary_df = pd.DataFrame(summaries)
+
+    status_order = {"FAIL": 0, "ERROR": 1, "PASS": 2}
+    summary_df["_sort_status"] = summary_df["status"].map(status_order)
+    summary_df["_sort_level"] = summary_df["level"].map({"ROW": 0, "TABLE": 1})
+
+    summary_df = summary_df.sort_values(
+        ["_sort_status", "_sort_level", "check_type"]
+    ).drop(columns=["_sort_status", "_sort_level"]).reset_index(drop=True)
+
+    return summary_df
 
 def extract_schema(df) -> List[Dict[str, Any]]:
     actual = [
