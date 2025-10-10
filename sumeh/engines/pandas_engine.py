@@ -1336,9 +1336,12 @@ def __build_rules_df(rules: List[RuleDef]) -> pd.DataFrame:
         rows.append(
             {
                 "column": col,
+                "level": rule.level,
+                "category": rule.category,
+                "check_type": rule.check_type,
                 "rule": rule.check_type,
                 "pass_threshold": rule.threshold,
-                "value": val_str,  # Sempre string agora
+                "value": val_str,
             }
         )
 
@@ -1347,65 +1350,65 @@ def __build_rules_df(rules: List[RuleDef]) -> pd.DataFrame:
     if df_rules.empty:
         return pd.DataFrame(columns=["column", "rule", "pass_threshold", "value"])
 
-    # Agora funciona porque value é sempre string
     df_rules = df_rules.drop_duplicates(subset=["column", "rule", "value"])
 
     return df_rules
 
 
-def summarize(qc_df: pd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
+
+def summarize(qc_df: pd.DataFrame, rules: List[RuleDef], total_rows: int) -> pd.DataFrame:
     """
     Summarizes quality check results for a given DataFrame based on specified rules.
 
     Args:
-        qc_df (pd.DataFrame): The input DataFrame containing a 'dq_status' column with
-            quality check results in the format 'column:rule:value', separated by semicolons.
-        rules (list[dict]): A list of dictionaries representing the quality check rules.
-            Each dictionary should define the 'column', 'rule', 'value', and 'pass_threshold'.
-        total_rows (int): The total number of rows in the original dataset.
+        qc_df: DataFrame containing 'dq_status' column with format 'column:rule:value'
+        rules: List of RuleDef objects representing quality check rules
+        total_rows: Total number of rows in the original dataset
 
     Returns:
-        pd.DataFrame: A DataFrame summarizing the quality check results with the following columns:
-            - 'id': A unique identifier for each rule.
-            - 'timestamp': The timestamp of the summary generation.
-            - 'check': The type of check performed (e.g., 'Quality Check').
-            - 'level': The severity level of the check (e.g., 'WARNING').
-            - 'column': The column name associated with the rule.
-            - 'rule': The rule being checked.
-            - 'value': The value associated with the rule.
-            - 'rows': The total number of rows in the dataset.
-            - 'violations': The number of rows that violated the rule.
-            - 'pass_rate': The proportion of rows that passed the rule.
-            - 'pass_threshold': The threshold for passing the rule.
-            - 'status': The status of the rule ('PASS' or 'FAIL') based on the pass rate.
-
-    Notes:
-        - The function calculates the number of violations for each rule and merges it with the
-          provided rules to compute the pass rate and status.
-        - The 'timestamp' column is set to the current time with seconds and microseconds set to zero.
+        DataFrame with columns:
+            - id: Unique identifier for each rule
+            - timestamp: Summary generation timestamp
+            - check: Type of check performed
+            - level: Validation level (ROW or TABLE from RuleDef)
+            - category: Rule category (from RuleDef)
+            - column: Column name associated with the rule
+            - rule: Rule being checked
+            - value: Value associated with the rule
+            - rows: Total number of rows in dataset
+            - violations: Number of rows that violated the rule
+            - pass_rate: Proportion of rows that passed
+            - pass_threshold: Threshold for passing
+            - status: PASS or FAIL based on pass rate
     """
+    # Parse violations from dq_status
     split = qc_df["dq_status"].str.split(";").explode().dropna()
     parts = split.str.split(":", expand=True)
     parts.columns = ["column", "rule", "value"]
     viol_count = (
         parts.groupby(["column", "rule", "value"]).size().reset_index(name="violations")
     )
+
+    # Build rules DataFrame with level and category
     rules_df = __build_rules_df(rules)
+
+    # Merge violations with rules
     df = rules_df.merge(viol_count, on=["column", "rule", "value"], how="left")
     df["violations"] = df["violations"].fillna(0).astype(int)
     df["rows"] = total_rows
     df["pass_rate"] = (total_rows - df["violations"]) / total_rows
     df["status"] = np.where(df["pass_rate"] >= df["pass_threshold"], "PASS", "FAIL")
     df["timestamp"] = datetime.now().replace(second=0, microsecond=0)
-    df["check"] = "Quality Check"
-    df["level"] = "WARNING"
+
     df.insert(0, "id", np.array([uuid.uuid4() for _ in range(len(df))], dtype="object"))
+
     return df[
         [
             "id",
             "timestamp",
-            "check",
             "level",
+            "category",
+            "check_type",
             "column",
             "rule",
             "value",
@@ -1416,7 +1419,6 @@ def summarize(qc_df: pd.DataFrame, rules: list[dict], total_rows: int) -> pd.Dat
             "status",
         ]
     ]
-
 
 def extract_schema(df) -> List[Dict[str, Any]]:
     actual = [

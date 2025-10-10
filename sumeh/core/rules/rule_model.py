@@ -38,7 +38,7 @@ class RuleDef:
     category: Optional[str] = None
     level: Optional[str] = None
     engine: Optional[str] = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = None
     updated_at: Optional[datetime] = None
 
     def __post_init__(self):
