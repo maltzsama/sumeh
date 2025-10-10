@@ -1215,7 +1215,7 @@ def is_on_sunday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     return _day_of_week(df, rule, 6)
 
 
-def validate(
+def validate_row_level(
     df: pd.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -1235,30 +1235,63 @@ def validate(
         - '_id' column temporarily tracks row indices during validation
         - 'dq_status' column summarizes validation issues per row
     """
+    engine = "pandas"
+    rules_valid = []
+    rules_ignored = []
+    ignored_reasons = {}
+
+    for rule in rules:
+        skip_reason = rule.get_skip_reason(target_level="row_level", engine=engine)
+
+        if skip_reason:
+            rules_ignored.append(rule)
+            ignored_reasons[skip_reason] = ignored_reasons.get(skip_reason, 0) + 1
+        else:
+            rules_valid.append(rule)
+
+    if rules_ignored:
+        warnings.warn(
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n" +
+            "\n".join(f"  • {reason}: {count} rule(s)"
+                      for reason, count in ignored_reasons.items())
+        )
+
+    if not rules_valid:
+        warnings.warn(
+            f"No valid rules to execute for level='row_level' and engine='{engine}'."
+        )
+        return df.copy(), pd.DataFrame()
+
     df = df.copy().reset_index(drop=True)
     df["_id"] = df.index
     raw_list = []
 
-    for rule in rules:
-        # Skip rules marked for non-execution
-        if not rule.execute:
-            continue
-
+    for rule in rules_valid:
         # Handle alias mappings
         check_type = rule.check_type
         if check_type == "is_primary_key":
             check_type = "is_unique"
         elif check_type == "is_composite_key":
             check_type = "are_unique"
+        elif check_type == "is_yesterday":
+            check_type = "is_t_minus_1"
+        elif check_type == "is_in":
+            check_type = "is_contained_in"
+        elif check_type == "not_in":
+            check_type = "not_contained_in"
 
         # Get validation function
         fn = globals().get(check_type)
         if fn is None:
-            warnings.warn(f"Unknown rule: {rule.check_type} for field {rule.field}")
+            warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
             continue
 
-        viol = fn(df, rule)
-        raw_list.append(viol)
+        try:
+            viol = fn(df, rule)
+            raw_list.append(viol)
+        except Exception as e:
+            warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
+            continue
 
     # Consolidate violations
     raw = (
@@ -1269,17 +1302,10 @@ def validate(
 
     # Handle empty results
     if raw.empty or "dq_status" not in raw.columns:
-        executed_rules = [r for r in rules if r.execute]
         warnings.warn(
             f"No validation results generated.\n"
-            f"  Total rules: {len(rules)}\n"
-            f"  Rules with execute=True: {len(executed_rules)}\n"
-            f"  Rules executed: 0\n"
-            f"  Data columns: {list(df.columns)}\n"
-            f"  Possible causes:\n"
-            f"    - Rule columns don't exist in data\n"
-            f"    - All rules have execute=False\n"
-            f"    - All check_type functions returned empty results"
+            f"  Valid rules: {len(rules_valid)}\n"
+            f"  Data columns: {list(df.columns)}"
         )
         return df.drop(columns=["_id"]), pd.DataFrame()
 

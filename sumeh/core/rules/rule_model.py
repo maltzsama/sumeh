@@ -7,7 +7,7 @@ from typing import Any, List, Union, Optional
 from dateutil import parser
 
 from .regristry import RuleRegistry
-
+import warnings
 
 @dataclass
 class RuleDef:
@@ -52,13 +52,14 @@ class RuleDef:
             )
 
         if self.engine and not RuleRegistry.is_rule_supported(
-            self.check_type, self.engine
+                self.check_type, self.engine
         ):
             supported = rule_def.get("engines", [])
-            raise ValueError(
+            warnings.warn(
                 f"Rule '{self.check_type}' not supported by engine '{self.engine}'. "
-                f"Supported: {', '.join(supported)}"
+                f"Supported: {', '.join(supported)}. Rule will be skipped during validation."
             )
+            self.execute = False
 
         if self.category is None or self.level is None:
             self._enrich_from_manifest()
@@ -347,3 +348,32 @@ class RuleDef:
             f"RuleDef(field={field_str}, check={self.check_type}, "
             f"level={self.level}, category={self.category})"
         )
+
+    def is_supported_by_engine(self, engine: str) -> bool:
+        """Check if this rule is supported by the given engine."""
+        return RuleRegistry.is_rule_supported(self.check_type, engine)
+
+
+    def is_applicable_for_level(self, target_level: str) -> bool:
+        """Check if this rule matches the target level."""
+        if self.level is None:
+            return True  # Se não tem level definido, assume que é aplicável
+        # Normaliza: "ROW" ou "row_level" -> "ROW"
+        rule_level = self.level.upper().replace("_LEVEL", "")
+        target_level = target_level.upper().replace("_LEVEL", "")
+        return rule_level == target_level
+
+
+    def get_skip_reason(self, target_level: str, engine: str) -> Optional[str]:
+        """Returns reason why rule should be skipped, or None if applicable."""
+        if not self.execute:
+            return "execute=False"
+
+        if not self.is_applicable_for_level(target_level):
+            return f"Wrong level: expected '{target_level}', got '{self.level}'"
+
+        if not self.is_supported_by_engine(engine):
+            supported = self.get_supported_engines()
+            return f"Engine '{engine}' not supported (available: {', '.join(supported)})"
+
+        return None

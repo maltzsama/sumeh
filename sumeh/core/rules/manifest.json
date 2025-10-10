@@ -88,6 +88,14 @@
               "is_in_billions": {
                 "description": "Checks if numeric value is in billions range.",
                 "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_min": {
+                "description": "Validates that the column's minimum meets the expected threshold.",
+                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_max": {
+                "description": "Validates that the column's maximum meets the expected threshold.",
+                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
               }
             }
           },
@@ -231,14 +239,6 @@
           "aggregation": {
             "description": "Checks that aggregate statistics match expected thresholds.",
             "rules": {
-              "has_min": {
-                "description": "Validates that the column's minimum meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
-              },
-              "has_max": {
-                "description": "Validates that the column's maximum meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
-              },
               "has_sum": {
                 "description": "Validates that the sum of the column meets the expected threshold.",
                 "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
