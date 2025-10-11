@@ -615,7 +615,7 @@ def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined for has_std"
+            "message": "Expected value not defined for has_std",
         }
 
     try:
@@ -624,7 +624,9 @@ def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
         # Option 1: Range (more common for std)
         if threshold < 1.0:
             min_val = expected * threshold
-            max_val = expected * (2 - threshold)  # If threshold=0.8, accepts between 0.8x and 1.2x
+            max_val = expected * (
+                2 - threshold
+            )  # If threshold=0.8, accepts between 0.8x and 1.2x
             passed = min_val <= actual <= max_val
             msg = f"Std {actual:.2f} outside range [{min_val:.2f}, {max_val:.2f}]"
         else:
@@ -636,14 +638,14 @@ def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "PASS" if passed else "FAIL",
             "expected": expected,
             "actual": actual,
-            "message": None if passed else msg
+            "message": None if passed else msg,
         }
     except Exception as e:
         return {
             "status": "ERROR",
             "expected": expected,
             "actual": None,
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
         }
 
 
@@ -676,7 +678,7 @@ def has_mean(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined for has_mean"
+            "message": "Expected value not defined for has_mean",
         }
 
     try:
@@ -694,14 +696,14 @@ def has_mean(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "PASS" if passed else "FAIL",
             "expected": expected,
             "actual": actual,
-            "message": None if passed else msg
+            "message": None if passed else msg,
         }
     except Exception as e:
         return {
             "status": "ERROR",
             "expected": expected,
             "actual": None,
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
         }
 
 
@@ -734,7 +736,7 @@ def has_sum(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined for has_sum"
+            "message": "Expected value not defined for has_sum",
         }
 
     try:
@@ -754,14 +756,14 @@ def has_sum(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "PASS" if passed else "FAIL",
             "expected": expected,
             "actual": actual,
-            "message": None if passed else msg
+            "message": None if passed else msg,
         }
     except Exception as e:
         return {
             "status": "ERROR",
             "expected": expected,
             "actual": None,
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
         }
 
 
@@ -794,7 +796,7 @@ def has_cardinality(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined for has_cardinality"
+            "message": "Expected value not defined for has_cardinality",
         }
 
     try:
@@ -812,15 +814,16 @@ def has_cardinality(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "PASS" if passed else "FAIL",
             "expected": expected,
             "actual": actual,
-            "message": None if passed else msg
+            "message": None if passed else msg,
         }
     except Exception as e:
         return {
             "status": "ERROR",
             "expected": expected,
             "actual": None,
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
         }
+
 
 def has_infogain(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
@@ -856,7 +859,7 @@ def has_infogain(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined"
+            "message": "Expected value not defined",
         }
 
     try:
@@ -880,15 +883,20 @@ def has_infogain(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "PASS" if passed else "FAIL",
             "expected": expected,
             "actual": actual,
-            "message": None if passed else f"Info gain {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+            "message": (
+                None
+                if passed
+                else f"Info gain {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+            ),
         }
     except Exception as e:
         return {
             "status": "ERROR",
             "expected": expected,
             "actual": None,
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
         }
+
 
 def has_entropy(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
@@ -923,7 +931,7 @@ def has_entropy(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined"
+            "message": "Expected value not defined",
         }
 
     try:
@@ -943,14 +951,18 @@ def has_entropy(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "PASS" if passed else "FAIL",
             "expected": expected,
             "actual": actual,
-            "message": None if passed else f"Entropy {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+            "message": (
+                None
+                if passed
+                else f"Entropy {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+            ),
         }
     except Exception as e:
         return {
             "status": "ERROR",
             "expected": expected,
             "actual": None,
-            "message": f"Error: {str(e)}"
+            "message": f"Error: {str(e)}",
         }
 
 
@@ -1446,7 +1458,7 @@ def is_on_sunday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
 
 
 def validate_row_level(
-        df: pd.DataFrame, rules: List[RuleDef]
+    df: pd.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Validates a pandas DataFrame against a set of rules.
@@ -1480,9 +1492,11 @@ def validate_row_level(
 
     if rules_ignored:
         warnings.warn(
-            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n" +
-            "\n".join(f"  • {reason}: {count} rule(s)"
-                      for reason, count in ignored_reasons.items())
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n"
+            + "\n".join(
+                f"  • {reason}: {count} rule(s)"
+                for reason, count in ignored_reasons.items()
+            )
         )
 
     if not rules_valid:
@@ -1522,11 +1536,7 @@ def validate_row_level(
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
             continue
 
-    raw = (
-        pd.concat(raw_list, ignore_index=True)
-        if raw_list
-        else pd.DataFrame()
-    )
+    raw = pd.concat(raw_list, ignore_index=True) if raw_list else pd.DataFrame()
 
     if raw.empty or "dq_status" not in raw.columns:
         return pd.DataFrame(), pd.DataFrame()
@@ -1542,10 +1552,7 @@ import uuid
 from datetime import datetime
 
 
-def validate_table_level(
-        df: pd.DataFrame,
-        rules: List[RuleDef]
-) -> pd.DataFrame:
+def validate_table_level(df: pd.DataFrame, rules: List[RuleDef]) -> pd.DataFrame:
     """
     Valida regras em nível de tabela (agregações e schema).
 
@@ -1581,9 +1588,11 @@ def validate_table_level(
     # Avisar sobre regras ignoradas
     if rules_ignored:
         warnings.warn(
-            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n" +
-            "\n".join(f"  • {reason}: {count} rule(s)"
-                      for reason, count in ignored_reasons.items())
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n"
+            + "\n".join(
+                f"  • {reason}: {count} rule(s)"
+                for reason, count in ignored_reasons.items()
+            )
         )
 
     # Se não há regras válidas, retornar DataFrame vazio
@@ -1591,10 +1600,20 @@ def validate_table_level(
         warnings.warn(
             f"No valid rules to execute for level='table_level' and engine='{engine}'."
         )
-        return pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type",
-            "field", "status", "expected", "actual", "message"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     # Timestamp único para todas as validações desta execução
     execution_time = datetime.utcnow()
@@ -1609,18 +1628,20 @@ def validate_table_level(
         fn = globals().get(check_type)
         if fn is None:
             warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": rule.value,
-                "actual": None,
-                "message": f"Function '{check_type}' not implemented"
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": rule.value,
+                    "actual": None,
+                    "message": f"Function '{check_type}' not implemented",
+                }
+            )
             continue
 
         try:
@@ -1628,60 +1649,84 @@ def validate_table_level(
             result = fn(df, rule)
 
             # Padronizar formato
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": result.get("status", "ERROR"),
-                "expected": result.get("expected"),
-                "actual": result.get("actual"),
-                "message": result.get("message")
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": result.get("status", "ERROR"),
+                    "expected": result.get("expected"),
+                    "actual": result.get("actual"),
+                    "message": result.get("message"),
+                }
+            )
 
         except Exception as e:
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": rule.value,
-                "actual": None,
-                "message": f"Execution error: {str(e)}"
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": rule.value,
+                    "actual": None,
+                    "message": f"Execution error: {str(e)}",
+                }
+            )
 
     # Converter para DataFrame
     if not results:
-        return pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type",
-            "field", "status", "expected", "actual", "message"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     summary_df = pd.DataFrame(results)
 
     # Reordenar colunas
     column_order = [
-        "id", "timestamp", "level", "category", "check_type",
-        "field", "status", "expected", "actual", "message"
+        "id",
+        "timestamp",
+        "level",
+        "category",
+        "check_type",
+        "field",
+        "status",
+        "expected",
+        "actual",
+        "message",
     ]
     summary_df = summary_df[column_order]
 
     # Ordenar: FAIL primeiro, depois PASS
     status_order = {"FAIL": 0, "ERROR": 1, "PASS": 2}
     summary_df["_sort"] = summary_df["status"].map(status_order)
-    summary_df = summary_df.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+    summary_df = (
+        summary_df.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+    )
 
     return summary_df
 
+
 def validate(
-        df: pd.DataFrame,
-        rules: List[RuleDef]
+    df: pd.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Executa validações de data quality em múltiplos níveis.
@@ -1689,7 +1734,6 @@ def validate(
     Args:
         df: DataFrame a ser validado
         rules: Lista de regras (podem ser row-level e/ou table-level)
-        engine: Engine de execução (default: "pandas")
 
     Returns:
         Tupla com 3 DataFrames:
@@ -1697,12 +1741,13 @@ def validate(
         - row_violations: violações detalhadas (row-level)
         - table_summary: resumo de validações table-level
     """
-    engine: str = "pandas"
-    # Separar regras por nível
-    row_rules = [r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"]
-    table_rules = [r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "TABLE"]
+    row_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
+    ]
+    table_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "TABLE"
+    ]
 
-    # Avisar se há regras sem level definido
     no_level = [r for r in rules if not r.level]
     if no_level:
         warnings.warn(
@@ -1710,96 +1755,37 @@ def validate(
             f"These will be skipped. Please set 'level' to 'ROW' or 'TABLE'."
         )
 
-    # Executar validações row-level
     if row_rules:
         df_with_status, row_violations = validate_row_level(df, row_rules)
     else:
         df_with_status = df.copy()
         row_violations = pd.DataFrame()
 
-    # Executar validações table-level
     if table_rules:
         table_summary = validate_table_level(df, table_rules)
     else:
-        table_summary = pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type",
-            "field", "status", "expected", "actual", "message"
-        ])
-
-    return df_with_status, row_violations, table_summary
-
-
-def __build_rules_df(rules: List[RuleDef]) -> pd.DataFrame:
-    """
-    Builds a pandas DataFrame from a list of rule dictionaries.
-
-    Args:
-        rules (List[dict]): A list of dictionaries where each dictionary represents a rule.
-            Each rule dictionary may contain the following keys:
-                - "field" (str or list): The column(s) the rule applies to.
-                - "check_type" (str): The type of check or rule to apply.
-                - "value" (optional): The value associated with the rule.
-                - "threshold" (optional): A numeric threshold for the rule. Defaults to 1.0 if not provided or invalid.
-                - "execute" (optional): A boolean indicating whether the rule should be executed. Defaults to True.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the processed rules with the following columns:
-            - "column": The column(s) the rule applies to, as a comma-separated string if multiple.
-            - "rule": The type of check or rule.
-            - "value": The value associated with the rule, or an empty string if not provided.
-            - "pass_threshold": The numeric threshold for the rule.
-
-    Notes:
-        - Rules with "execute" set to False are skipped.
-        - Duplicate rows based on "column", "rule", and "value" are removed from the resulting DataFrame.
-    """
-
-    rows = []
-    for rule in rules:
-        if not rule.execute:
-            continue
-
-        # Handle field (string or list)
-        col = ", ".join(rule.field) if isinstance(rule.field, list) else rule.field
-
-        # Handle value (convert to string representation for hashing)
-        if rule.value is None:
-            val_str = "N/A"
-        elif isinstance(rule.value, list):
-            val_str = ",".join(str(v) for v in rule.value)
-        elif isinstance(rule.value, (date, datetime)):
-            val_str = rule.value.isoformat()
-        else:
-            val_str = str(rule.value)
-
-        rows.append(
-            {
-                "column": col,
-                "level": rule.level,
-                "category": rule.category,
-                "check_type": rule.check_type,
-                "rule": rule.check_type,
-                "pass_threshold": rule.threshold,
-                "expected": val_str,
-            }
+        table_summary = pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
         )
 
-    df_rules = pd.DataFrame(rows)
-
-    if df_rules.empty:
-        return pd.DataFrame(columns=["column", "rule", "pass_threshold", "expected"])
-
-    df_rules = df_rules.drop_duplicates(subset=["column", "rule", "expected"])
-
-    return df_rules
-
-
+    return df_with_status, row_violations, table_summary
 
 def summarize(
     rules: List[RuleDef],
     total_rows: int,
-    df_with_status: Optional[pd.DataFrame] = None,
-    table_summary: Optional[pd.DataFrame] = None
+    df_with_errors: Optional[pd.DataFrame] = None,
+    table_error: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
     """
     Summarizes quality check results for a given DataFrame based on specified rules.
@@ -1807,8 +1793,8 @@ def summarize(
     Args:
         rules: List of RuleDef objects representing quality check rules
         total_rows: Total number of rows in the original dataset
-        df_with_status: DataFrame with 'dq_status' column from row-level validations
-        table_summary: DataFrame with table-level validation results
+        df_with_errors: DataFrame with 'dq_status' column from row-level validations
+        table_error: DataFrame with table-level validation results
 
     Returns:
         DataFrame with columns:
@@ -1830,38 +1816,50 @@ def summarize(
     summaries = []
 
     # ========== ROW-LEVEL SUMMARY ==========
-    row_rules = [r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"]
+    row_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
+    ]
 
-    if row_rules and df_with_status is not None:
+    if row_rules and df_with_errors is not None:
         # Parse violations do dq_status
-        if "dq_status" in df_with_status.columns:
-            violations_series = df_with_status["dq_status"].dropna()
+        if "dq_status" in df_with_errors.columns:
+            violations_series = df_with_errors["dq_status"].dropna()
 
             if not violations_series.empty:
                 split = violations_series.str.split(";").explode()
                 parts = split.str.split(":", expand=True, n=2)
 
                 if len(parts.columns) >= 2:
-                    parts.columns = ["check_type", "field", "details"] if len(parts.columns) == 3 else ["check_type",
-                                                                                                        "field"]
+                    parts.columns = (
+                        ["check_type", "field", "details"]
+                        if len(parts.columns) == 3
+                        else ["check_type", "field"]
+                    )
                     viol_count = (
                         parts.groupby(["check_type", "field"])
                         .size()
                         .reset_index(name="violations")
                     )
                 else:
-                    viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
+                    viol_count = pd.DataFrame(
+                        columns=["check_type", "field", "violations"]
+                    )
             else:
                 viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
         else:
             viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
 
-
         for rule in row_rules:
-            field_str = rule.field if isinstance(rule.field, str) else ",".join(rule.field)
+            field_str = (
+                rule.field if isinstance(rule.field, str) else ",".join(rule.field)
+            )
 
-            mask = (viol_count["check_type"] == rule.check_type) & (viol_count["field"] == field_str)
-            violations = int(viol_count.loc[mask, "violations"].sum()) if mask.any() else 0
+            mask = (viol_count["check_type"] == rule.check_type) & (
+                viol_count["field"] == field_str
+            )
+            violations = (
+                int(viol_count.loc[mask, "violations"].sum()) if mask.any() else 0
+            )
 
             pass_count = total_rows - violations
             pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
@@ -1869,57 +1867,74 @@ def summarize(
 
             status = "PASS" if pass_rate >= pass_threshold else "FAIL"
 
-            summaries.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.utcnow(),
-                "level": "ROW",
-                "category": rule.category or "unknown",
-                "check_type": rule.check_type,
-                "field": field_str,
-                "rows": total_rows,
-                "violations": violations,
-                "pass_rate": round(pass_rate, 4),
-                "pass_threshold": pass_threshold,
-                "status": status,
-                "expected": rule.value,
-                "actual": None,
-                "message": None if status == "PASS" else f"{violations} row(s) failed validation"
-            })
+            summaries.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": datetime.utcnow(),
+                    "level": "ROW",
+                    "category": rule.category or "unknown",
+                    "check_type": rule.check_type,
+                    "field": field_str,
+                    "rows": total_rows,
+                    "violations": violations,
+                    "pass_rate": round(pass_rate, 4),
+                    "pass_threshold": pass_threshold,
+                    "status": status,
+                    "expected": rule.value,
+                    "actual": None,
+                    "message": (
+                        None
+                        if status == "PASS"
+                        else f"{violations} row(s) failed validation"
+                    ),
+                }
+            )
 
     # ========== TABLE-LEVEL SUMMARY ==========
-    if table_summary is not None and not table_summary.empty:
-        for _, row in table_summary.iterrows():
+    if table_error is not None and not table_error.empty:
+        for _, row in table_error.iterrows():
+            expected = row.get("expected", None)
+            actual = row.get("actual", None)
 
-            expected = row.get("expected")
-            actual = row.get("actual")
-
-            compliance_rate = None
-            if expected is not None and actual is not None and expected != 0:
+            # Calcula taxa só se der
+            if pd.notna(expected) and pd.notna(actual) and expected != 0:
                 compliance_rate = round(actual / expected, 4)
+            else:
+                compliance_rate = None
 
             summaries.append({
                 "id": row["id"],
                 "timestamp": row["timestamp"],
-                "level": "TABLE",
+                "level": row["level"],
                 "category": row["category"],
                 "check_type": row["check_type"],
                 "field": row["field"],
-                "rows": total_rows,
-                "violations": None,
-                "pass_rate": compliance_rate,
-                "pass_threshold": row.get("threshold"),
                 "status": row["status"],
                 "expected": expected,
                 "actual": actual,
-                "message": row.get("message")
+                "pass_rate": compliance_rate,
+                "message": row["message"],
             })
 
     if not summaries:
-        return pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type", "field",
-            "rows", "violations", "pass_rate", "pass_threshold",
-            "status", "expected", "actual", "message"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "rows",
+                "violations",
+                "pass_rate",
+                "pass_threshold",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     summary_df = pd.DataFrame(summaries)
 
@@ -1927,11 +1942,14 @@ def summarize(
     summary_df["_sort_status"] = summary_df["status"].map(status_order)
     summary_df["_sort_level"] = summary_df["level"].map({"ROW": 0, "TABLE": 1})
 
-    summary_df = summary_df.sort_values(
-        ["_sort_status", "_sort_level", "check_type"]
-    ).drop(columns=["_sort_status", "_sort_level"]).reset_index(drop=True)
+    summary_df = (
+        summary_df.sort_values(["_sort_status", "_sort_level", "check_type"])
+        .drop(columns=["_sort_status", "_sort_level"])
+        .reset_index(drop=True)
+    )
 
     return summary_df
+
 
 def extract_schema(df) -> List[Dict[str, Any]]:
     actual = [

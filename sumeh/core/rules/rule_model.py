@@ -9,6 +9,7 @@ from dateutil import parser
 from .regristry import RuleRegistry
 import warnings
 
+
 @dataclass
 class RuleDef:
     """
@@ -52,7 +53,7 @@ class RuleDef:
             )
 
         if self.engine and not RuleRegistry.is_rule_supported(
-                self.check_type, self.engine
+            self.check_type, self.engine
         ):
             supported = rule_def.get("engines", [])
             warnings.warn(
@@ -353,7 +354,6 @@ class RuleDef:
         """Check if this rule is supported by the given engine."""
         return RuleRegistry.is_rule_supported(self.check_type, engine)
 
-
     def is_applicable_for_level(self, target_level: str) -> bool:
         """Check if this rule matches the target level."""
         if self.level is None:
@@ -362,7 +362,6 @@ class RuleDef:
         rule_level = self.level.upper().replace("_LEVEL", "")
         target_level = target_level.upper().replace("_LEVEL", "")
         return rule_level == target_level
-
 
     def get_skip_reason(self, target_level: str, engine: str) -> Optional[str]:
         """Returns reason why rule should be skipped, or None if applicable."""
@@ -374,6 +373,8 @@ class RuleDef:
 
         if not self.is_supported_by_engine(engine):
             supported = self.get_supported_engines()
-            return f"Engine '{engine}' not supported (available: {', '.join(supported)})"
+            return (
+                f"Engine '{engine}' not supported (available: {', '.join(supported)})"
+            )
 
         return None
