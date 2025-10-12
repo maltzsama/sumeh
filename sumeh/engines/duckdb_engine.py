@@ -108,6 +108,7 @@ class __RuleCtx:
         value (Any): Value associated with the rule.
         name (str): Name of the rule (check_type).
     """
+
     column: Any
     value: Any
     name: str
@@ -115,35 +116,26 @@ class __RuleCtx:
 
 # ========== SQLGLOT-BASED SQL EXPRESSION BUILDERS ==========
 
+
 def _is_positive(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column < 0 (violation)."""
-    return exp.LT(
-        this=Column(this=r.column),
-        expression=Literal.number(0)
-    )
+    return exp.LT(this=Column(this=r.column), expression=Literal.number(0))
 
 
 def _is_negative(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column >= 0 (violation)."""
-    return exp.GTE(
-        this=Column(this=r.column),
-        expression=Literal.number(0)
-    )
+    return exp.GTE(this=Column(this=r.column), expression=Literal.number(0))
 
 
 def _is_complete(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column IS NOT NULL."""
-    return exp.Is(
-        this=Column(this=r.column),
-        expression=exp.Null()
-    ).not_()
+    return exp.Is(this=Column(this=r.column), expression=exp.Null()).not_()
 
 
 def _are_complete(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: all columns IS NOT NULL."""
     conditions = [
-        exp.Is(this=Column(this=c), expression=exp.Null()).not_()
-        for c in r.column
+        exp.Is(this=Column(this=c), expression=exp.Null()).not_() for c in r.column
     ]
     return exp.And(expressions=conditions)
 
@@ -151,21 +143,18 @@ def _are_complete(r: __RuleCtx) -> exp.Expression:
 def _is_unique(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression to check uniqueness using subquery."""
     # (SELECT COUNT(*) FROM tbl AS d2 WHERE d2.column = tbl.column) = 1
-    subquery = exp.Select(
-        expressions=[exp.Count(this=exp.Star())]
-    ).from_(
-        exp.alias_(exp.Table(this="tbl"), "d2")
-    ).where(
-        exp.EQ(
-            this=Column(this=r.column, table="d2"),
-            expression=Column(this=r.column, table="tbl")
+    subquery = (
+        exp.Select(expressions=[exp.Count(this=exp.Star())])
+        .from_(exp.alias_(exp.Table(this="tbl"), "d2"))
+        .where(
+            exp.EQ(
+                this=Column(this=r.column, table="d2"),
+                expression=Column(this=r.column, table="tbl"),
+            )
         )
     )
 
-    return exp.EQ(
-        this=exp.Paren(this=subquery),
-        expression=Literal.number(1)
-    )
+    return exp.EQ(this=exp.Paren(this=subquery), expression=Literal.number(1))
 
 
 def _are_unique(r: __RuleCtx) -> exp.Expression:
@@ -179,25 +168,24 @@ def _are_unique(r: __RuleCtx) -> exp.Expression:
     inner_concat = exp.Concat(expressions=inner_parts, separator="|")
 
     # Subquery
-    subquery = exp.Select(
-        expressions=[exp.Count(this=exp.Star())]
-    ).from_(
-        exp.alias_(exp.Table(this="tbl"), "d2")
-    ).where(
-        exp.EQ(this=inner_concat, expression=outer_concat)
+    subquery = (
+        exp.Select(expressions=[exp.Count(this=exp.Star())])
+        .from_(exp.alias_(exp.Table(this="tbl"), "d2"))
+        .where(exp.EQ(this=inner_concat, expression=outer_concat))
     )
 
-    return exp.EQ(
-        this=exp.Paren(this=subquery),
-        expression=Literal.number(1)
-    )
+    return exp.EQ(this=exp.Paren(this=subquery), expression=Literal.number(1))
 
 
 def _is_greater_than(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column <= value (violation)."""
     return exp.LTE(
         this=Column(this=r.column),
-        expression=Literal.number(r.value) if isinstance(r.value, (int, float)) else Literal.string(r.value)
+        expression=(
+            Literal.number(r.value)
+            if isinstance(r.value, (int, float))
+            else Literal.string(r.value)
+        ),
     )
 
 
@@ -205,7 +193,11 @@ def _is_greater_or_equal_than(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column < value (violation)."""
     return exp.LT(
         this=Column(this=r.column),
-        expression=Literal.number(r.value) if isinstance(r.value, (int, float)) else Literal.string(r.value)
+        expression=(
+            Literal.number(r.value)
+            if isinstance(r.value, (int, float))
+            else Literal.string(r.value)
+        ),
     )
 
 
@@ -213,7 +205,11 @@ def _is_less_than(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column >= value (violation)."""
     return exp.GTE(
         this=Column(this=r.column),
-        expression=Literal.number(r.value) if isinstance(r.value, (int, float)) else Literal.string(r.value)
+        expression=(
+            Literal.number(r.value)
+            if isinstance(r.value, (int, float))
+            else Literal.string(r.value)
+        ),
     )
 
 
@@ -221,7 +217,11 @@ def _is_less_or_equal_than(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column > value (violation)."""
     return exp.GT(
         this=Column(this=r.column),
-        expression=Literal.number(r.value) if isinstance(r.value, (int, float)) else Literal.string(r.value)
+        expression=(
+            Literal.number(r.value)
+            if isinstance(r.value, (int, float))
+            else Literal.string(r.value)
+        ),
     )
 
 
@@ -229,7 +229,11 @@ def _is_equal(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column = value."""
     return exp.EQ(
         this=Column(this=r.column),
-        expression=Literal.number(r.value) if isinstance(r.value, (int, float)) else Literal.string(r.value)
+        expression=(
+            Literal.number(r.value)
+            if isinstance(r.value, (int, float))
+            else Literal.string(r.value)
+        ),
     )
 
 
@@ -242,8 +246,7 @@ def _is_contained_in(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column IN (values)."""
     vals = __format_sequence(r.value)
     return exp.In(
-        this=Column(this=r.column),
-        expressions=[Literal.string(v) for v in vals]
+        this=Column(this=r.column), expressions=[Literal.string(v) for v in vals]
     )
 
 
@@ -256,8 +259,7 @@ def _not_contained_in(r: __RuleCtx) -> exp.Expression:
     """Generates SQL expression: column NOT IN (values)."""
     vals = __format_sequence(r.value)
     return exp.In(
-        this=Column(this=r.column),
-        expressions=[Literal.string(v) for v in vals]
+        this=Column(this=r.column), expressions=[Literal.string(v) for v in vals]
     ).not_()
 
 
@@ -271,8 +273,16 @@ def _is_between(r: __RuleCtx) -> exp.Expression:
     lo, hi = [v.strip() for v in str(r.value).strip("[]").split(",")]
     return exp.Between(
         this=Column(this=r.column),
-        low=Literal.number(lo) if lo.replace('.', '').replace('-', '').isdigit() else Literal.string(lo),
-        high=Literal.number(hi) if hi.replace('.', '').replace('-', '').isdigit() else Literal.string(hi)
+        low=(
+            Literal.number(lo)
+            if lo.replace(".", "").replace("-", "").isdigit()
+            else Literal.string(lo)
+        ),
+        high=(
+            Literal.number(hi)
+            if hi.replace(".", "").replace("-", "").isdigit()
+            else Literal.string(hi)
+        ),
     )
 
 
@@ -285,11 +295,7 @@ def _has_pattern(r: __RuleCtx) -> exp.Expression:
     string_column = exp.Cast(this=column_expr, to=exp.DataType.build("VARCHAR"))
 
     return exp.Anonymous(
-        this="REGEXP_MATCHES",
-        expressions=[
-            string_column,
-            Literal.string(str(r.value))
-        ]
+        this="REGEXP_MATCHES", expressions=[string_column, Literal.string(str(r.value))]
     )
 
 
@@ -301,13 +307,14 @@ def _is_legit(r: __RuleCtx) -> exp.Expression:
             exp.Anonymous(
                 this="REGEXP_MATCHES",
                 expressions=[
-                    exp.Cast(this=Column(this=r.column), to=exp.DataType.build("VARCHAR")),
-                    Literal.string(r"^\S+$")
-                ]
-            )
+                    exp.Cast(
+                        this=Column(this=r.column), to=exp.DataType.build("VARCHAR")
+                    ),
+                    Literal.string(r"^\S+$"),
+                ],
+            ),
         ]
     )
-
 
 
 def _satisfies(r: __RuleCtx) -> exp.Expression:
@@ -316,6 +323,7 @@ def _satisfies(r: __RuleCtx) -> exp.Expression:
 
 
 # ========== DATE VALIDATION SQL BUILDERS ==========
+
 
 def _validate_date_format(r: __RuleCtx) -> exp.Expression:
     """Validates date format using regex."""
@@ -337,28 +345,24 @@ def _validate_date_format(r: __RuleCtx) -> exp.Expression:
             exp.Anonymous(
                 this="REGEXP_MATCHES",
                 expressions=[
-                    exp.Cast(this=Column(this=r.column), to=exp.DataType.build("VARCHAR")),
-                    Literal.string(f"^{regex}$")
-                ]
-            ).not_()
+                    exp.Cast(
+                        this=Column(this=r.column), to=exp.DataType.build("VARCHAR")
+                    ),
+                    Literal.string(f"^{regex}$"),
+                ],
+            ).not_(),
         ]
     )
 
 
 def _is_future_date(r: __RuleCtx) -> exp.Expression:
     """Checks if date is in the future."""
-    return exp.GT(
-        this=Column(this=r.column),
-        expression=exp.CurrentDate()
-    )
+    return exp.GT(this=Column(this=r.column), expression=exp.CurrentDate())
 
 
 def _is_past_date(r: __RuleCtx) -> exp.Expression:
     """Checks if date is in the past."""
-    return exp.LT(
-        this=Column(this=r.column),
-        expression=exp.CurrentDate()
-    )
+    return exp.LT(this=Column(this=r.column), expression=exp.CurrentDate())
 
 
 def _is_date_after(r: __RuleCtx) -> exp.Expression:
@@ -366,9 +370,8 @@ def _is_date_after(r: __RuleCtx) -> exp.Expression:
     return exp.LT(
         this=Column(this=r.column),
         expression=exp.Cast(
-            this=Literal.string(r.value),
-            to=exp.DataType.build("DATE")
-        )
+            this=Literal.string(r.value), to=exp.DataType.build("DATE")
+        ),
     )
 
 
@@ -377,9 +380,8 @@ def _is_date_before(r: __RuleCtx) -> exp.Expression:
     return exp.GT(
         this=Column(this=r.column),
         expression=exp.Cast(
-            this=Literal.string(r.value),
-            to=exp.DataType.build("DATE")
-        )
+            this=Literal.string(r.value), to=exp.DataType.build("DATE")
+        ),
     )
 
 
@@ -389,7 +391,7 @@ def _is_date_between(r: __RuleCtx) -> exp.Expression:
     between_expr = exp.Between(
         this=Column(this=r.column),
         low=exp.Cast(this=Literal.string(start), to=exp.DataType.build("DATE")),
-        high=exp.Cast(this=Literal.string(end), to=exp.DataType.build("DATE"))
+        high=exp.Cast(this=Literal.string(end), to=exp.DataType.build("DATE")),
     )
     return exp.Not(this=between_expr)
 
@@ -401,36 +403,24 @@ def _all_date_checks(r: __RuleCtx) -> exp.Expression:
 
 def _is_in_millions(r: __RuleCtx) -> exp.Expression:
     """Checks if value < 1,000,000 (violation)."""
-    return exp.LT(
-        this=Column(this=r.column),
-        expression=Literal.number(1000000)
-    )
+    return exp.LT(this=Column(this=r.column), expression=Literal.number(1000000))
 
 
 def _is_in_billions(r: __RuleCtx) -> exp.Expression:
     """Checks if value < 1,000,000,000 (violation)."""
-    return exp.LT(
-        this=Column(this=r.column),
-        expression=Literal.number(1000000000)
-    )
+    return exp.LT(this=Column(this=r.column), expression=Literal.number(1000000000))
 
 
 def _is_today(r: __RuleCtx) -> exp.Expression:
     """Checks if date equals today."""
-    return exp.EQ(
-        this=Column(this=r.column),
-        expression=exp.CurrentDate()
-    )
+    return exp.EQ(this=Column(this=r.column), expression=exp.CurrentDate())
 
 
 def _is_yesterday(r: __RuleCtx) -> exp.Expression:
     """Checks if date equals yesterday."""
     return exp.EQ(
         this=Column(this=r.column),
-        expression=exp.Sub(
-            this=exp.CurrentDate(),
-            expression=Literal.number(1)
-        )
+        expression=exp.Sub(this=exp.CurrentDate(), expression=Literal.number(1)),
     )
 
 
@@ -438,10 +428,7 @@ def _is_t_minus_2(r: __RuleCtx) -> exp.Expression:
     """Checks if date equals T-2."""
     return exp.EQ(
         this=Column(this=r.column),
-        expression=exp.Sub(
-            this=exp.CurrentDate(),
-            expression=Literal.number(2)
-        )
+        expression=exp.Sub(this=exp.CurrentDate(), expression=Literal.number(2)),
     )
 
 
@@ -449,36 +436,23 @@ def _is_t_minus_3(r: __RuleCtx) -> exp.Expression:
     """Checks if date equals T-3."""
     return exp.EQ(
         this=Column(this=r.column),
-        expression=exp.Sub(
-            this=exp.CurrentDate(),
-            expression=Literal.number(3)
-        )
+        expression=exp.Sub(this=exp.CurrentDate(), expression=Literal.number(3)),
     )
 
 
 def _is_on_weekday(r: __RuleCtx) -> exp.Expression:
     """Checks if date falls on weekday (Mon-Fri)."""
-    dow = exp.Extract(
-        this=Literal.string("DOW"),
-        expression=Column(this=r.column)
-    )
-    return exp.Between(
-        this=dow,
-        low=Literal.number(1),
-        high=Literal.number(5)
-    )
+    dow = exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column))
+    return exp.Between(this=dow, low=Literal.number(1), high=Literal.number(5))
 
 
 def _is_on_weekend(r: __RuleCtx) -> exp.Expression:
     """Checks if date falls on weekend (Sat-Sun)."""
-    dow = exp.Extract(
-        this=Literal.string("DOW"),
-        expression=Column(this=r.column)
-    )
+    dow = exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column))
     return exp.Or(
         expressions=[
             exp.EQ(this=dow, expression=Literal.number(0)),
-            exp.EQ(this=dow, expression=Literal.number(6))
+            exp.EQ(this=dow, expression=Literal.number(6)),
         ]
     )
 
@@ -486,77 +460,56 @@ def _is_on_weekend(r: __RuleCtx) -> exp.Expression:
 def _is_on_monday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Monday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(1)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(1),
     )
 
 
 def _is_on_tuesday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Tuesday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(2)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(2),
     )
 
 
 def _is_on_wednesday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Wednesday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(3)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(3),
     )
 
 
 def _is_on_thursday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Thursday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(4)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(4),
     )
 
 
 def _is_on_friday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Friday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(5)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(5),
     )
 
 
 def _is_on_saturday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Saturday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(6)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(6),
     )
 
 
 def _is_on_sunday(r: __RuleCtx) -> exp.Expression:
     """Checks if date is Sunday."""
     return exp.EQ(
-        this=exp.Extract(
-            this=Literal.string("DOW"),
-            expression=Column(this=r.column)
-        ),
-        expression=Literal.number(0)
+        this=exp.Extract(this=Literal.string("DOW"), expression=Column(this=r.column)),
+        expression=Literal.number(0),
     )
 
 
@@ -609,6 +562,7 @@ __RULE_DISPATCH: dict[str, Callable[[__RuleCtx], exp.Expression]] = {
 
 
 # ========== TABLE-LEVEL VALIDATION FUNCTIONS ==========
+
 
 def has_std(conn: dk.DuckDBPyConnection, rule: RuleDef) -> dict:
     """Checks if the standard deviation meets expectations."""
@@ -982,7 +936,9 @@ def has_entropy(conn: dk.DuckDBPyConnection, rule: RuleDef) -> dict:
             "message": f"Error: {str(e)}",
         }
 
+
 # ========== VALIDATION ORCHESTRATION ==========
+
 
 def _build_union_sql(rules: List[RuleDef]) -> str:
     """
@@ -1016,12 +972,15 @@ def _build_union_sql(rules: List[RuleDef]) -> str:
         # Build SELECT statement using SQLGlot
         dq_tag = __escape_single_quotes(f"{ctx.column}:{check}:{rule.value}")
 
-        select_stmt = exp.Select(
-            expressions=[exp.Star(), exp.alias_(Literal.string(dq_tag), "dq_status")]
-        ).from_(
-            exp.Table(this="tbl")
-        ).where(
-            exp.Not(this=exp.Paren(this=expr_ok))
+        select_stmt = (
+            exp.Select(
+                expressions=[
+                    exp.Star(),
+                    exp.alias_(Literal.string(dq_tag), "dq_status"),
+                ]
+            )
+            .from_(exp.Table(this="tbl"))
+            .where(exp.Not(this=exp.Paren(this=expr_ok)))
         )
 
         # Convert to SQL string
@@ -1029,12 +988,12 @@ def _build_union_sql(rules: List[RuleDef]) -> str:
 
     if not pieces:
         # Return empty result
-        empty_query = exp.Select(
-            expressions=[exp.Star(), exp.alias_(Literal.string(""), "dq_status")]
-        ).from_(
-            exp.Table(this="tbl")
-        ).where(
-            exp.false()
+        empty_query = (
+            exp.Select(
+                expressions=[exp.Star(), exp.alias_(Literal.string(""), "dq_status")]
+            )
+            .from_(exp.Table(this="tbl"))
+            .where(exp.false())
         )
         return empty_query.sql(dialect="duckdb")
 
@@ -1042,9 +1001,7 @@ def _build_union_sql(rules: List[RuleDef]) -> str:
 
 
 def validate_row_level(
-        conn: dk.DuckDBPyConnection,
-        df_rel: dk.DuckDBPyRelation,
-        rules: List[RuleDef]
+    conn: dk.DuckDBPyConnection, df_rel: dk.DuckDBPyRelation, rules: List[RuleDef]
 ) -> Tuple[DuckDBPyRelation, DuckDBPyRelation]:
     """
     Validates DataFrame at row level using specified rules.
@@ -1108,6 +1065,7 @@ def validate_row_level(
 
         # Create a copy with mapped check_type
         from copy import copy
+
         mapped_rule = copy(rule)
         mapped_rule.check_type = check_type
         mapped_rules.append(mapped_rule)
@@ -1137,9 +1095,7 @@ def validate_row_level(
 
 
 def validate_table_level(
-        conn: dk.DuckDBPyConnection,
-        df_rel: dk.DuckDBPyRelation,
-        rules: List[RuleDef]
+    conn: dk.DuckDBPyConnection, df_rel: dk.DuckDBPyRelation, rules: List[RuleDef]
 ) -> dk.DuckDBPyRelation:
     """
     Validates DataFrame at table level using specified rules.
@@ -1179,7 +1135,8 @@ def validate_table_level(
         warnings.warn(
             f"No valid rules to execute for level='table_level' and engine='{engine}'."
         )
-        return conn.sql("""
+        return conn.sql(
+            """
             SELECT 
                 NULL::VARCHAR AS id,
                 NULL::TIMESTAMP AS timestamp,
@@ -1192,7 +1149,8 @@ def validate_table_level(
                 NULL::DOUBLE AS actual,
                 NULL::VARCHAR AS message
             WHERE 1=0
-        """)
+        """
+        )
 
     # Create view
     df_rel.create_view("tbl")
@@ -1207,53 +1165,60 @@ def validate_table_level(
         fn = globals().get(check_type)
         if fn is None:
             warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Function '{check_type}' not implemented",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Function '{check_type}' not implemented",
+                }
+            )
             continue
 
         try:
             result = fn(conn, rule)
 
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": result.get("status", "ERROR"),
-                "expected": result.get("expected"),
-                "actual": result.get("actual"),
-                "message": result.get("message"),
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": result.get("status", "ERROR"),
+                    "expected": result.get("expected"),
+                    "actual": result.get("actual"),
+                    "message": result.get("message"),
+                }
+            )
 
         except Exception as e:
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Execution error: {str(e)}",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Execution error: {str(e)}",
+                }
+            )
 
     if not results:
-        return conn.sql("""
+        return conn.sql(
+            """
             SELECT 
                 NULL::VARCHAR AS id,
                 NULL::TIMESTAMP AS timestamp,
@@ -1266,23 +1231,25 @@ def validate_table_level(
                 NULL::DOUBLE AS actual,
                 NULL::VARCHAR AS message
             WHERE 1=0
-        """)
+        """
+        )
 
     # Convert results to DuckDB relation
     import pandas as pd
+
     summary_df = pd.DataFrame(results)
 
     # Sort: FAIL first, then ERROR, then PASS
-    summary_df['_sort'] = summary_df['status'].map({'FAIL': 0, 'ERROR': 1, 'PASS': 2})
-    summary_df = summary_df.sort_values('_sort').drop(columns=['_sort']).reset_index(drop=True)
+    summary_df["_sort"] = summary_df["status"].map({"FAIL": 0, "ERROR": 1, "PASS": 2})
+    summary_df = (
+        summary_df.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+    )
 
     return conn.from_df(summary_df)
 
 
 def validate(
-        conn: dk.DuckDBPyConnection,
-        df_rel: dk.DuckDBPyRelation,
-        rules: List[RuleDef]
+    conn: dk.DuckDBPyConnection, df_rel: dk.DuckDBPyRelation, rules: List[RuleDef]
 ) -> Tuple[DuckDBPyRelation, DuckDBPyRelation, DuckDBPyRelation]:
     """
     Main validation function that orchestrates row-level and table-level validations.
@@ -1321,7 +1288,8 @@ def validate(
     if table_rules:
         table_summary = validate_table_level(conn, df_rel, table_rules)
     else:
-        table_summary = conn.sql("""
+        table_summary = conn.sql(
+            """
             SELECT 
                 NULL::VARCHAR AS id,
                 NULL::TIMESTAMP AS timestamp,
@@ -1334,17 +1302,18 @@ def validate(
                 NULL::DOUBLE AS actual,
                 NULL::VARCHAR AS message
             WHERE 1=0
-        """)
+        """
+        )
 
     return df_with_status, row_violations, table_summary
 
 
 def summarize(
-        conn: dk.DuckDBPyConnection,
-        rules: List[RuleDef],
-        total_rows: int,
-        df_with_errors: Optional[DuckDBPyRelation] = None,
-        table_error: Optional[DuckDBPyRelation] = None,
+    conn: dk.DuckDBPyConnection,
+    rules: List[RuleDef],
+    total_rows: int,
+    df_with_errors: Optional[DuckDBPyRelation] = None,
+    table_error: Optional[DuckDBPyRelation] = None,
 ) -> dk.DuckDBPyRelation:
     """
     Summarizes validation results from both row-level and table-level checks.
@@ -1411,25 +1380,28 @@ def summarize(
                     except (ValueError, TypeError):
                         expected_val = None
 
-            summaries.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.utcnow(),
-                "level": "ROW",
-                "category": rule.category or "unknown",
-                "check_type": rule.check_type,
-                "field": field_str,
-                "rows": total_rows,
-                "violations": violations,
-                "pass_rate": round(pass_rate, 4),
-                "pass_threshold": pass_threshold,
-                "status": status,
-                "expected": expected_val,
-                "actual": None,
-                "message": (
-                    None if status == "PASS"
-                    else f"{violations} row(s) failed validation"
-                ),
-            })
+            summaries.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": datetime.utcnow(),
+                    "level": "ROW",
+                    "category": rule.category or "unknown",
+                    "check_type": rule.check_type,
+                    "field": field_str,
+                    "rows": total_rows,
+                    "violations": violations,
+                    "pass_rate": round(pass_rate, 4),
+                    "pass_threshold": pass_threshold,
+                    "status": status,
+                    "expected": expected_val,
+                    "actual": None,
+                    "message": (
+                        None
+                        if status == "PASS"
+                        else f"{violations} row(s) failed validation"
+                    ),
+                }
+            )
 
     # ========== TABLE-LEVEL SUMMARY ==========
     if table_error is not None:
@@ -1444,22 +1416,25 @@ def summarize(
             else:
                 compliance_rate = None
 
-            summaries.append({
-                "id": row_dict["id"],
-                "timestamp": row_dict["timestamp"],
-                "level": row_dict["level"],
-                "category": row_dict["category"],
-                "check_type": row_dict["check_type"],
-                "field": row_dict["field"],
-                "status": row_dict["status"],
-                "expected": expected,
-                "actual": actual,
-                "pass_rate": compliance_rate,
-                "message": row_dict["message"],
-            })
+            summaries.append(
+                {
+                    "id": row_dict["id"],
+                    "timestamp": row_dict["timestamp"],
+                    "level": row_dict["level"],
+                    "category": row_dict["category"],
+                    "check_type": row_dict["check_type"],
+                    "field": row_dict["field"],
+                    "status": row_dict["status"],
+                    "expected": expected,
+                    "actual": actual,
+                    "pass_rate": compliance_rate,
+                    "message": row_dict["message"],
+                }
+            )
 
     if not summaries:
-        return conn.sql("""
+        return conn.sql(
+            """
             SELECT 
                 NULL::VARCHAR AS id,
                 NULL::TIMESTAMP AS timestamp,
@@ -1476,18 +1451,20 @@ def summarize(
                 NULL::DOUBLE AS actual,
                 NULL::VARCHAR AS message
             WHERE 1=0
-        """)
+        """
+        )
 
     summary_df = pd.DataFrame(summaries)
 
     # Sort: FAIL first, ERROR second, PASS last; ROW before TABLE
-    summary_df['_sort_status'] = summary_df['status'].map({'FAIL': 0, 'ERROR': 1, 'PASS': 2})
-    summary_df['_sort_level'] = summary_df['level'].map({'ROW': 0, 'TABLE': 1})
+    summary_df["_sort_status"] = summary_df["status"].map(
+        {"FAIL": 0, "ERROR": 1, "PASS": 2}
+    )
+    summary_df["_sort_level"] = summary_df["level"].map({"ROW": 0, "TABLE": 1})
 
     summary_df = (
-        summary_df
-        .sort_values(['_sort_status', '_sort_level', 'check_type'])
-        .drop(columns=['_sort_status', '_sort_level'])
+        summary_df.sort_values(["_sort_status", "_sort_level", "check_type"])
+        .drop(columns=["_sort_status", "_sort_level"])
         .reset_index(drop=True)
     )
 
@@ -1495,6 +1472,7 @@ def summarize(
 
 
 # ========== SCHEMA VALIDATION ==========
+
 
 def extract_schema(conn: dk.DuckDBPyConnection, table: str) -> List[Dict[str, Any]]:
     """
@@ -1520,9 +1498,7 @@ def extract_schema(conn: dk.DuckDBPyConnection, table: str) -> List[Dict[str, An
 
 
 def validate_schema(
-        conn: dk.DuckDBPyConnection,
-        expected: List[Dict[str, Any]],
-        table: str
+    conn: dk.DuckDBPyConnection, expected: List[Dict[str, Any]], table: str
 ) -> Tuple[bool, List[Dict[str, Any]]]:
     """
     Validates the schema of a DuckDB table against an expected schema.

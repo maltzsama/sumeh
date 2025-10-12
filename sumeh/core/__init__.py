@@ -138,13 +138,50 @@ class _ValidateDispatcher:
         Validate for DuckDB Relation.
 
         Args:
-            df_rel: DuckDB relation
-            rules: List[RuleDef]
-            conn: DuckDB connection
+            conn (duckdb.DuckDBPyConnection): Active DuckDB connection
+            df_rel (duckdb.DuckDBPyRelation): DuckDB relation to validate
+            rules (List[RuleDef]): List of validation rules
+
+        Returns:
+            Tuple[DuckDBPyRelation, DuckDBPyRelation, DuckDBPyRelation]:
+                - df_with_errors: Relation with violations and dq_status
+                - row_violations: Raw row-level violations relation
+                - table_summary: Table-level validation results
+
+        Example:
+            import duckdb
+            conn = duckdb.connect()
+            df_rel = conn.sql("SELECT * FROM my_table")
+
+            df_errors, violations, table_sum = validate.duckdb(conn, df_rel, rules)
+
+            # Convert to pandas if needed
+            df_errors_pd = df_errors.df()
+
+        Notes:
+            - Pattern matching (has_pattern) only works on string columns
+            - Numeric columns will be automatically cast to VARCHAR for regex operations
+            - Ensure all referenced columns exist in the relation
         """
         from sumeh.engines import duckdb_engine
 
-        return duckdb_engine.validate
+        def _call(conn, df_rel, rules):
+            import duckdb as dk
+
+            try:
+                return duckdb_engine.validate(conn, df_rel, rules)
+            except dk.BinderException as e:
+                if "regexp_matches" in str(e) and "BIGINT" in str(e):
+                    raise ValueError(
+                        "Regex pattern matching cannot be applied to numeric columns. "
+                        "Consider using CAST in your rule or ensuring the column is VARCHAR. "
+                        f"Original error: {e}"
+                    )
+                raise e
+            except Exception as e:
+                raise ValueError(f"DuckDB validation error: {e}")
+
+        return _call
 
     @property
     def bigquery(self):
@@ -358,7 +395,25 @@ class _SummarizeDispatcher:
         """
         from sumeh.engines import duckdb_engine
 
-        return duckdb_engine.summarize
+        def _call(
+            conn, rules, total_rows, df_with_errors=None, table_error=None, **kwargs
+        ):
+            # Validações
+            if conn is None:
+                raise ValueError("DuckDB summarize requires 'conn' (DuckDB connection)")
+            if not isinstance(total_rows, int) or total_rows <= 0:
+                raise ValueError("'total_rows' must be a positive integer")
+
+            return duckdb_engine.summarize(
+                conn=conn,
+                rules=rules,
+                total_rows=total_rows,
+                df_with_errors=df_with_errors,
+                table_error=table_error,
+                **kwargs,
+            )
+
+        return _call
 
     @property
     def bigquery(self):
@@ -668,13 +723,30 @@ class _SchemaConfigDispatcher:
     @property
     def duckdb(self):
         """
-        Get schema from DuckDB.
+        Get schema from DuckDB table.
 
         Args:
             conn: DuckDB connection
-            table: Table name to look up
+            table: Table name to extract schema from
+            database: Database name (optional, default: 'main')
+            schema: Schema name (optional, default: 'main')
+
+        Returns:
+            List[Dict]: Schema information including field names, types, and nullability
         """
-        return get_schema_from_duckdb
+
+        def _call(conn, table, database="main", schema="main"):
+            if conn is None:
+                raise ValueError("DuckDB schema extraction requires 'conn'")
+            if not table:
+                raise ValueError("DuckDB schema extraction requires 'table'")
+
+            # Usar a função extract_schema do duckdb_engine
+            from sumeh.engines.duckdb_engine import extract_schema
+
+            return extract_schema(conn, table)
+
+        return _call
 
     @property
     def databricks(self):

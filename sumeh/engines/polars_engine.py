@@ -23,6 +23,7 @@ from sumeh.core.utils import (
 
 # ========== ROW-LEVEL VALIDATION FUNCTIONS ==========
 
+
 def is_positive(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     Filters rows where the specified field is negative and adds a data quality status column.
@@ -137,7 +138,9 @@ def are_unique(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     fields = rule.field if isinstance(rule.field, list) else [rule.field]
 
     combo = df.with_columns(
-        pl.concat_str([pl.col(f).cast(str) for f in fields], separator="|").alias("_combo")
+        pl.concat_str([pl.col(f).cast(str) for f in fields], separator="|").alias(
+            "_combo"
+        )
     )
     dupes = (
         combo.group_by("_combo")
@@ -386,6 +389,7 @@ def is_legit(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
 
 # ========== TABLE-LEVEL VALIDATION FUNCTIONS ==========
 
+
 def has_min(df: pl.DataFrame, rule: RuleDef) -> dict:
     """
     Checks if the minimum value of the specified field meets expectations.
@@ -484,6 +488,7 @@ def has_max(df: pl.DataFrame, rule: RuleDef) -> dict:
             "actual": None,
             "message": f"Error: {str(e)}",
         }
+
 
 def has_std(df: pl.DataFrame, rule: RuleDef) -> dict:
     """
@@ -723,7 +728,8 @@ def has_infogain(df: pl.DataFrame, rule: RuleDef) -> dict:
         entropy = float(
             value_counts.select(
                 (-pl.col("probability") * pl.col("probability").log(2)).sum()
-            ).to_numpy()[0, 0] or 0.0
+            ).to_numpy()[0, 0]
+            or 0.0
         )
 
         # Max entropy (uniform distribution)
@@ -794,7 +800,8 @@ def has_entropy(df: pl.DataFrame, rule: RuleDef) -> dict:
         entropy = float(
             value_counts.select(
                 (-pl.col("probability") * pl.col("probability").log(2)).sum()
-            ).to_numpy()[0, 0] or 0.0
+            ).to_numpy()[0, 0]
+            or 0.0
         )
         actual = float(entropy)
         expected = float(expected)
@@ -823,6 +830,7 @@ def has_entropy(df: pl.DataFrame, rule: RuleDef) -> dict:
 
 # ========== DATE VALIDATION FUNCTIONS ==========
 
+
 def validate_date_format(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     Filters rows where the specified field has wrong date format based on the format from the rule.
@@ -837,7 +845,8 @@ def validate_date_format(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     fmt = rule.value
     regex = __transform_date_format_in_pattern(fmt)
     viol = df.filter(
-        ~pl.col(rule.field).str.contains(regex, literal=False) | pl.col(rule.field).is_null()
+        ~pl.col(rule.field).str.contains(regex, literal=False)
+        | pl.col(rule.field).is_null()
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{fmt}").alias("dq_status")
@@ -858,7 +867,8 @@ def is_future_date(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     today = _dt.today().isoformat()
     viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") > pl.lit(today).cast(pl.Date)
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        > pl.lit(today).cast(pl.Date)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{today}").alias("dq_status")
@@ -879,7 +889,8 @@ def is_past_date(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     today = _dt.today().isoformat()
     viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") < pl.lit(today).cast(pl.Date)
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        < pl.lit(today).cast(pl.Date)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{today}").alias("dq_status")
@@ -903,7 +914,9 @@ def is_date_between(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     end_expr = pl.lit(end_str).str.strptime(pl.Date, "%Y-%m-%d")
 
     viol = df.filter(
-        ~pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d").is_between(start_expr, end_expr)
+        ~pl.col(rule.field)
+        .str.strptime(pl.Date, "%Y-%m-%d")
+        .is_between(start_expr, end_expr)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
@@ -922,9 +935,7 @@ def is_date_after(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     Returns:
         pl.DataFrame: Filtered DataFrame with violations and dq_status column.
     """
-    viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") < rule.value
-    )
+    viol = df.filter(pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") < rule.value)
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
     )
@@ -942,9 +953,7 @@ def is_date_before(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     Returns:
         pl.DataFrame: Filtered DataFrame with violations and dq_status column.
     """
-    viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") > rule.value
-    )
+    viol = df.filter(pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") > rule.value)
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
     )
@@ -1014,7 +1023,8 @@ def is_today(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     today = _dt.today().isoformat()
     viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") != pl.lit(today).cast(pl.Date)
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        != pl.lit(today).cast(pl.Date)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
@@ -1035,7 +1045,8 @@ def is_yesterday(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     target = (_dt.today() - timedelta(days=1)).isoformat()
     viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") != pl.lit(target).cast(pl.Date)
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        != pl.lit(target).cast(pl.Date)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
@@ -1056,7 +1067,8 @@ def is_t_minus_2(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     target = (_dt.today() - timedelta(days=2)).isoformat()
     viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") != pl.lit(target).cast(pl.Date)
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        != pl.lit(target).cast(pl.Date)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
@@ -1077,7 +1089,8 @@ def is_t_minus_3(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """
     target = (_dt.today() - timedelta(days=3)).isoformat()
     viol = df.filter(
-        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d") != pl.lit(target).cast(pl.Date)
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        != pl.lit(target).cast(pl.Date)
     )
     viol = viol.with_columns(
         pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
@@ -1209,8 +1222,9 @@ def satisfies(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
 
 # ========== VALIDATION ORCHESTRATION ==========
 
+
 def validate_row_level(
-        df: pl.DataFrame, rules: List[RuleDef]
+    df: pl.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pl.DataFrame, pl.DataFrame]:
     """
     Validates DataFrame at row level using specified rules.
@@ -1345,18 +1359,20 @@ def validate_table_level(df: pl.DataFrame, rules: List[RuleDef]) -> pl.DataFrame
         warnings.warn(
             f"No valid rules to execute for level='table_level' and engine='{engine}'."
         )
-        return pl.DataFrame(schema={
-            "id": str,
-            "timestamp": pl.Datetime,
-            "level": str,
-            "category": str,
-            "check_type": str,
-            "field": str,
-            "status": str,
-            "expected": float,
-            "actual": float,
-            "message": str,
-        })
+        return pl.DataFrame(
+            schema={
+                "id": str,
+                "timestamp": pl.Datetime,
+                "level": str,
+                "category": str,
+                "check_type": str,
+                "field": str,
+                "status": str,
+                "expected": float,
+                "actual": float,
+                "message": str,
+            }
+        )
 
     execution_time = datetime.utcnow()
     results = []
@@ -1367,64 +1383,72 @@ def validate_table_level(df: pl.DataFrame, rules: List[RuleDef]) -> pl.DataFrame
         fn = globals().get(check_type)
         if fn is None:
             warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Function '{check_type}' not implemented",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Function '{check_type}' not implemented",
+                }
+            )
             continue
 
         try:
             result = fn(df, rule)
 
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": result.get("status", "ERROR"),
-                "expected": result.get("expected"),
-                "actual": result.get("actual"),
-                "message": result.get("message"),
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": result.get("status", "ERROR"),
+                    "expected": result.get("expected"),
+                    "actual": result.get("actual"),
+                    "message": result.get("message"),
+                }
+            )
 
         except Exception as e:
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Execution error: {str(e)}",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Execution error: {str(e)}",
+                }
+            )
 
     if not results:
-        return pl.DataFrame(schema={
-            "id": str,
-            "timestamp": pl.Datetime,
-            "level": str,
-            "category": str,
-            "check_type": str,
-            "field": str,
-            "status": str,
-            "expected": float,
-            "actual": float,
-            "message": str,
-        })
+        return pl.DataFrame(
+            schema={
+                "id": str,
+                "timestamp": pl.Datetime,
+                "level": str,
+                "category": str,
+                "check_type": str,
+                "field": str,
+                "status": str,
+                "expected": float,
+                "actual": float,
+                "message": str,
+            }
+        )
 
     summary_df = pl.DataFrame(results)
 
@@ -1443,7 +1467,7 @@ def validate_table_level(df: pl.DataFrame, rules: List[RuleDef]) -> pl.DataFrame
 
 
 def validate(
-        df: pl.DataFrame, rules: List[RuleDef]
+    df: pl.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pl.DataFrame, pl.DataFrame, pl.DataFrame]:
     """
     Main validation function that orchestrates row-level and table-level validations.
@@ -1481,27 +1505,29 @@ def validate(
     if table_rules:
         table_summary = validate_table_level(df, table_rules)
     else:
-        table_summary = pl.DataFrame(schema={
-            "id": str,
-            "timestamp": pl.Datetime,
-            "level": str,
-            "category": str,
-            "check_type": str,
-            "field": str,
-            "status": str,
-            "expected": float,
-            "actual": float,
-            "message": str,
-        })
+        table_summary = pl.DataFrame(
+            schema={
+                "id": str,
+                "timestamp": pl.Datetime,
+                "level": str,
+                "category": str,
+                "check_type": str,
+                "field": str,
+                "status": str,
+                "expected": float,
+                "actual": float,
+                "message": str,
+            }
+        )
 
     return df_with_status, row_violations, table_summary
 
 
 def summarize(
-        rules: List[RuleDef],
-        total_rows: int,
-        df_with_errors: Optional[pl.DataFrame] = None,
-        table_error: Optional[pl.DataFrame] = None,
+    rules: List[RuleDef],
+    total_rows: int,
+    df_with_errors: Optional[pl.DataFrame] = None,
+    table_error: Optional[pl.DataFrame] = None,
 ) -> pl.DataFrame:
     """
     Summarizes validation results from both row-level and table-level checks.
@@ -1530,10 +1556,15 @@ def summarize(
                     pl.col("dq_status").str.split(";").list.explode().alias("dq_status")
                 )
                 .filter(pl.col("dq_status") != "")
-                .with_columns([
-                    pl.col("dq_status").str.split(":").list.get(0).alias("check_type"),
-                    pl.col("dq_status").str.split(":").list.get(1).alias("field"),
-                ])
+                .with_columns(
+                    [
+                        pl.col("dq_status")
+                        .str.split(":")
+                        .list.get(0)
+                        .alias("check_type"),
+                        pl.col("dq_status").str.split(":").list.get(1).alias("field"),
+                    ]
+                )
             ).drop("dq_status")
 
             viol_count = exploded.group_by(["check_type", "field"]).agg(
@@ -1570,25 +1601,28 @@ def summarize(
                     except (ValueError, TypeError):
                         expected_val = None
 
-            summaries.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.utcnow(),
-                "level": "ROW",
-                "category": rule.category or "unknown",
-                "check_type": rule.check_type,
-                "field": field_str,
-                "rows": total_rows,
-                "violations": violations,
-                "pass_rate": round(pass_rate, 4),
-                "pass_threshold": pass_threshold,
-                "status": status,
-                "expected": expected_val,
-                "actual": None,
-                "message": (
-                    None if status == "PASS"
-                    else f"{violations} row(s) failed validation"
-                ),
-            })
+            summaries.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": datetime.utcnow(),
+                    "level": "ROW",
+                    "category": rule.category or "unknown",
+                    "check_type": rule.check_type,
+                    "field": field_str,
+                    "rows": total_rows,
+                    "violations": violations,
+                    "pass_rate": round(pass_rate, 4),
+                    "pass_threshold": pass_threshold,
+                    "status": status,
+                    "expected": expected_val,
+                    "actual": None,
+                    "message": (
+                        None
+                        if status == "PASS"
+                        else f"{violations} row(s) failed validation"
+                    ),
+                }
+            )
 
     # ========== TABLE-LEVEL SUMMARY ==========
     if table_error is not None and not table_error.is_empty():
@@ -1602,64 +1636,66 @@ def summarize(
             else:
                 compliance_rate = None
 
-            summaries.append({
-                "id": row_dict["id"],
-                "timestamp": row_dict["timestamp"],
-                "level": row_dict["level"],
-                "category": row_dict["category"],
-                "check_type": row_dict["check_type"],
-                "field": row_dict["field"],
-                "status": row_dict["status"],
-                "expected": expected,
-                "actual": actual,
-                "pass_rate": compliance_rate,
-                "message": row_dict["message"],
-            })
+            summaries.append(
+                {
+                    "id": row_dict["id"],
+                    "timestamp": row_dict["timestamp"],
+                    "level": row_dict["level"],
+                    "category": row_dict["category"],
+                    "check_type": row_dict["check_type"],
+                    "field": row_dict["field"],
+                    "status": row_dict["status"],
+                    "expected": expected,
+                    "actual": actual,
+                    "pass_rate": compliance_rate,
+                    "message": row_dict["message"],
+                }
+            )
 
     if not summaries:
-        return pl.DataFrame(schema={
-            "id": str,
-            "timestamp": pl.Datetime,
-            "level": str,
-            "category": str,
-            "check_type": str,
-            "field": str,
-            "rows": int,
-            "violations": int,
-            "pass_rate": float,
-            "pass_threshold": float,
-            "status": str,
-            "expected": float,
-            "actual": float,
-            "message": str,
-        })
+        return pl.DataFrame(
+            schema={
+                "id": str,
+                "timestamp": pl.Datetime,
+                "level": str,
+                "category": str,
+                "check_type": str,
+                "field": str,
+                "rows": int,
+                "violations": int,
+                "pass_rate": float,
+                "pass_threshold": float,
+                "status": str,
+                "expected": float,
+                "actual": float,
+                "message": str,
+            }
+        )
 
     summary_df = pl.DataFrame(summaries)
 
     # Sort: FAIL first, ERROR second, PASS last; ROW before TABLE
-    summary_df = summary_df.with_columns([
-        pl.when(pl.col("status") == "FAIL")
-        .then(0)
-        .when(pl.col("status") == "ERROR")
-        .then(1)
-        .otherwise(2)
-        .alias("_sort_status"),
-        pl.when(pl.col("level") == "ROW")
-        .then(0)
-        .otherwise(1)
-        .alias("_sort_level")
-    ])
+    summary_df = summary_df.with_columns(
+        [
+            pl.when(pl.col("status") == "FAIL")
+            .then(0)
+            .when(pl.col("status") == "ERROR")
+            .then(1)
+            .otherwise(2)
+            .alias("_sort_status"),
+            pl.when(pl.col("level") == "ROW").then(0).otherwise(1).alias("_sort_level"),
+        ]
+    )
 
-    summary_df = (
-        summary_df
-        .sort(["_sort_status", "_sort_level", "check_type"])
-        .drop(["_sort_status", "_sort_level"])
+    summary_df = summary_df.sort(["_sort_status", "_sort_level", "check_type"]).drop(
+        ["_sort_status", "_sort_level"]
     )
 
     return summary_df
 
 
 # ========== SCHEMA VALIDATION ==========
+
 
 def extract_schema(df: pl.DataFrame) -> List[Dict[str, Any]]:
     """
