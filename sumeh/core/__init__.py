@@ -102,7 +102,25 @@ class _ValidateDispatcher:
 
     @property
     def pyspark(self):
-        """Validate for PySpark DataFrame."""
+        """
+        Validate for PySpark DataFrame.
+
+        Args:
+            spark (SparkSession): Active SparkSession instance
+            df (DataFrame): PySpark DataFrame to validate
+            rules (List[RuleDef]): List of validation rules
+
+        Returns:
+            Tuple[DataFrame, DataFrame, DataFrame]:
+                - df_with_errors: DataFrame with violations and dq_status
+                - row_violations: Raw row-level violations DataFrame
+                - table_summary: Table-level validation results
+
+        Example:
+            from pyspark.sql import SparkSession
+            spark = SparkSession.builder.getOrCreate()
+            df_errors, violations, table_sum = validate.pyspark(spark, df, rules)
+        """
         from sumeh.engines import pyspark_engine
 
         return pyspark_engine.validate
@@ -212,13 +230,15 @@ class _SummarizeDispatcher:
         from sumeh.engines import pandas_engine
 
         def _call(
-                rules: list,
-                total_rows: int,
-                df_with_errors: pd.DataFrame = None,
-                table_error: Optional[pd.DataFrame] = None,
-                **kwargs,
+            rules: list,
+            total_rows: int,
+            df_with_errors: pd.DataFrame = None,
+            table_error: Optional[pd.DataFrame] = None,
+            **kwargs,
         ):
-            invalid_args = [k for k in kwargs.keys() if k in ["table_summary", "summary_df"]]
+            invalid_args = [
+                k for k in kwargs.keys() if k in ["table_summary", "summary_df"]
+            ]
             if invalid_args:
                 raise ValueError(
                     f"Invalid parameter(s): {invalid_args}. "
@@ -228,7 +248,9 @@ class _SummarizeDispatcher:
             if not isinstance(total_rows, int) or total_rows <= 0:
                 raise ValueError("'total_rows' must be a positive integer")
 
-            if not isinstance(rules, list) or not all(isinstance(r, dict) or hasattr(r, "check_type") for r in rules):
+            if not isinstance(rules, list) or not all(
+                isinstance(r, dict) or hasattr(r, "check_type") for r in rules
+            ):
                 raise TypeError("'rules' must be a list of Rule objects or dicts")
 
             return pandas_engine.summarize(
@@ -250,10 +272,71 @@ class _SummarizeDispatcher:
 
     @property
     def pyspark(self):
-        """Summarize for PySpark validation results."""
+        """
+        Summarize for PySpark validation results.
+
+        Args:
+            spark (SparkSession): Active SparkSession instance
+            rules (List[RuleDef]): List of validation rules
+            total_rows (int): Total number of rows in the original DataFrame
+            df_with_errors (Optional[DataFrame]): DataFrame with row-level violations
+            table_error (Optional[DataFrame]): DataFrame with table-level results
+
+        Returns:
+            DataFrame: Summary DataFrame with aggregated validation metrics
+
+        Example:
+            summary = summarize.pyspark(
+                spark=spark,
+                rules=rules,
+                total_rows=df.count(),
+                df_with_errors=df_errors,
+                table_error=table_sum
+            )
+        """
         from sumeh.engines import pyspark_engine
 
-        return pyspark_engine.summarize
+        def _call(
+            spark,
+            rules: list,
+            total_rows: int,
+            df_with_errors=None,
+            table_error=None,
+            **kwargs,
+        ):
+            # Validation
+            if spark is None:
+                raise ValueError(
+                    "PySpark summarize requires 'spark' (SparkSession) as first parameter"
+                )
+
+            invalid_args = [
+                k for k in kwargs.keys() if k in ["table_summary", "summary_df"]
+            ]
+            if invalid_args:
+                raise ValueError(
+                    f"Invalid parameter(s): {invalid_args}. "
+                    f"Did you mean 'table_error' instead?"
+                )
+
+            if not isinstance(total_rows, int) or total_rows <= 0:
+                raise ValueError("'total_rows' must be a positive integer")
+
+            if not isinstance(rules, list) or not all(
+                isinstance(r, dict) or hasattr(r, "check_type") for r in rules
+            ):
+                raise TypeError("'rules' must be a list of Rule objects or dicts")
+
+            return pyspark_engine.summarize(
+                spark=spark,
+                rules=rules,
+                total_rows=total_rows,
+                df_with_errors=df_with_errors,
+                table_error=table_error,
+                **kwargs,
+            )
+
+        return _call
 
     @property
     def polars(self):

@@ -39,6 +39,7 @@ from sumeh.core.utils import (
 
 # ========== ROW-LEVEL VALIDATION FUNCTIONS ==========
 
+
 def is_positive(df: DataFrame, rule: RuleDef) -> DataFrame:
     """
     Filters rows where the specified field is negative and adds a data quality status column.
@@ -133,9 +134,7 @@ def are_complete(df: DataFrame, rule: RuleDef) -> DataFrame:
         combined_condition = combined_condition | cond
 
     viol = df.filter(combined_condition)
-    viol = viol.withColumn(
-        "dq_status", lit(f"{fields}:{rule.check_type}:{rule.value}")
-    )
+    viol = viol.withColumn("dq_status", lit(f"{fields}:{rule.check_type}:{rule.value}"))
     return viol
 
 
@@ -160,9 +159,7 @@ def are_unique(df: DataFrame, rule: RuleDef) -> DataFrame:
         .filter(col("_count") > 1)
         .drop("_count")
     )
-    viol = viol.withColumn(
-        "dq_status", lit(f"{fields}:{rule.check_type}:{rule.value}")
-    )
+    viol = viol.withColumn("dq_status", lit(f"{fields}:{rule.check_type}:{rule.value}"))
     return viol
 
 
@@ -389,7 +386,9 @@ def is_legit(df: DataFrame, rule: RuleDef) -> DataFrame:
         DataFrame: Filtered DataFrame with violations and dq_status column.
     """
     pattern_legit = r"^\S+$"
-    viol = df.filter(~(col(rule.field).isNotNull() & col(rule.field).rlike(pattern_legit)))
+    viol = df.filter(
+        ~(col(rule.field).isNotNull() & col(rule.field).rlike(pattern_legit))
+    )
     viol = viol.withColumn(
         "dq_status", lit(f"{rule.field}:{rule.check_type}:{rule.value}")
     )
@@ -421,6 +420,7 @@ def has_max(df: DataFrame, rule: RuleDef) -> dict:
 
     try:
         from pyspark.sql.functions import max as spark_max
+
         actual_val = df.select(spark_max(col(field))).first()[0]
         actual = float(actual_val) if actual_val is not None else 0.0
         expected = float(expected)
@@ -447,6 +447,7 @@ def has_max(df: DataFrame, rule: RuleDef) -> dict:
             "message": f"Error: {str(e)}",
         }
 
+
 def has_min(df: DataFrame, rule: RuleDef) -> dict:
     """
     Checks if the minimum value of the specified field meets expectations.
@@ -472,6 +473,7 @@ def has_min(df: DataFrame, rule: RuleDef) -> dict:
 
     try:
         from pyspark.sql.functions import min as spark_min
+
         actual_val = df.select(spark_min(col(field))).first()[0]
         actual = float(actual_val) if actual_val is not None else 0.0
         expected = float(expected)
@@ -500,6 +502,7 @@ def has_min(df: DataFrame, rule: RuleDef) -> dict:
 
 
 # ========== TABLE-LEVEL VALIDATION FUNCTIONS ==========
+
 
 def has_std(df: DataFrame, rule: RuleDef) -> dict:
     """
@@ -837,7 +840,9 @@ def has_entropy(df: DataFrame, rule: RuleDef) -> dict:
             "message": f"Error: {str(e)}",
         }
 
+
 # ========== DATE VALIDATION FUNCTIONS ==========
+
 
 def validate_date_format(df: DataFrame, rule: RuleDef) -> DataFrame:
     """
@@ -853,9 +858,7 @@ def validate_date_format(df: DataFrame, rule: RuleDef) -> DataFrame:
     fmt = rule.value
     pattern = __transform_date_format_in_pattern(fmt)
     viol = df.filter(~col(rule.field).rlike(pattern) | col(rule.field).isNull())
-    viol = viol.withColumn(
-        "dq_status", lit(f"{rule.field}:{rule.check_type}:{fmt}")
-    )
+    viol = viol.withColumn("dq_status", lit(f"{rule.field}:{rule.check_type}:{fmt}"))
     return viol
 
 
@@ -1087,7 +1090,9 @@ def is_on_weekday(df: DataFrame, rule: RuleDef) -> DataFrame:
         DataFrame: Filtered DataFrame with violations and dq_status column.
     """
     # dayofweek: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
-    viol = df.filter((dayofweek(col(rule.field)) == 1) | (dayofweek(col(rule.field)) == 7))
+    viol = df.filter(
+        (dayofweek(col(rule.field)) == 1) | (dayofweek(col(rule.field)) == 7)
+    )
     viol = viol.withColumn(
         "dq_status", lit(f"{rule.field}:{rule.check_type}:{rule.value}")
     )
@@ -1105,7 +1110,9 @@ def is_on_weekend(df: DataFrame, rule: RuleDef) -> DataFrame:
     Returns:
         DataFrame: Filtered DataFrame with violations and dq_status column.
     """
-    viol = df.filter((dayofweek(col(rule.field)) != 1) & (dayofweek(col(rule.field)) != 7))
+    viol = df.filter(
+        (dayofweek(col(rule.field)) != 1) & (dayofweek(col(rule.field)) != 7)
+    )
     viol = viol.withColumn(
         "dq_status", lit(f"{rule.field}:{rule.check_type}:{rule.value}")
     )
@@ -1187,10 +1194,9 @@ def satisfies(df: DataFrame, rule: RuleDef) -> DataFrame:
 
 # ========== VALIDATION ORCHESTRATION ==========
 
+
 def validate_row_level(
-        spark: SparkSession,
-        df: DataFrame,
-        rules: List[RuleDef]
+    spark: SparkSession, df: DataFrame, rules: List[RuleDef]
 ) -> Tuple[DataFrame, DataFrame]:
     """
     Validates DataFrame at row level using specified rules.
@@ -1236,6 +1242,7 @@ def validate_row_level(
 
     # Add _id column
     from pyspark.sql.functions import monotonically_increasing_id
+
     df = df.withColumn("_id", monotonically_increasing_id())
 
     raw_list = []
@@ -1290,9 +1297,7 @@ def validate_row_level(
 
 
 def validate_table_level(
-        spark: SparkSession,
-        df: DataFrame,
-        rules: List[RuleDef]
+    spark: SparkSession, df: DataFrame, rules: List[RuleDef]
 ) -> DataFrame:
     """
     Validates DataFrame at table level using specified rules.
@@ -1305,7 +1310,13 @@ def validate_table_level(
     Returns:
         DataFrame: Summary DataFrame with validation results.
     """
-    from pyspark.sql.types import StructType, StructField, StringType, DoubleType, TimestampType
+    from pyspark.sql.types import (
+        StructType,
+        StructField,
+        StringType,
+        DoubleType,
+        TimestampType,
+    )
 
     engine = "pyspark"
     rules_valid = []
@@ -1331,18 +1342,20 @@ def validate_table_level(
         )
 
     # Define schema
-    schema = StructType([
-        StructField("id", StringType(), True),
-        StructField("timestamp", TimestampType(), True),
-        StructField("level", StringType(), True),
-        StructField("category", StringType(), True),
-        StructField("check_type", StringType(), True),
-        StructField("field", StringType(), True),
-        StructField("status", StringType(), True),
-        StructField("expected", DoubleType(), True),
-        StructField("actual", DoubleType(), True),
-        StructField("message", StringType(), True),
-    ])
+    schema = StructType(
+        [
+            StructField("id", StringType(), True),
+            StructField("timestamp", TimestampType(), True),
+            StructField("level", StringType(), True),
+            StructField("category", StringType(), True),
+            StructField("check_type", StringType(), True),
+            StructField("field", StringType(), True),
+            StructField("status", StringType(), True),
+            StructField("expected", DoubleType(), True),
+            StructField("actual", DoubleType(), True),
+            StructField("message", StringType(), True),
+        ]
+    )
 
     if not rules_valid:
         warnings.warn(
@@ -1359,18 +1372,20 @@ def validate_table_level(
         fn = globals().get(check_type)
         if fn is None:
             warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Function '{check_type}' not implemented",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Function '{check_type}' not implemented",
+                }
+            )
             continue
 
         try:
@@ -1380,33 +1395,39 @@ def validate_table_level(
             expected_val = result.get("expected")
             actual_val = result.get("actual")
 
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": result.get("status", "ERROR"),
-                "expected": float(expected_val) if expected_val is not None else None,
-                "actual": float(actual_val) if actual_val is not None else None,
-                "message": result.get("message"),
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": result.get("status", "ERROR"),
+                    "expected": (
+                        float(expected_val) if expected_val is not None else None
+                    ),
+                    "actual": float(actual_val) if actual_val is not None else None,
+                    "message": result.get("message"),
+                }
+            )
 
         except Exception as e:
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Execution error: {str(e)}",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Execution error: {str(e)}",
+                }
+            )
 
     if not results:
         return spark.createDataFrame([], schema)
@@ -1416,11 +1437,12 @@ def validate_table_level(
 
     # Sort: FAIL first, then ERROR, then PASS
     from pyspark.sql.functions import when as spark_when
+
     summary_df = summary_df.withColumn(
         "_sort",
         spark_when(col("status") == "FAIL", 0)
         .when(col("status") == "ERROR", 1)
-        .otherwise(2)
+        .otherwise(2),
     )
     summary_df = summary_df.orderBy("_sort").drop("_sort")
 
@@ -1428,9 +1450,7 @@ def validate_table_level(
 
 
 def validate(
-    spark: SparkSession,
-    df: DataFrame,
-    rules: List[RuleDef]
+    spark: SparkSession, df: DataFrame, rules: List[RuleDef]
 ) -> Tuple[DataFrame, DataFrame, DataFrame]:
     """
     Main validation function that orchestrates row-level and table-level validations.
@@ -1469,30 +1489,39 @@ def validate(
     if table_rules:
         table_summary = validate_table_level(spark, df, table_rules)
     else:
-        from pyspark.sql.types import StructType, StructField, StringType, DoubleType, TimestampType
-        schema = StructType([
-            StructField("id", StringType(), True),
-            StructField("timestamp", TimestampType(), True),
-            StructField("level", StringType(), True),
-            StructField("category", StringType(), True),
-            StructField("check_type", StringType(), True),
-            StructField("field", StringType(), True),
-            StructField("status", StringType(), True),
-            StructField("expected", DoubleType(), True),
-            StructField("actual", DoubleType(), True),
-            StructField("message", StringType(), True),
-        ])
+        from pyspark.sql.types import (
+            StructType,
+            StructField,
+            StringType,
+            DoubleType,
+            TimestampType,
+        )
+
+        schema = StructType(
+            [
+                StructField("id", StringType(), True),
+                StructField("timestamp", TimestampType(), True),
+                StructField("level", StringType(), True),
+                StructField("category", StringType(), True),
+                StructField("check_type", StringType(), True),
+                StructField("field", StringType(), True),
+                StructField("status", StringType(), True),
+                StructField("expected", DoubleType(), True),
+                StructField("actual", DoubleType(), True),
+                StructField("message", StringType(), True),
+            ]
+        )
         table_summary = spark.createDataFrame([], schema)
 
     return df_with_status, row_violations, table_summary
 
 
 def summarize(
-        spark: SparkSession,
-        rules: List[RuleDef],
-        total_rows: int,
-        df_with_errors: Optional[DataFrame] = None,
-        table_error: Optional[DataFrame] = None,
+    spark: SparkSession,
+    rules: List[RuleDef],
+    total_rows: int,
+    df_with_errors: Optional[DataFrame] = None,
+    table_error: Optional[DataFrame] = None,
 ) -> DataFrame:
     """
     Summarizes validation results from both row-level and table-level checks.
@@ -1507,7 +1536,14 @@ def summarize(
     Returns:
         DataFrame: Summary DataFrame with aggregated validation metrics.
     """
-    from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType, TimestampType
+    from pyspark.sql.types import (
+        StructType,
+        StructField,
+        StringType,
+        DoubleType,
+        IntegerType,
+        TimestampType,
+    )
 
     summaries = []
 
@@ -1520,8 +1556,7 @@ def summarize(
         # Parse violations from dq_status
         if "dq_status" in df_with_errors.columns:
             viol_df = (
-                df_with_errors
-                .filter(trim(col("dq_status")) != "")
+                df_with_errors.filter(trim(col("dq_status")) != "")
                 .withColumn("dq_parts", split(col("dq_status"), ";"))
                 .select(expr("explode(dq_parts) as dq_item"))
                 .withColumn("parts", split(col("dq_item"), ":"))
@@ -1563,25 +1598,28 @@ def summarize(
                 # For lists or other types, leave as None
 
             # IMPORTANTE: ordem dos campos deve corresponder ao schema
-            summaries.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.utcnow(),
-                "level": "ROW",
-                "category": rule.category or "unknown",
-                "check_type": rule.check_type,
-                "field": field_str,
-                "rows": total_rows,
-                "violations": violations,
-                "pass_rate": round(pass_rate, 4),
-                "pass_threshold": pass_threshold,
-                "status": status,
-                "expected": expected_val,
-                "actual": None,
-                "message": (
-                    None if status == "PASS"
-                    else f"{violations} row(s) failed validation"
-                ),
-            })
+            summaries.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": datetime.utcnow(),
+                    "level": "ROW",
+                    "category": rule.category or "unknown",
+                    "check_type": rule.check_type,
+                    "field": field_str,
+                    "rows": total_rows,
+                    "violations": violations,
+                    "pass_rate": round(pass_rate, 4),
+                    "pass_threshold": pass_threshold,
+                    "status": status,
+                    "expected": expected_val,
+                    "actual": None,
+                    "message": (
+                        None
+                        if status == "PASS"
+                        else f"{violations} row(s) failed validation"
+                    ),
+                }
+            )
 
     # ========== TABLE-LEVEL SUMMARY ==========
     if table_error is not None:
@@ -1596,40 +1634,44 @@ def summarize(
                 compliance_rate = None
 
             # IMPORTANTE: ordem dos campos deve corresponder ao schema
-            summaries.append({
-                "id": row["id"],
-                "timestamp": row["timestamp"],
-                "level": row["level"],
-                "category": row["category"],
-                "check_type": row["check_type"],
-                "field": row["field"],
-                "rows": None,  # table-level não tem rows
-                "violations": None,  # table-level não tem violations
-                "pass_rate": compliance_rate,
-                "pass_threshold": None,  # table-level não tem pass_threshold
-                "status": row["status"],
-                "expected": expected,
-                "actual": actual,
-                "message": row["message"],
-            })
+            summaries.append(
+                {
+                    "id": row["id"],
+                    "timestamp": row["timestamp"],
+                    "level": row["level"],
+                    "category": row["category"],
+                    "check_type": row["check_type"],
+                    "field": row["field"],
+                    "rows": None,  # table-level não tem rows
+                    "violations": None,  # table-level não tem violations
+                    "pass_rate": compliance_rate,
+                    "pass_threshold": None,  # table-level não tem pass_threshold
+                    "status": row["status"],
+                    "expected": expected,
+                    "actual": actual,
+                    "message": row["message"],
+                }
+            )
 
     # Define schema (ordem importa!)
-    schema = StructType([
-        StructField("id", StringType(), True),
-        StructField("timestamp", TimestampType(), True),
-        StructField("level", StringType(), True),
-        StructField("category", StringType(), True),
-        StructField("check_type", StringType(), True),
-        StructField("field", StringType(), True),
-        StructField("rows", IntegerType(), True),
-        StructField("violations", IntegerType(), True),
-        StructField("pass_rate", DoubleType(), True),
-        StructField("pass_threshold", DoubleType(), True),
-        StructField("status", StringType(), True),
-        StructField("expected", DoubleType(), True),
-        StructField("actual", DoubleType(), True),
-        StructField("message", StringType(), True),
-    ])
+    schema = StructType(
+        [
+            StructField("id", StringType(), True),
+            StructField("timestamp", TimestampType(), True),
+            StructField("level", StringType(), True),
+            StructField("category", StringType(), True),
+            StructField("check_type", StringType(), True),
+            StructField("field", StringType(), True),
+            StructField("rows", IntegerType(), True),
+            StructField("violations", IntegerType(), True),
+            StructField("pass_rate", DoubleType(), True),
+            StructField("pass_threshold", DoubleType(), True),
+            StructField("status", StringType(), True),
+            StructField("expected", DoubleType(), True),
+            StructField("actual", DoubleType(), True),
+            StructField("message", StringType(), True),
+        ]
+    )
 
     if not summaries:
         return spark.createDataFrame([], schema)
@@ -1637,47 +1679,49 @@ def summarize(
     # Criar Row objects garantindo ordem correta
     rows_data = []
     for s in summaries:
-        rows_data.append(Row(
-            id=s["id"],
-            timestamp=s["timestamp"],
-            level=s["level"],
-            category=s["category"],
-            check_type=s["check_type"],
-            field=s["field"],
-            rows=s["rows"],
-            violations=s["violations"],
-            pass_rate=s["pass_rate"],
-            pass_threshold=s["pass_threshold"],
-            status=s["status"],
-            expected=s["expected"],
-            actual=s["actual"],
-            message=s["message"]
-        ))
+        rows_data.append(
+            Row(
+                id=s["id"],
+                timestamp=s["timestamp"],
+                level=s["level"],
+                category=s["category"],
+                check_type=s["check_type"],
+                field=s["field"],
+                rows=s["rows"],
+                violations=s["violations"],
+                pass_rate=s["pass_rate"],
+                pass_threshold=s["pass_threshold"],
+                status=s["status"],
+                expected=s["expected"],
+                actual=s["actual"],
+                message=s["message"],
+            )
+        )
 
     summary_df = spark.createDataFrame(rows_data, schema)
 
     # Sort: FAIL first, ERROR second, PASS last; ROW before TABLE
     from pyspark.sql.functions import when as spark_when
+
     summary_df = summary_df.withColumn(
         "_sort_status",
         spark_when(col("status") == "FAIL", 0)
         .when(col("status") == "ERROR", 1)
-        .otherwise(2)
+        .otherwise(2),
     )
     summary_df = summary_df.withColumn(
-        "_sort_level",
-        spark_when(col("level") == "ROW", 0).otherwise(1)
+        "_sort_level", spark_when(col("level") == "ROW", 0).otherwise(1)
     )
 
-    summary_df = (
-        summary_df
-        .orderBy("_sort_status", "_sort_level", "check_type")
-        .drop("_sort_status", "_sort_level")
+    summary_df = summary_df.orderBy("_sort_status", "_sort_level", "check_type").drop(
+        "_sort_status", "_sort_level"
     )
 
     return summary_df
 
+
 # ========== SCHEMA VALIDATION ==========
+
 
 def extract_schema(df: DataFrame) -> List[Dict[str, Any]]:
     """
@@ -1692,12 +1736,14 @@ def extract_schema(df: DataFrame) -> List[Dict[str, Any]]:
     schema = []
     for field in df.schema.fields:
         dtype_str = str(field.dataType)
-        schema.append({
-            "field": field.name,
-            "data_type": dtype_str,
-            "nullable": field.nullable,
-            "max_length": None,
-        })
+        schema.append(
+            {
+                "field": field.name,
+                "data_type": dtype_str,
+                "nullable": field.nullable,
+                "max_length": None,
+            }
+        )
     return schema
 
 

@@ -1781,6 +1781,7 @@ def validate(
 
     return df_with_status, row_violations, table_summary
 
+
 def summarize(
     rules: List[RuleDef],
     total_rows: int,
@@ -1902,19 +1903,21 @@ def summarize(
             else:
                 compliance_rate = None
 
-            summaries.append({
-                "id": row["id"],
-                "timestamp": row["timestamp"],
-                "level": row["level"],
-                "category": row["category"],
-                "check_type": row["check_type"],
-                "field": row["field"],
-                "status": row["status"],
-                "expected": expected,
-                "actual": actual,
-                "pass_rate": compliance_rate,
-                "message": row["message"],
-            })
+            summaries.append(
+                {
+                    "id": row["id"],
+                    "timestamp": row["timestamp"],
+                    "level": row["level"],
+                    "category": row["category"],
+                    "check_type": row["check_type"],
+                    "field": row["field"],
+                    "status": row["status"],
+                    "expected": expected,
+                    "actual": actual,
+                    "pass_rate": compliance_rate,
+                    "message": row["message"],
+                }
+            )
 
     if not summaries:
         return pd.DataFrame(
