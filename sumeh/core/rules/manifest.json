@@ -233,35 +233,35 @@
             "rules": {
               "has_min": {
                 "description": "Validates that the column's minimum meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_max": {
                 "description": "Validates that the column's maximum meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_sum": {
                 "description": "Validates that the sum of the column meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_mean": {
                 "description": "Validates that the average value of the column meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_std": {
                 "description": "Validates that the column's standard deviation meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_cardinality": {
                 "description": "Validates that the number of distinct values meets the expected threshold.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_entropy": {
                 "description": "Validates that column entropy (information disorder) is within expected bounds.",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               },
               "has_infogain": {
                 "description": "Validates information gain metric (proxy for column variability).",
-                "engines": ["pyspark", "pandas", "polars", "duckdb", "dask"]
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
               }
             }
           },

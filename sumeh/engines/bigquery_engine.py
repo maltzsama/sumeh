@@ -12,12 +12,14 @@ import uuid
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Dict, Any, Tuple, Callable
+from typing import List, Dict, Any, Tuple, Callable, Optional
 
+import pandas as pd
 import sqlglot
 from google.cloud import bigquery
 from sqlglot import exp
 
+from sumeh.core.rules.rule_model import RuleDef
 from sumeh.core.utils import __compare_schemas
 
 
@@ -97,6 +99,24 @@ def _are_complete(r: __RuleCtx) -> exp.Expression:
     ]
     return exp.And(expressions=conditions)
 
+def _is_legit(r: __RuleCtx) -> exp.Expression:
+    """
+    Generates SQL expression to validate that a column contains non-null, non-whitespace values.
+    Args:
+        r: Rule context containing the column to validate
+    Returns:
+        SQLGlot expression checking if column is NOT NULL and NOT empty/whitespace only
+    """
+    # Cast to STRING to handle non-string types safely
+    col_str = exp.Cast(this=exp.Column(this=r.column), to=exp.DataType.build("STRING"))
+    # Check: NOT NULL AND TRIM(column) != ''
+    return exp.Or(
+        this=exp.Is(this=col_str, expression=exp.Null()),
+        expression=exp.EQ(
+            this=exp.Trim(this=col_str),
+            expression=exp.Literal.string("")
+        ),
+    )
 
 def _is_unique(r: __RuleCtx, table_expr: exp.Table) -> exp.Expression:
     """
@@ -792,6 +812,261 @@ def _is_on_sunday(r: __RuleCtx) -> exp.Expression:
         expression=exp.Literal.number(1),
     )
 
+def has_std(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
+    """Checks if standard deviation meets expectations."""
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_std",
+        }
+
+    try:
+        sql = f"SELECT STDDEV({field}) as std_val FROM `{table_ref}`"
+        result = client.query(sql).result()
+        actual = float(list(result)[0]["std_val"] or 0.0)
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_val = expected * threshold
+            max_val = expected * (2 - threshold)
+            passed = min_val <= actual <= max_val
+            msg = f"Std {actual:.2f} outside range [{min_val:.2f}, {max_val:.2f}]"
+        else:
+            passed = actual >= expected
+            msg = f"Std {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": float(expected),
+            "actual": float(actual),
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": float(expected) if expected is not None else None,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+
+def has_mean(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
+    """Checks if mean meets expectations."""
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_mean",
+        }
+
+    try:
+        sql = f"SELECT AVG({field}) as mean_val FROM `{table_ref}`"
+        result = client.query(sql).result()
+        actual = float(list(result)[0]["mean_val"] or 0.0)
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Mean {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Mean {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": float(expected),
+            "actual": float(actual),
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": float(expected) if expected is not None else None,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+
+def has_sum(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
+    """Checks if sum meets expectations."""
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_sum",
+        }
+
+    try:
+        sql = f"SELECT SUM({field}) as sum_val FROM `{table_ref}`"
+        result = client.query(sql).result()
+        actual = float(list(result)[0]["sum_val"] or 0.0)
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Sum {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Sum {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": float(expected),
+            "actual": float(actual),
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": float(expected) if expected is not None else None,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+def has_min(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
+    """Checks if minimum value meets expectations."""
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_min",
+        }
+
+    try:
+        sql = f"SELECT MIN({field}) as min_val FROM `{table_ref}`"
+        result = client.query(sql).result()
+        actual = float(list(result)[0]["min_val"] or 0.0)
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Min {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Min {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": float(expected),
+            "actual": float(actual),
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": float(expected) if expected is not None else None,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+def has_max(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
+    """Checks if maximum value meets expectations."""
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_max",
+        }
+
+    try:
+        sql = f"SELECT MAX({field}) as max_val FROM `{table_ref}`"
+        result = client.query(sql).result()
+        actual = float(list(result)[0]["max_val"] or 0.0)
+        expected = float(expected)
+
+        if threshold < 1.0:
+            max_expected = expected * threshold
+            passed = actual <= max_expected
+            msg = f"Max {actual:.2f} > maximum {max_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual <= expected
+            msg = f"Max {actual:.2f} > expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": float(expected),
+            "actual": float(actual),
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": float(expected) if expected is not None else None,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+def has_cardinality(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
+    """Checks if cardinality meets expectations."""
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_cardinality",
+        }
+
+    try:
+        sql = f"SELECT COUNT(DISTINCT {field}) as card_val FROM `{table_ref}`"
+        result = client.query(sql).result()
+        actual = int(list(result)[0]["card_val"] or 0)
+        expected = int(expected)
+
+        if threshold < 1.0:
+            min_expected = int(expected * threshold)
+            passed = actual >= min_expected
+            msg = f"Cardinality {actual} < minimum {min_expected} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Cardinality {actual} < expected {expected}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": float(expected),
+            "actual": float(actual),
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": float(expected) if expected is not None else None,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
 
 __RULE_DISPATCH_SIMPLE: dict[str, Callable[[__RuleCtx], exp.Expression]] = {
     "is_complete": _is_complete,
@@ -809,6 +1084,7 @@ __RULE_DISPATCH_SIMPLE: dict[str, Callable[[__RuleCtx], exp.Expression]] = {
     "is_in": _is_in,
     "not_contained_in": _not_contained_in,
     "not_in": _not_in,
+    "is_legit": _is_legit,
     "satisfies": _satisfies,
     "validate_date_format": _validate_date_format,
     "is_future_date": _is_future_date,
@@ -840,33 +1116,25 @@ __RULE_DISPATCH_WITH_TABLE: dict[
 }
 
 
-def _build_union_sql(rules: List[Dict], table_ref: str) -> str:
-    """
-    Constructs UNION ALL SQL query for all validation rules using SQLGlot.
-
-    Generates a SQL query that checks each rule and returns violating rows with
-    a dq_status column indicating which rule was violated.
-
-    Args:
-        rules: List of validation rule dictionaries containing field, check_type, value, execute
-        table_ref: Fully qualified BigQuery table reference (project.dataset.table)
-
-    Returns:
-        SQL query string with UNION ALL of all rule validations
-
-    Warnings:
-        UserWarning: Issued for unknown rule types
-    """
-
+def _build_union_sql(rules: List[RuleDef], table_ref: str) -> str:
+    """Constructs UNION ALL SQL query for row-level validations using SQLGlot."""
     table_expr = _parse_table_ref(table_ref)
-
     queries = []
 
-    for r in rules:
-        if not r.get("execute", True):
-            continue
+    for rule in rules:
+        check = rule.check_type
 
-        check = r["check_type"]
+        # Handle aliases
+        if check == "is_primary_key":
+            check = "is_unique"
+        elif check == "is_composite_key":
+            check = "are_unique"
+        elif check == "is_yesterday":
+            check = "is_t_minus_1"
+        elif check == "is_in":
+            check = "is_contained_in"
+        elif check == "not_in":
+            check = "not_contained_in"
 
         if check in __RULE_DISPATCH_SIMPLE:
             builder = __RULE_DISPATCH_SIMPLE[check]
@@ -875,34 +1143,39 @@ def _build_union_sql(rules: List[Dict], table_ref: str) -> str:
             builder = __RULE_DISPATCH_WITH_TABLE[check]
             needs_table = True
         else:
-            warnings.warn(f"Unknown rule: {check}")
+            warnings.warn(f"❌ Unknown rule: {check}")
             continue
 
+        field_val = rule.field if isinstance(rule.field, str) else rule.field
         ctx = __RuleCtx(
-            column=r["field"],
-            value=r.get("value"),
+            column=field_val,
+            value=rule.value,
             name=check,
         )
 
-        if needs_table:
-            expr_ok = builder(ctx, table_expr)
-        else:
-            expr_ok = builder(ctx)
+        try:
+            if needs_table:
+                expr_ok = builder(ctx, table_expr)
+            else:
+                expr_ok = builder(ctx)
 
-        dq_tag = f"{ctx.column}:{check}:{ctx.value}"
+            dq_tag = f"{ctx.column}:{check}:{rule.value}"
 
-        query = (
-            exp.Select(
-                expressions=[
-                    exp.Star(),
-                    exp.alias_(exp.Literal.string(dq_tag), "dq_status"),
-                ]
+            query = (
+                exp.Select(
+                    expressions=[
+                        exp.Star(),
+                        exp.alias_(exp.Literal.string(dq_tag), "dq_status"),
+                    ]
+                )
+                .from_(exp.alias_(table_expr, "tbl", copy=True))
+                .where(exp.Not(this=expr_ok))
             )
-            .from_(exp.alias_(table_expr, "tbl", copy=True))
-            .where(exp.Not(this=expr_ok))
-        )
 
-        queries.append(query)
+            queries.append(query)
+        except Exception as e:
+            warnings.warn(f"❌ Error building SQL for {check} on {rule.field}: {e}")
+            continue
 
     if not queries:
         empty = (
@@ -915,7 +1188,6 @@ def _build_union_sql(rules: List[Dict], table_ref: str) -> str:
             .from_(table_expr)
             .where(exp.false())
         )
-
         return empty.sql(dialect="bigquery")
 
     union_query = queries[0]
@@ -923,6 +1195,211 @@ def _build_union_sql(rules: List[Dict], table_ref: str) -> str:
         union_query = exp.union(union_query, q, distinct=False)
 
     return union_query.sql(dialect="bigquery")
+
+
+def validate_row_level(
+    client: bigquery.Client, table_ref: str, rules: List[RuleDef]
+) -> Tuple[bigquery.table.RowIterator, bigquery.table.RowIterator]:
+    """
+    Validates BigQuery table at row level using specified rules.
+
+    Args:
+        client: BigQuery client instance
+        table_ref: Fully qualified table reference
+        rules: List of row-level validation rules
+
+    Returns:
+        Tuple of (aggregated results, raw violations)
+    """
+    engine = "bigquery"
+    rules_valid = []
+    rules_ignored = []
+    ignored_reasons = {}
+
+    for rule in rules:
+        skip_reason = rule.get_skip_reason(target_level="row_level", engine=engine)
+
+        if skip_reason:
+            rules_ignored.append(rule)
+            ignored_reasons[skip_reason] = ignored_reasons.get(skip_reason, 0) + 1
+        else:
+            rules_valid.append(rule)
+
+    if rules_ignored:
+        warnings.warn(
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n"
+            + "\n".join(
+                f"  • {reason}: {count} rule(s)"
+                for reason, count in ignored_reasons.items()
+            )
+        )
+
+    if not rules_valid:
+        warnings.warn(
+            f"No valid rules to execute for level='row_level' and engine='{engine}'."
+        )
+        # Return empty results
+        empty_query = f"SELECT * FROM `{table_ref}` WHERE FALSE"
+        empty = client.query(empty_query).result()
+        return empty, empty
+
+    union_sql = _build_union_sql(rules_valid, table_ref)
+
+    violations_subquery = sqlglot.parse_one(union_sql, dialect="bigquery")
+
+    table = client.get_table(table_ref)
+    cols = [exp.Column(this=f.name) for f in table.schema]
+
+    # Raw violations
+    raw_query = (
+        exp.Select(expressions=cols + [exp.Column(this="dq_status")])
+        .with_("violations", as_=violations_subquery)
+        .from_("violations")
+    )
+    raw_sql = raw_query.sql(dialect="bigquery")
+
+    # Aggregated violations
+    final_query = (
+        exp.Select(
+            expressions=cols
+            + [
+                exp.alias_(
+                    exp.Anonymous(
+                        this="STRING_AGG",
+                        expressions=[
+                            exp.Column(this="dq_status"),
+                            exp.Literal.string(";"),
+                        ],
+                    ),
+                    "dq_status",
+                )
+            ]
+        )
+        .with_("violations", as_=violations_subquery)
+        .from_("violations")
+        .group_by(*cols)
+    )
+    final_sql = final_query.sql(dialect="bigquery")
+
+    raw = client.query(raw_sql).result()
+    final = client.query(final_sql).result()
+
+    return final, raw
+
+
+def validate_table_level(
+    client: bigquery.Client, table_ref: str, rules: List[RuleDef]
+) -> pd.DataFrame:
+    """
+    Validates BigQuery table at table level using specified rules.
+
+    Args:
+        client: BigQuery client instance
+        table_ref: Fully qualified table reference
+        rules: List of table-level validation rules
+
+    Returns:
+        DataFrame with validation results
+    """
+    engine = "bigquery"
+    rules_valid = []
+    rules_ignored = []
+    ignored_reasons = {}
+
+    for rule in rules:
+        skip_reason = rule.get_skip_reason(target_level="table_level", engine=engine)
+
+        if skip_reason:
+            rules_ignored.append(rule)
+            ignored_reasons[skip_reason] = ignored_reasons.get(skip_reason, 0) + 1
+        else:
+            rules_valid.append(rule)
+
+    if rules_ignored:
+        warnings.warn(
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n"
+            + "\n".join(
+                f"  • {reason}: {count} rule(s)"
+                for reason, count in ignored_reasons.items()
+            )
+        )
+
+    if not rules_valid:
+        warnings.warn(
+            f"No valid rules to execute for level='table_level' and engine='{engine}'."
+        )
+        return pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type",
+            "field", "status", "expected", "actual", "message"
+        ])
+
+    execution_time = datetime.utcnow()
+    results = []
+
+    for rule in rules_valid:
+        check_type = rule.check_type
+
+        fn = globals().get(check_type)
+        if fn is None:
+            warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
+            results.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": execution_time,
+                "level": "TABLE",
+                "category": rule.category or "unknown",
+                "check_type": check_type,
+                "field": str(rule.field),
+                "status": "ERROR",
+                "expected": None,
+                "actual": None,
+                "message": f"Function '{check_type}' not implemented",
+            })
+            continue
+
+        try:
+            result = fn(client, table_ref, rule)
+
+            results.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": execution_time,
+                "level": "TABLE",
+                "category": rule.category or "unknown",
+                "check_type": check_type,
+                "field": str(rule.field),
+                "status": result.get("status", "ERROR"),
+                "expected": result.get("expected"),
+                "actual": result.get("actual"),
+                "message": result.get("message"),
+            })
+
+        except Exception as e:
+            warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
+            results.append({
+                "id": str(uuid.uuid4()),
+                "timestamp": execution_time,
+                "level": "TABLE",
+                "category": rule.category or "unknown",
+                "check_type": check_type,
+                "field": str(rule.field),
+                "status": "ERROR",
+                "expected": None,
+                "actual": None,
+                "message": f"Execution error: {str(e)}",
+            })
+
+    if not results:
+        return pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type",
+            "field", "status", "expected", "actual", "message"
+        ])
+
+    summary_df = pd.DataFrame(results)
+
+    # Sort
+    summary_df['_sort'] = summary_df['status'].map({'FAIL': 0, 'ERROR': 1, 'PASS': 2})
+    summary_df = summary_df.sort_values('_sort').drop(columns=['_sort']).reset_index(drop=True)
+
+    return summary_df
 
 
 def validate(
@@ -946,48 +1423,36 @@ def validate(
             - Raw results with individual violations
     """
 
-    union_sql = _build_union_sql(rules, table_ref)
+    row_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
+    ]
+    table_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "TABLE"
+    ]
 
-    violations_subquery = sqlglot.parse_one(union_sql, dialect="bigquery")
-
-    table = client.get_table(table_ref)
-    cols = [exp.Column(this=f.name) for f in table.schema]
-
-    raw_query = (
-        exp.Select(expressions=cols + [exp.Column(this="dq_status")])
-        .with_("violations", as_=violations_subquery)
-        .from_("violations")
-    )
-
-    raw_sql = raw_query.sql(dialect="bigquery")
-
-    final_query = (
-        exp.Select(
-            expressions=cols
-            + [
-                exp.alias_(
-                    exp.Anonymous(
-                        this="STRING_AGG",
-                        expressions=[
-                            exp.Column(this="dq_status"),
-                            exp.Literal.string(";"),
-                        ],
-                    ),
-                    "dq_status",
-                )
-            ]
+    no_level = [r for r in rules if not r.level]
+    if no_level:
+        warnings.warn(
+            f"⚠️  {len(no_level)} rule(s) without level defined. "
+            f"These will be skipped. Please set 'level' to 'ROW' or 'TABLE'."
         )
-        .with_("violations", as_=violations_subquery)
-        .from_("violations")
-        .group_by(*cols)
-    )
 
-    final_sql = final_query.sql(dialect="bigquery")
+    if row_rules:
+        final, raw = validate_row_level(client, table_ref, row_rules)
+    else:
+        empty_query = f"SELECT * FROM `{table_ref}` WHERE FALSE"
+        empty = client.query(empty_query).result()
+        final, raw = empty, empty
 
-    raw = client.query(raw_sql).result()
-    final = client.query(final_sql).result()
+    if table_rules:
+        table_summary = validate_table_level(client, table_ref, table_rules)
+    else:
+        table_summary = pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type",
+            "field", "status", "expected", "actual", "message"
+        ])
 
-    return final, raw
+    return final, raw, table_summary
 
 
 def __rules_to_bq_sql(rules: List[Dict]) -> str:
@@ -1072,87 +1537,131 @@ def __rules_to_bq_sql(rules: List[Dict]) -> str:
 
 
 def summarize(
-    df: bigquery.table.RowIterator,
-    rules: List[Dict],
-    total_rows: int,
-    client: bigquery.Client,
-) -> List[Dict[str, Any]]:
+        rules: List[RuleDef],
+        total_rows: int,
+        df_with_errors: Optional[bigquery.table.RowIterator] = None,
+        table_error: Optional[pd.DataFrame] = None,
+) -> pd.DataFrame:
     """
-    Generates validation summary report with pass/fail status for each rule.
-
-    Analyzes violation results and compares against rule thresholds to determine
-    pass/fail status for each validation rule.
+    Summarizes validation results from both row-level and table-level checks.
 
     Args:
-        df: Row iterator containing validation violations from validate()
-        rules: List of validation rules that were executed
-        total_rows: Total number of rows in validated table
-        client: BigQuery client instance (for compatibility, not actively used)
+        rules: List of all validation rules
+        total_rows: Total number of rows in table
+        df_with_errors: Row iterator with row-level violations
+        table_error: DataFrame with table-level results
 
     Returns:
-        List of summary dictionaries, each containing:
-            - id: Unique identifier for the summary record
-            - timestamp: Validation execution timestamp
-            - check: Check category (always "Quality Check")
-            - level: Severity level (always "WARNING")
-            - column: Column name(s) validated
-            - rule: Rule type applied
-            - value: Rule threshold/comparison value
-            - rows: Total rows evaluated
-            - violations: Number of violating rows
-            - pass_rate: Percentage of passing rows (0.0-1.0)
-            - pass_threshold: Required pass rate from rule
-            - status: "PASS" or "FAIL" based on pass_rate vs pass_threshold
+        Summary DataFrame with aggregated metrics
     """
+    summaries = []
 
-    violations_count = {}
-    for row in df:
-        dq_status = row.get("dq_status", "")
-        if dq_status and dq_status.strip():
-            parts = dq_status.split(":", 2)
-            if len(parts) >= 2:
-                col, rule = parts[0], parts[1]
-                val = parts[2] if len(parts) > 2 else "N/A"
-                key = (col, rule, val)
-                violations_count[key] = violations_count.get(key, 0) + 1
+    # ========== ROW-LEVEL SUMMARY ==========
+    row_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
+    ]
 
-    results = []
-    for r in rules:
-        if not r.get("execute", True):
-            continue
+    if row_rules and df_with_errors is not None:
+        violations_count = {}
+        for row in df_with_errors:
+            dq_status = row.get("dq_status", "")
+            if dq_status and dq_status.strip():
+                # Split with limit to handle colons in values
+                parts = dq_status.split(":", 2)
+                if len(parts) >= 2:
+                    field = parts[0]
+                    check_type = parts[1]
+                    key = (field, check_type)
+                    violations_count[key] = violations_count.get(key, 0) + 1
 
-        col = r["field"]
-        if isinstance(col, list):
-            col = ", ".join(col)
+        for rule in row_rules:
+            field_str = (
+                rule.field if isinstance(rule.field, str) else ",".join(rule.field)
+            )
 
-        rule = r["check_type"]
-        val = str(r.get("value")) if r.get("value") is not None else "N/A"
-        threshold = float(r.get("threshold", 1.0))
+            violations = violations_count.get((field_str, rule.check_type), 0)
+            pass_count = total_rows - violations
+            pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
+            pass_threshold = rule.threshold if rule.threshold else 1.0
 
-        key = (str(col), rule, val)
-        violations = violations_count.get(key, 0)
+            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
 
-        pass_rate = (total_rows - violations) / total_rows if total_rows > 0 else 1.0
-        status = "PASS" if pass_rate >= threshold else "FAIL"
+            expected_val = None
+            if rule.value is not None:
+                if isinstance(rule.value, (int, float)):
+                    expected_val = float(rule.value)
+                elif isinstance(rule.value, str):
+                    try:
+                        expected_val = float(rule.value)
+                    except (ValueError, TypeError):
+                        expected_val = None
 
-        results.append(
-            {
+            summaries.append({
                 "id": str(uuid.uuid4()),
-                "timestamp": datetime.now(),
-                "check": "Quality Check",
-                "level": "WARNING",
-                "column": col,
-                "rule": rule,
-                "value": val,
+                "timestamp": datetime.utcnow(),
+                "level": "ROW",
+                "category": rule.category or "unknown",
+                "check_type": rule.check_type,
+                "field": field_str,
                 "rows": total_rows,
                 "violations": violations,
-                "pass_rate": pass_rate,
-                "pass_threshold": threshold,
+                "pass_rate": round(pass_rate, 4),
+                "pass_threshold": pass_threshold,
                 "status": status,
-            }
-        )
+                "expected": expected_val,
+                "actual": None,
+                "message": (
+                    None if status == "PASS"
+                    else f"{violations} row(s) failed validation"
+                ),
+            })
 
-    return results
+    # ========== TABLE-LEVEL SUMMARY ==========
+    if table_error is not None and len(table_error) > 0:
+        for _, row_dict in table_error.iterrows():
+            expected = row_dict.get("expected")
+            actual = row_dict.get("actual")
+
+            if pd.notna(expected) and pd.notna(actual) and expected != 0:
+                compliance_rate = round(actual / expected, 4)
+            else:
+                compliance_rate = None
+
+            summaries.append({
+                "id": row_dict["id"],
+                "timestamp": row_dict["timestamp"],
+                "level": row_dict["level"],
+                "category": row_dict["category"],
+                "check_type": row_dict["check_type"],
+                "field": row_dict["field"],
+                "status": row_dict["status"],
+                "expected": expected,
+                "actual": actual,
+                "pass_rate": compliance_rate,
+                "message": row_dict["message"],
+            })
+
+    if not summaries:
+        return pd.DataFrame(columns=[
+            "id", "timestamp", "level", "category", "check_type", "field",
+            "rows", "violations", "pass_rate", "pass_threshold", "status",
+            "expected", "actual", "message"
+        ])
+
+    summary_df = pd.DataFrame(summaries)
+
+    # Sort
+    summary_df['_sort_status'] = summary_df['status'].map({'FAIL': 0, 'ERROR': 1, 'PASS': 2})
+    summary_df['_sort_level'] = summary_df['level'].map({'ROW': 0, 'TABLE': 1})
+
+    summary_df = (
+        summary_df
+        .sort_values(['_sort_status', '_sort_level', 'check_type'])
+        .drop(columns=['_sort_status', '_sort_level'])
+        .reset_index(drop=True)
+    )
+
+    return summary_df
 
 
 def count_rows(client: bigquery.Client, table_ref: str) -> int:
