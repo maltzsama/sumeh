@@ -1053,6 +1053,26 @@ def is_yesterday(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     )
     return viol
 
+def is_t_minus_1(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
+    """
+    Filters rows where the date field does not equal one day ago (T-1).
+
+    Args:
+        df (pl.DataFrame): The input DataFrame to be filtered.
+        rule (RuleDef): Rule definition containing field, check_type, and value.
+
+    Returns:
+        pl.DataFrame: Filtered DataFrame with violations and dq_status column.
+    """
+    target = (_dt.today() - timedelta(days=1)).isoformat()
+    viol = df.filter(
+        pl.col(rule.field).str.strptime(pl.Date, "%Y-%m-%d")
+        != pl.lit(target).cast(pl.Date)
+    )
+    viol = viol.with_columns(
+        pl.lit(f"{rule.field}:{rule.check_type}:{rule.value}").alias("dq_status")
+    )
+    return viol
 
 def is_t_minus_2(df: pl.DataFrame, rule: RuleDef) -> pl.DataFrame:
     """

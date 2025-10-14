@@ -1039,6 +1039,23 @@ def is_yesterday(df: DataFrame, rule: RuleDef) -> DataFrame:
     )
     return viol
 
+def is_t_minus_1(df: DataFrame, rule: RuleDef) -> DataFrame:
+    """
+    Alias for is_t_minus_1. Filters rows where date field does not equal yesterday.
+
+    Args:
+        df (DataFrame): The input PySpark DataFrame.
+        rule (RuleDef): Rule definition containing field, check_type, and value.
+
+    Returns:
+        DataFrame: Filtered DataFrame with violations and dq_status column.
+    """
+    target = date_sub(current_date(), 1)
+    viol = df.filter(col(rule.field) != target)
+    viol = viol.withColumn(
+        "dq_status", lit(f"{rule.field}:{rule.check_type}:{rule.value}")
+    )
+    return viol
 
 def is_t_minus_2(df: DataFrame, rule: RuleDef) -> DataFrame:
     """
