@@ -99,6 +99,7 @@ def _are_complete(r: __RuleCtx) -> exp.Expression:
     ]
     return exp.And(expressions=conditions)
 
+
 def _is_legit(r: __RuleCtx) -> exp.Expression:
     """
     Generates SQL expression to validate that a column contains non-null, non-whitespace values.
@@ -113,10 +114,10 @@ def _is_legit(r: __RuleCtx) -> exp.Expression:
     return exp.Or(
         this=exp.Is(this=col_str, expression=exp.Null()),
         expression=exp.EQ(
-            this=exp.Trim(this=col_str),
-            expression=exp.Literal.string("")
+            this=exp.Trim(this=col_str), expression=exp.Literal.string("")
         ),
     )
+
 
 def _is_unique(r: __RuleCtx, table_expr: exp.Table) -> exp.Expression:
     """
@@ -812,6 +813,7 @@ def _is_on_sunday(r: __RuleCtx) -> exp.Expression:
         expression=exp.Literal.number(1),
     )
 
+
 def has_std(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
     """Checks if standard deviation meets expectations."""
     field = rule.field
@@ -941,6 +943,7 @@ def has_sum(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
             "message": f"Error: {str(e)}",
         }
 
+
 def has_min(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
     """Checks if minimum value meets expectations."""
     field = rule.field
@@ -983,6 +986,7 @@ def has_min(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
             "message": f"Error: {str(e)}",
         }
 
+
 def has_max(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
     """Checks if maximum value meets expectations."""
     field = rule.field
@@ -1024,6 +1028,7 @@ def has_max(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
             "actual": None,
             "message": f"Error: {str(e)}",
         }
+
 
 def has_cardinality(client: bigquery.Client, table_ref: str, rule: RuleDef) -> dict:
     """Checks if cardinality meets expectations."""
@@ -1328,10 +1333,20 @@ def validate_table_level(
         warnings.warn(
             f"No valid rules to execute for level='table_level' and engine='{engine}'."
         )
-        return pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type",
-            "field", "status", "expected", "actual", "message"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     execution_time = datetime.utcnow()
     results = []
@@ -1342,62 +1357,80 @@ def validate_table_level(
         fn = globals().get(check_type)
         if fn is None:
             warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Function '{check_type}' not implemented",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Function '{check_type}' not implemented",
+                }
+            )
             continue
 
         try:
             result = fn(client, table_ref, rule)
 
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": result.get("status", "ERROR"),
-                "expected": result.get("expected"),
-                "actual": result.get("actual"),
-                "message": result.get("message"),
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": result.get("status", "ERROR"),
+                    "expected": result.get("expected"),
+                    "actual": result.get("actual"),
+                    "message": result.get("message"),
+                }
+            )
 
         except Exception as e:
             warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
-            results.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": execution_time,
-                "level": "TABLE",
-                "category": rule.category or "unknown",
-                "check_type": check_type,
-                "field": str(rule.field),
-                "status": "ERROR",
-                "expected": None,
-                "actual": None,
-                "message": f"Execution error: {str(e)}",
-            })
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": None,
+                    "actual": None,
+                    "message": f"Execution error: {str(e)}",
+                }
+            )
 
     if not results:
-        return pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type",
-            "field", "status", "expected", "actual", "message"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     summary_df = pd.DataFrame(results)
 
     # Sort
-    summary_df['_sort'] = summary_df['status'].map({'FAIL': 0, 'ERROR': 1, 'PASS': 2})
-    summary_df = summary_df.sort_values('_sort').drop(columns=['_sort']).reset_index(drop=True)
+    summary_df["_sort"] = summary_df["status"].map({"FAIL": 0, "ERROR": 1, "PASS": 2})
+    summary_df = (
+        summary_df.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+    )
 
     return summary_df
 
@@ -1447,10 +1480,20 @@ def validate(
     if table_rules:
         table_summary = validate_table_level(client, table_ref, table_rules)
     else:
-        table_summary = pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type",
-            "field", "status", "expected", "actual", "message"
-        ])
+        table_summary = pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     return final, raw, table_summary
 
@@ -1537,10 +1580,10 @@ def __rules_to_bq_sql(rules: List[Dict]) -> str:
 
 
 def summarize(
-        rules: List[RuleDef],
-        total_rows: int,
-        df_with_errors: Optional[bigquery.table.RowIterator] = None,
-        table_error: Optional[pd.DataFrame] = None,
+    rules: List[RuleDef],
+    total_rows: int,
+    df_with_errors: Optional[bigquery.table.RowIterator] = None,
+    table_error: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
     """
     Summarizes validation results from both row-level and table-level checks.
@@ -1596,25 +1639,28 @@ def summarize(
                     except (ValueError, TypeError):
                         expected_val = None
 
-            summaries.append({
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.utcnow(),
-                "level": "ROW",
-                "category": rule.category or "unknown",
-                "check_type": rule.check_type,
-                "field": field_str,
-                "rows": total_rows,
-                "violations": violations,
-                "pass_rate": round(pass_rate, 4),
-                "pass_threshold": pass_threshold,
-                "status": status,
-                "expected": expected_val,
-                "actual": None,
-                "message": (
-                    None if status == "PASS"
-                    else f"{violations} row(s) failed validation"
-                ),
-            })
+            summaries.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": datetime.utcnow(),
+                    "level": "ROW",
+                    "category": rule.category or "unknown",
+                    "check_type": rule.check_type,
+                    "field": field_str,
+                    "rows": total_rows,
+                    "violations": violations,
+                    "pass_rate": round(pass_rate, 4),
+                    "pass_threshold": pass_threshold,
+                    "status": status,
+                    "expected": expected_val,
+                    "actual": None,
+                    "message": (
+                        None
+                        if status == "PASS"
+                        else f"{violations} row(s) failed validation"
+                    ),
+                }
+            )
 
     # ========== TABLE-LEVEL SUMMARY ==========
     if table_error is not None and len(table_error) > 0:
@@ -1627,37 +1673,53 @@ def summarize(
             else:
                 compliance_rate = None
 
-            summaries.append({
-                "id": row_dict["id"],
-                "timestamp": row_dict["timestamp"],
-                "level": row_dict["level"],
-                "category": row_dict["category"],
-                "check_type": row_dict["check_type"],
-                "field": row_dict["field"],
-                "status": row_dict["status"],
-                "expected": expected,
-                "actual": actual,
-                "pass_rate": compliance_rate,
-                "message": row_dict["message"],
-            })
+            summaries.append(
+                {
+                    "id": row_dict["id"],
+                    "timestamp": row_dict["timestamp"],
+                    "level": row_dict["level"],
+                    "category": row_dict["category"],
+                    "check_type": row_dict["check_type"],
+                    "field": row_dict["field"],
+                    "status": row_dict["status"],
+                    "expected": expected,
+                    "actual": actual,
+                    "pass_rate": compliance_rate,
+                    "message": row_dict["message"],
+                }
+            )
 
     if not summaries:
-        return pd.DataFrame(columns=[
-            "id", "timestamp", "level", "category", "check_type", "field",
-            "rows", "violations", "pass_rate", "pass_threshold", "status",
-            "expected", "actual", "message"
-        ])
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "rows",
+                "violations",
+                "pass_rate",
+                "pass_threshold",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
 
     summary_df = pd.DataFrame(summaries)
 
     # Sort
-    summary_df['_sort_status'] = summary_df['status'].map({'FAIL': 0, 'ERROR': 1, 'PASS': 2})
-    summary_df['_sort_level'] = summary_df['level'].map({'ROW': 0, 'TABLE': 1})
+    summary_df["_sort_status"] = summary_df["status"].map(
+        {"FAIL": 0, "ERROR": 1, "PASS": 2}
+    )
+    summary_df["_sort_level"] = summary_df["level"].map({"ROW": 0, "TABLE": 1})
 
     summary_df = (
-        summary_df
-        .sort_values(['_sort_status', '_sort_level', 'check_type'])
-        .drop(columns=['_sort_status', '_sort_level'])
+        summary_df.sort_values(["_sort_status", "_sort_level", "check_type"])
+        .drop(columns=["_sort_status", "_sort_level"])
         .reset_index(drop=True)
     )
 
