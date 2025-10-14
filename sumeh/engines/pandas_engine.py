@@ -561,9 +561,43 @@ def has_max(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
         'dq_status' indicating the rule violation in the format "field:check:value".
     """
 
-    viol = df[df[rule.field] > rule.value].copy()
-    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
-    return viol
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_max",
+        }
+
+    try:
+        actual = float(df[field].max())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            max_expected = expected * threshold
+            passed = actual <= max_expected
+            msg = f"Max {actual:.2f} > maximum {max_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual <= expected
+            msg = f"Max {actual:.2f} > expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
 def has_min(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
@@ -581,9 +615,43 @@ def has_min(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
         pd.DataFrame: A new DataFrame containing rows that violate the rule, with an additional
         column 'dq_status' indicating the field, check type, and threshold value.
     """
-    viol = df[df[rule.field] < rule.value].copy()
-    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
-    return viol
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_min",
+        }
+
+    try:
+        actual = float(df[field].min())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Min {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Min {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
 def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
@@ -620,17 +688,14 @@ def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
 
     try:
         actual = float(df[field].std())
+        expected = float(expected)
 
-        # Option 1: Range (more common for std)
         if threshold < 1.0:
             min_val = expected * threshold
-            max_val = expected * (
-                2 - threshold
-            )  # If threshold=0.8, accepts between 0.8x and 1.2x
+            max_val = expected * (2 - threshold)
             passed = min_val <= actual <= max_val
             msg = f"Std {actual:.2f} outside range [{min_val:.2f}, {max_val:.2f}]"
         else:
-            # Option 2: Simple >=
             passed = actual >= expected
             msg = f"Std {actual:.2f} < expected {expected:.2f}"
 
@@ -683,6 +748,7 @@ def has_mean(df: pd.DataFrame, rule: RuleDef) -> dict:
 
     try:
         actual = float(df[field].mean())
+        expected = float(expected)
 
         if threshold < 1.0:
             min_expected = expected * threshold
@@ -741,14 +807,13 @@ def has_sum(df: pd.DataFrame, rule: RuleDef) -> dict:
 
     try:
         actual = float(df[field].sum())
+        expected = float(expected)
 
-        # If threshold < 1.0, it's a tolerance (ex: 0.95 = accepts 95% of value)
         if threshold < 1.0:
             min_expected = expected * threshold
             passed = actual >= min_expected
             msg = f"Sum {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
         else:
-            # threshold >= 1.0: accepts >= expected
             passed = actual >= expected
             msg = f"Sum {actual:.2f} < expected {expected:.2f}"
 
@@ -801,6 +866,7 @@ def has_cardinality(df: pd.DataFrame, rule: RuleDef) -> dict:
 
     try:
         actual = int(df[field].nunique())
+        expected = int(expected)
 
         if threshold < 1.0:
             min_expected = int(expected * threshold)
@@ -931,18 +997,16 @@ def has_entropy(df: pd.DataFrame, rule: RuleDef) -> dict:
             "status": "ERROR",
             "expected": None,
             "actual": None,
-            "message": "Expected value not defined",
+            "message": "Expected value not defined for has_entropy",
         }
 
     try:
-        # Calculate probabilities for each value
         value_counts = df[field].value_counts()
-        probabilities = value_counts / len(df)
-
-        # Calculate Shannon entropy: -Σ(p * log2(p))
-        # Avoid log(0) using mask
-        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
-        actual = float(entropy)
+        total = len(df)
+        probabilities = value_counts / total
+        entropy = float(-np.sum(probabilities * np.log2(probabilities)))
+        actual = entropy
+        expected = float(expected)
 
         min_acceptable = expected * threshold
         passed = actual >= min_acceptable
