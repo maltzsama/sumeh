@@ -59,16 +59,16 @@ Functions:
 from __future__ import annotations
 
 import re
-import warnings
 import uuid
-from datetime import datetime
+import warnings
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Dict, Callable, Any, Optional, Tuple
 
 import duckdb as dk
 from duckdb import DuckDBPyRelation
 from sqlglot import exp, parse_one
-from sqlglot.expressions import Column, Literal, Not, And, Or, Between, In, Like
+from sqlglot.expressions import Column, Literal
 
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.core.utils import __compare_schemas
