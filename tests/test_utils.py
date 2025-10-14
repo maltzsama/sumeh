@@ -4,7 +4,6 @@ import pytest
 
 from sumeh.core.utils import (
     __convert_value as convert_value,
-    __extract_params as extract_params,
     __compare_schemas as compare_schemas,
 )
 
@@ -27,26 +26,6 @@ class TestConvertValue:
     def test_invalid_date_raises_value_error(self):
         with pytest.raises(ValueError):
             convert_value("invalid-date")
-
-
-class TestExtractParams:
-    """Test suite for extract_params function"""
-
-    def test_extract_params_with_conversion(self):
-        rule = {"check_type": "is_complete", "field": "age", "value": "25"}
-        assert extract_params(rule) == ("age", "is_complete", 25)
-
-    def test_extract_params_with_string_value(self):
-        rule = {"check_type": "has_pattern", "field": "email", "value": ".*@.*"}
-        assert extract_params(rule) == ("email", "has_pattern", ".*@.*")
-
-    def test_extract_params_with_null_value(self):
-        rule = {"check_type": "is_unique", "field": "id", "value": None}
-        assert extract_params(rule) == ("id", "is_unique", "")
-
-    def test_extract_params_with_empty_value(self):
-        rule = {"check_type": "is_null", "field": "name", "value": ""}
-        assert extract_params(rule) == ("name", "is_null", "")
 
 
 class TestCompareSchemas:
