@@ -164,7 +164,6 @@ import pandas as pd
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.core.utils import (
     __convert_value,
-    __extract_params,
     __compare_schemas,
     __parse_field_list,
 )
@@ -2076,46 +2075,6 @@ def validate_table_level(df: dd.DataFrame, rules: List[RuleDef]) -> pd.DataFrame
     )
 
     return summary_df
-
-
-def _rules_to_df(rules: list[dict]) -> pd.DataFrame:
-    """
-    Converts a list of rule dictionaries into a pandas DataFrame.
-
-    Each rule dictionary is expected to have the following keys:
-    - "field": The column(s) the rule applies to. Can be a string or a list of strings.
-    - "check_type": The type of rule or check being applied.
-    - "threshold" (optional): A numeric value representing the pass threshold. Defaults to 1.0 if not provided.
-    - "value" (optional): Additional value associated with the rule.
-    - "execute" (optional): A boolean indicating whether the rule should be executed. Defaults to True if not provided.
-
-    Rules with "execute" set to False are skipped. The resulting DataFrame contains unique rows based on the combination
-    of "column" and "rule".
-
-    Args:
-        rules (list[dict]): A list of dictionaries representing the rules.
-
-    Returns:
-        pd.DataFrame: A DataFrame with the following columns:
-            - "column": The column(s) the rule applies to, joined by a comma if multiple.
-            - "rule": The type of rule or check being applied.
-            - "pass_threshold": The numeric pass threshold for the rule.
-            - "value": Additional value associated with the rule, if any.
-    """
-    rows = []
-    for r in rules:
-        if not r.get("execute", True):
-            continue
-        coln = ",".join(r["field"]) if isinstance(r["field"], list) else r["field"]
-        rows.append(
-            {
-                "column": coln.strip(),
-                "rule": r["check_type"],
-                "pass_threshold": float(r.get("threshold") or 1.0),
-                "value": r.get("value") or None,
-            }
-        )
-    return pd.DataFrame(rows).drop_duplicates(["column", "rule"])
 
 
 def summarize(

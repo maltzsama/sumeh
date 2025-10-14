@@ -273,14 +273,6 @@ class _SummarizeDispatcher:
             table_error: Optional[pd.DataFrame] = None,
             **kwargs,
         ):
-            invalid_args = [
-                k for k in kwargs.keys() if k in ["table_summary", "summary_df"]
-            ]
-            if invalid_args:
-                raise ValueError(
-                    f"Invalid parameter(s): {invalid_args}. "
-                    f"Did you mean 'table_error' instead?"
-                )
 
             if not isinstance(total_rows, int) or total_rows <= 0:
                 raise ValueError("'total_rows' must be a positive integer")
@@ -345,15 +337,6 @@ class _SummarizeDispatcher:
             if spark is None:
                 raise ValueError(
                     "PySpark summarize requires 'spark' (SparkSession) as first parameter"
-                )
-
-            invalid_args = [
-                k for k in kwargs.keys() if k in ["table_summary", "summary_df"]
-            ]
-            if invalid_args:
-                raise ValueError(
-                    f"Invalid parameter(s): {invalid_args}. "
-                    f"Did you mean 'table_error' instead?"
                 )
 
             if not isinstance(total_rows, int) or total_rows <= 0:
@@ -456,11 +439,6 @@ class _SummarizeDispatcher:
         )
 
 
-# ============================================================================
-# RULES CONFIG DISPATCHER
-# ============================================================================
-
-
 class _RulesConfigDispatcher:
     """
     Dispatcher for retrieving validation rules from different sources.
@@ -468,47 +446,186 @@ class _RulesConfigDispatcher:
     Usage:
         from sumeh import get_rules_config
 
-        # Direct source call
-        rules = get_rules_config.bigquery(project_id="proj", dataset_id="ds", table_id="rules")
-        rules = get_rules_config.s3("s3://bucket/rules.csv")
+        # Local CSV
         rules = get_rules_config.csv("rules.csv")
+        rules = get_rules_config.csv("rules.csv", delimiter=";")
+
+        # S3
+        rules = get_rules_config.s3("s3://bucket/rules.csv")
+
+        # BigQuery
+        rules = get_rules_config.bigquery(
+            project_id="proj",
+            dataset_id="ds",
+            table_id="rules"
+        )
+
+        # MySQL
         rules = get_rules_config.mysql(conn=conn, table="rules")
 
-        # Fallback with source string
-        rules = get_rules_config(source="bigquery", project_id="proj", ...)
+        # PostgreSQL
+        rules = get_rules_config.postgresql(conn=conn, table="rules")
+
+        # DuckDB
+        rules = get_rules_config.duckdb(conn=conn, table="rules")
+
+        # Databricks
+        rules = get_rules_config.databricks(
+            spark=spark,
+            catalog="cat",
+            schema="sch",
+            table="rules"
+        )
+
+        # AWS Glue
+        rules = get_rules_config.glue(
+            glue_context=glue_context,
+            database_name="db",
+            table_name="rules"
+        )
     """
+
+    @property
+    def csv(self):
+        """
+        Get rules from local CSV file.
+
+        Args:
+            file_path (str): Path to CSV file
+            delimiter (str): CSV delimiter (default: ",")
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.csv("rules.csv")
+            rules = get_rules_config.csv("rules.csv", delimiter=";")
+        """
+        return get_config_from_csv
+
+    @property
+    def s3(self):
+        """
+        Get rules from S3 CSV file.
+
+        Args:
+            s3_path (str): S3 URI (s3://bucket/path/file.csv)
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.s3("s3://my-bucket/rules.csv")
+        """
+        return get_config_from_s3
 
     @property
     def bigquery(self):
         """
-        Get rules from BigQuery.
+        Get rules from BigQuery table.
 
         Args:
-            project_id: GCP project ID
-            dataset_id: BigQuery dataset
-            table_id: Table name
+            project_id (str): GCP project ID
+            dataset_id (str): BigQuery dataset
+            table_id (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.bigquery(
+                project_id="my-project",
+                dataset_id="my_dataset",
+                table_id="rules"
+            )
         """
         return get_config_from_bigquery
 
     @property
     def mysql(self):
         """
-        Get rules from MySQL.
+        Get rules from MySQL table.
 
         Args:
-            conn: MySQL connection OR (host, user, password, database)
+            conn: MySQL connection OR
+            host, user, password, database, table (if no conn)
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.mysql(conn=conn, table="rules")
+
+            # OR
+            rules = get_rules_config.mysql(
+                host="localhost",
+                user="root",
+                password="pass",
+                database="db",
+                table="rules"
+            )
         """
         return get_config_from_mysql
 
     @property
     def postgresql(self):
         """
-        Get rules from PostgreSQL.
+        Get rules from PostgreSQL table.
 
         Args:
-            conn: PostgreSQL connection OR (host, user, password, database, schema, table)
+            conn: PostgreSQL connection OR
+            host, user, password, database, schema, table (if no conn)
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.postgresql(conn=conn, table="rules")
         """
         return get_config_from_postgresql
+
+    @property
+    def duckdb(self):
+        """
+        Get rules from DuckDB table.
+
+        Args:
+            conn (duckdb.DuckDBPyConnection): DuckDB connection
+            table (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            import duckdb
+            conn = duckdb.connect("my.db")
+            rules = get_rules_config.duckdb(conn=conn, table="rules")
+        """
+        return get_config_from_duckdb
+
+    @property
+    def databricks(self):
+        """
+        Get rules from Databricks table.
+
+        Args:
+            spark (SparkSession): Spark session
+            catalog (str): Catalog name
+            schema (str): Schema name
+            table (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.databricks(
+                spark=spark,
+                catalog="main",
+                schema="default",
+                table="rules"
+            )
+        """
+        return get_config_from_databricks
 
     @property
     def glue(self):
@@ -516,139 +633,36 @@ class _RulesConfigDispatcher:
         Get rules from AWS Glue Data Catalog.
 
         Args:
-            glue_context: Glue context
-            database_name: Database name
-            table_name: Table name
+            glue_context: AWS Glue context
+            database_name (str): Database name
+            table_name (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.glue(
+                glue_context=glueContext,
+                database_name="my_database",
+                table_name="rules"
+            )
         """
         return get_config_from_glue_data_catalog
-
-    @property
-    def duckdb(self):
-        """
-        Get rules from DuckDB.
-
-        Args:
-            conn: DuckDB connection
-            table: Table name
-        """
-        return get_config_from_duckdb
-
-    @property
-    def databricks(self):
-        """
-        Get rules from Databricks.
-
-        Args:
-            spark: Spark session
-            catalog: Catalog name
-            schema: Schema name
-            table: Table name
-        """
-        return get_config_from_databricks
-
-    def s3(self, s3_path: str, **kwargs):
-        """
-        Get rules from S3 CSV file.
-
-        Args:
-            s3_path: S3 path (s3://bucket/path/file.csv)
-            **kwargs: Additional parameters
-        """
-        return get_config_from_s3(s3_path, **kwargs)
-
-    def csv(self, file_path: str, delimiter: str = ",", **kwargs):
-        """
-        Get rules from local CSV file.
-
-        Args:
-            file_path: Path to CSV file
-            delimiter: CSV delimiter (optional)
-            **kwargs: Additional parameters
-        """
-        return get_config_from_csv(file_path, delimiter=delimiter, **kwargs)
-
-    def __call__(self, source: str, **kwargs) -> List[Dict[str, Any]]:
-        """
-        Fallback for calling with source as string (backwards compatibility).
-
-        Args:
-            source: Source identifier
-            **kwargs: Source-specific parameters
-        """
-        match source:
-            case "bigquery":
-                required_params = ["project_id", "dataset_id", "table_id"]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(
-                            f"BigQuery source requires '{param}' in kwargs"
-                        )
-                return self.bigquery(**kwargs)
-
-            case s if s.startswith("s3://"):
-                return self.s3(s, **kwargs)
-
-            case s if re.search(r"\.csv$", s, re.IGNORECASE):
-                return self.csv(s, **kwargs)
-
-            case "mysql":
-                if "conn" not in kwargs:
-                    required_params = ["host", "user", "password", "database"]
-                    for param in required_params:
-                        if param not in kwargs:
-                            raise ValueError(
-                                f"MySQL requires 'conn' OR all of {required_params} in kwargs"
-                            )
-                return self.mysql(**kwargs)
-
-            case "postgresql":
-                if "conn" not in kwargs:
-                    required_params = [
-                        "host",
-                        "user",
-                        "password",
-                        "database",
-                        "schema",
-                        "table",
-                    ]
-                    for param in required_params:
-                        if param not in kwargs:
-                            raise ValueError(f"PostgreSQL requires '{param}' in kwargs")
-                return self.postgresql(**kwargs)
-
-            case "glue":
-                required_params = ["glue_context", "database_name", "table_name"]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(f"Glue requires '{param}' in kwargs")
-                return self.glue(**kwargs)
-
-            case s if s.startswith("duckdb://"):
-                _, path = s.split("://", 1)
-                _, table = path.rsplit(".", 1)
-                conn = kwargs.pop("conn", None)
-                return self.duckdb(conn=conn, table=table)
-
-            case "databricks":
-                required_params = ["spark", "catalog", "schema", "table"]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(f"Databricks requires '{param}' in kwargs")
-                return self.databricks(**kwargs)
-
-            case _:
-                raise ValueError(f"Unknown source: {source}")
 
     def __repr__(self):
         return (
             "Sumeh Rules Config Dispatcher\n"
-            "Available sources: bigquery, mysql, postgresql, glue, duckdb, databricks, s3, csv\n\n"
+            "Available sources: csv, s3, bigquery, mysql, postgresql, duckdb, databricks, glue\n\n"
             "Usage:\n"
-            "  get_rules_config.bigquery(project_id='proj', dataset_id='ds', table_id='rules')\n"
-            "  get_rules_config.s3('s3://bucket/rules.csv')\n"
             "  get_rules_config.csv('rules.csv')\n"
-            "  get_rules_config.mysql(conn=conn)\n"
-            "  get_rules_config(source='bigquery', ...)  # fallback\n"
+            "  get_rules_config.csv('rules.csv', delimiter=';')\n"
+            "  get_rules_config.s3('s3://bucket/rules.csv')\n"
+            "  get_rules_config.bigquery(project_id='proj', dataset_id='ds', table_id='rules')\n"
+            "  get_rules_config.mysql(conn=conn, table='rules')\n"
+            "  get_rules_config.postgresql(conn=conn, table='rules')\n"
+            "  get_rules_config.duckdb(conn=conn, table='rules')\n"
+            "  get_rules_config.databricks(spark=spark, catalog='cat', schema='sch', table='rules')\n"
+            "  get_rules_config.glue(glue_context=ctx, database_name='db', table_name='rules')\n"
         )
 
 
