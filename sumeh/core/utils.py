@@ -259,6 +259,8 @@ def __detect_engine(df, **context):
         return "bigquery_engine"
 
     mod = df.__class__.__module__
+    class_name = df.__class__.__name__
+
     match mod:
         case m if m.startswith("pyspark"):
             return "pyspark_engine"
@@ -268,7 +270,7 @@ def __detect_engine(df, **context):
             return "polars_engine"
         case m if m.startswith("pandas"):
             return "pandas_engine"
-        case m if m.startswith("duckdb"):
+        case m if m.startswith("duckdb") or m.startswith("_duckdb") or "DuckDB" in class_name:
             return "duckdb_engine"
         case m if "bigquery" in m:
             return "bigquery_engine"

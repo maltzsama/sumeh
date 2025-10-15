@@ -1089,11 +1089,12 @@ def is_future_date(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
                       indicate the field, check type, and the current date in ISO format.
     """
 
-    today = date.today()
-    dates = pd.to_datetime(df[rule.field], errors="coerce")
-    viol = df[dates > today].copy()
-    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{today.isoformat()}"
-    return viol
+    field = rule.field
+    check = rule.check_type
+    value = rule.value
+    today = pd.Timestamp("today").normalize()
+    viol = df[df[field] > today]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
 def is_past_date(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
@@ -1116,11 +1117,13 @@ def is_past_date(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
         - Rows with invalid or missing dates are excluded from the result.
     """
 
-    today = date.today()
-    dates = pd.to_datetime(df[rule.field], errors="coerce")
-    viol = df[dates < today].copy()
-    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{today.isoformat()}"
-    return viol
+    field = rule.field
+    check = rule.check_type
+    value = rule.value
+    today = pd.Timestamp("today").normalize()
+    viol = df[df[field] < today]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
+
 
 
 def is_date_between(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
