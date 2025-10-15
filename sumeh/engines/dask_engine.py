@@ -1,152 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides a set of data quality validation functions for Dask DataFrames.
-It includes various checks such as completeness, uniqueness, value range, patterns,
-and schema validation. The module also provides utilities for summarizing validation
-results and schema comparison.
+Dask data quality validation engine for Sumeh.
 
-Functions:
-    is_positive(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains only positive values.
-
-    is_negative(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains only negative values.
-
-    is_in_millions(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the field value is at least 1,000,000 and flags them with dq_status.
-
-    is_in_billions(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the field value is at least 1,000,000,000 and flags them with dq_status.
-
-    is_t_minus_1(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field equals yesterday (T-1) and flags them with dq_status.
-
-    is_t_minus_2(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field equals two days ago (T-2) and flags them with dq_status.
-
-    is_t_minus_3(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field equals three days ago (T-3) and flags them with dq_status.
-
-    is_today(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field equals today and flags them with dq_status.
-
-    is_yesterday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field equals yesterday and flags them with dq_status.
-
-    is_on_weekday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field falls on a weekday (Mon-Fri) and flags them with dq_status.
-
-    is_on_weekend(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on a weekend (Sat-Sun) and flags them with dq_status.
-
-    is_on_monday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Monday and flags them with dq_status.
-
-    is_on_tuesday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Tuesday and flags them with dq_status.
-
-    is_on_wednesday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Wednesday and flags them with dq_status.
-
-    is_on_thursday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Thursday and flags them with dq_status.
-
-    is_on_friday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Friday and flags them with dq_status.
-
-    is_on_saturday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Saturday and flags them with dq_status.
-
-    is_on_sunday(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Retains rows where the date field is on Sunday and flags them with dq_status.
-
-    is_complete(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains no null values.
-
-    is_unique(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains unique values.
-
-    are_complete(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if all specified fields contain no null values.
-
-    are_unique(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the combination of specified fields is unique.
-
-    is_greater_than(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values greater than a given value.
-
-    is_greater_or_equal_than(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values greater than or equal to a given value.
-
-    is_less_than(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values less than a given value.
-
-    is_less_or_equal_than(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values less than or equal to a given value.
-
-    is_equal(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values equal to a given value.
-
-    is_equal_than(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Alias for `is_equal`.
-
-    is_contained_in(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values within a given list.
-
-    not_contained_in(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values not within a given list.
-
-    is_between(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains values within a given range.
-
-    has_pattern(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field matches a given regex pattern.
-
-    is_legit(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field contains non-null, non-whitespace values.
-
-    is_primary_key(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field is a primary key (unique).
-
-    is_composite_key(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the combination of specified fields is a composite key (unique).
-
-    has_max(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the maximum value of the specified field exceeds a given value.
-
-    has_min(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the minimum value of the specified field is below a given value.
-
-    has_std(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the standard deviation of the specified field exceeds a given value.
-
-    has_mean(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the mean of the specified field exceeds a given value.
-
-    has_sum(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the sum of the specified field exceeds a given value.
-
-    has_cardinality(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the cardinality (number of unique values) of the specified field exceeds a given value.
-
-    has_infogain(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the information gain of the specified field exceeds a given value.
-
-    has_entropy(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the entropy of the specified field exceeds a given value.
-
-    satisfies(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
-    Checks if the specified field satisfies a given Python expression.
-
-    validate(df: dd.DataFrame, rules: list[dict]) -> tuple[dd.DataFrame, dd.DataFrame]:
-    Validates a Dask DataFrame against a list of rules and returns aggregated and raw validation results.
-
-    summarize(qc_ddf: dd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
-    Summarizes the validation results and generates a report.
-
-    validate_schema(df: dd.DataFrame, expected: List[Dict[str, Any]]) -> Tuple[bool, List[Tuple[str, str]]]:
-    Validates the schema of a Dask DataFrame against an expected schema.
+This module provides validation functions for data quality rules in Dask DataFrames.
+It supports row-level and table-level validations including completeness, uniqueness,
+pattern matching, date validations, and numeric comparisons.
 """
 
 import operator
@@ -171,19 +30,14 @@ from sumeh.core.utils import (
 
 def is_positive(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
     """
-    Checks if the values in a specified field of a Dask DataFrame are positive.
+    Filters rows where the specified field is negative (violation).
 
     Args:
-        df (dd.DataFrame): The input Dask DataFrame to validate.
-        rule (RuleDef): A dictionary containing the rule parameters. It should include:
-            - 'field': The name of the field to check.
-            - 'check': The type of check being performed (e.g., "is_positive").
-            - 'value': The expected value or condition (e.g., "0").
+        df: Input Dask DataFrame to validate
+        rule: Rule definition containing field, check_type, and value
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows where the specified field has
-        negative values, with an additional column `dq_status` indicating the
-        field, check, and value that failed.
+        DataFrame with violations and dq_status column
     """
     field = rule.field
     check = rule.check_type
@@ -194,23 +48,14 @@ def is_positive(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
 
 def is_negative(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
     """
-    Identifies rows in a Dask DataFrame where the specified field does not satisfy a "negative" check.
-
-    This function filters the DataFrame to find rows where the value in the specified field
-    is greater than or equal to 0 (i.e., not negative). It then assigns a new column `dq_status`
-    to indicate the rule that was violated.
+    Filters rows where the specified field is non-negative (violation).
 
     Args:
-        df (dd.DataFrame): The input Dask DataFrame to be checked.
-        rule (RuleDef): A dictionary containing the rule parameters. It should include:
-            - `field` (str): The name of the column to check.
-            - `check` (str): The type of check being performed (e.g., "negative").
-            - `value` (any): The expected value or condition for the check.
+        df: Input Dask DataFrame to validate
+        rule: Rule definition containing field, check_type, and value
 
     Returns:
-        dd.DataFrame: A new Dask DataFrame containing only the rows that violate the rule,
-        with an additional column `dq_status` describing the violation in the format
-        "{field}:{check}:{value}".
+        DataFrame with violations and dq_status column
     """
     field = rule.field
     check = rule.check_type
@@ -267,22 +112,14 @@ def is_in_billions(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
 
 def is_complete(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
     """
-    Checks for completeness of a specified field in a Dask DataFrame based on a given rule.
-
-    This function identifies rows where the specified field is null and marks them as violations.
-    It then assigns a data quality status to these rows in the resulting DataFrame.
+    Filters rows where the specified field is null (violation).
 
     Args:
-        df (dd.DataFrame): The Dask DataFrame to be checked.
-        rule (RuleDef): A dictionary containing the rule parameters. It should include:
-            - 'field': The name of the field to check for completeness.
-            - 'check': The type of check being performed (e.g., 'is_complete').
-            - 'value': Additional value associated with the rule (not used in this function).
+        df: Input Dask DataFrame to validate
+        rule: Rule definition containing field, check_type, and value
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows where the specified field is null,
-        with an additional column `dq_status` indicating the data quality status in the format
-        "{field}:{check}:{value}".
+        DataFrame with violations and dq_status column
     """
     field = rule.field
     check = rule.check_type
@@ -293,19 +130,14 @@ def is_complete(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
 
 def is_unique(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
     """
-    Checks for uniqueness of a specified field in a Dask DataFrame based on a given rule.
+    Identifies duplicate rows based on the specified field.
 
-    Parameters:
-        df (dd.DataFrame): The Dask DataFrame to check for uniqueness.
-        rule (RuleDef): A dictionary containing the rule parameters. It is expected to include:
-            - 'field': The column name to check for uniqueness.
-            - 'check': The type of check being performed (e.g., "unique").
-            - 'value': Additional value or metadata related to the check.
+    Args:
+        df: Input Dask DataFrame to validate
+        rule: Rule definition containing field, check_type, and value
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that violate the uniqueness rule,
-        with an additional column `dq_status` indicating the rule that was violated
-        in the format "{field}:{check}:{value}".
+        DataFrame with violations and dq_status column
     """
     field = rule.field
     check = rule.check_type
@@ -318,18 +150,14 @@ def is_unique(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
 
 def are_complete(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
     """
-    Checks if the specified fields in a Dask DataFrame are complete (non-null)
-    based on the provided rule and returns a DataFrame of violations.
+    Filters rows where any of the specified fields are null (violation).
 
     Args:
-        df (dd.DataFrame): The input Dask DataFrame to check for completeness.
-        rule (RuleDef): A dictionary containing the rule parameters. It should
-            include the fields to check, the type of check, and the expected value.
+        df: Input Dask DataFrame to validate
+        rule: Rule definition containing fields list, check_type, and value
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that violate the completeness
-        rule, with an additional column `dq_status` indicating the rule details
-        in the format "{fields}:{check}:{value}".
+        DataFrame with violations and dq_status column
     """
     fields = __parse_field_list(rule.field)
     check = rule.check_type
@@ -341,18 +169,14 @@ def are_complete(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
 
 def are_unique(df: dd.DataFrame, rule: RuleDef) -> dd.DataFrame:
     """
-    Checks if the specified fields in a Dask DataFrame contain unique combinations of values.
+    Identifies duplicate rows based on combination of specified fields.
 
-    Parameters:
-        df (dd.DataFrame): The input Dask DataFrame to be checked.
-        rule (RuleDef): A dictionary containing the rule parameters. It is expected to include:
-            - 'fields': A list of column names to check for uniqueness.
-            - 'check': A string describing the type of check being performed.
-            - 'value': A value associated with the rule (used for status reporting).
+    Args:
+        df: Input Dask DataFrame to validate
+        rule: Rule definition containing fields list, check_type, and value
 
     Returns:
-        dd.DataFrame: A DataFrame containing rows that violate the uniqueness rule,
-        with an additional column `dq_status` indicating the rule that was violated.
+        DataFrame with violations and dq_status column
     """
     fields = __parse_field_list(rule.field)
     check = rule.check_type
@@ -1781,22 +1605,14 @@ def validate(
     df: dd.DataFrame, rules: list[RuleDef]
 ) -> tuple[dd.DataFrame, dd.DataFrame]:
     """
-    Validate a Dask DataFrame against a set of rules and return the aggregated results
-    and raw violations.
+    Main validation function that orchestrates row-level and table-level validations.
 
     Args:
-        df (dd.DataFrame): The input Dask DataFrame to validate.
-        rules (list[RuleDef]): A list of validation rules. Each rule is a dictionary
-            containing the following keys:
-            - "check_type" (str): The name of the validation function to execute.
-            - "value" (optional): The value to be used in the validation function.
-            - "execute" (optional, bool): Whether to execute the rule. Defaults to True.
+        df: Input Dask DataFrame to validate
+        rules: List of all validation rules
 
     Returns:
-        tuple[dd.DataFrame, dd.DataFrame]:
-            - The first DataFrame contains the aggregated validation results,
-              with a concatenated "dq_status" column indicating the validation status.
-            - The second DataFrame contains the raw violations for each rule.
+        Tuple of (aggregated_violations, raw_violations, table_summary)
     """
     row_rules = [
         r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
@@ -1849,13 +1665,11 @@ def validate_row_level(
     Validates DataFrame at row level using specified rules.
 
     Args:
-        df (dd.DataFrame): Input Dask DataFrame to validate.
-        rules (List[RuleDef]): List of row-level validation rules.
+        df: Input Dask DataFrame to validate
+        rules: List of row-level validation rules
 
     Returns:
-        Tuple[dd.DataFrame, dd.DataFrame]:
-            - DataFrame with violations and dq_status column
-            - Raw violations DataFrame
+        Tuple of (aggregated violations, raw violations)
     """
     engine = "dask"
     rules_valid = []
@@ -1926,6 +1740,7 @@ def validate_row_level(
     group_cols = [c for c in df.columns if c != "dq_status"]
 
     def _concat_status(series: pd.Series) -> str:
+        """Concatenates status values with semicolon separator."""
         return ";".join([s for s in series.astype(str) if s])
 
     agg_df = (
@@ -1942,11 +1757,11 @@ def validate_table_level(df: dd.DataFrame, rules: List[RuleDef]) -> pd.DataFrame
     Validates DataFrame at table level using specified rules.
 
     Args:
-        df (dd.DataFrame): Input Dask DataFrame to validate.
-        rules (List[RuleDef]): List of table-level validation rules.
+        df: Input Dask DataFrame to validate
+        rules: List of table-level validation rules
 
     Returns:
-        pd.DataFrame: Summary DataFrame with validation results.
+        Summary DataFrame with validation results
     """
     engine = "dask"
     rules_valid = []
@@ -2087,13 +1902,13 @@ def summarize(
     Summarizes validation results from both row-level and table-level checks.
 
     Args:
-        rules (List[RuleDef]): List of all validation rules.
-        total_rows (int): Total number of rows in the input DataFrame.
-        df_with_errors (Optional[dd.DataFrame]): DataFrame with row-level violations.
-        table_error (Optional[pd.DataFrame]): DataFrame with table-level results.
+        rules: List of all validation rules
+        total_rows: Total number of rows in the input DataFrame
+        df_with_errors: DataFrame with row-level violations
+        table_error: DataFrame with table-level results
 
     Returns:
-        dd.DataFrame: Summary DataFrame with aggregated validation metrics.
+        Summary DataFrame with aggregated validation metrics
     """
 
     summaries = []
@@ -2256,22 +2071,13 @@ def summarize(
 
 def extract_schema(df: dd.DataFrame) -> List[Dict[str, Any]]:
     """
-    Convert the schema of a Dask DataFrame into a list of dictionaries.
-
-    Each dictionary in the resulting list represents a column in the DataFrame
-    and contains metadata about the column, including its name, data type,
-    nullability, and maximum length.
+    Extracts schema from Dask DataFrame.
 
     Args:
-        df (dd.DataFrame): The Dask DataFrame whose schema is to be converted.
+        df: Input Dask DataFrame
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries, where each dictionary
-        contains the following keys:
-            - "field" (str): The name of the column.
-            - "data_type" (str): The data type of the column, converted to a lowercase string.
-            - "nullable" (bool): Always set to True, indicating the column is nullable.
-            - "max_length" (None): Always set to None, as maximum length is not determined.
+        List of dictionaries containing field information
     """
     return [
         {
@@ -2291,14 +2097,11 @@ def validate_schema(
     Validates the schema of a Dask DataFrame against an expected schema.
 
     Args:
-        df (dd.DataFrame): The Dask DataFrame whose schema is to be validated.
-        expected (List[Dict[str, Any]]): A list of dictionaries representing the expected schema.
-            Each dictionary should define the expected column name and its properties.
+        df: Dask DataFrame to validate
+        expected: Expected schema definition
 
     Returns:
-        Tuple[bool, List[Tuple[str, str]]]: A tuple where the first element is a boolean indicating
-            whether the schema matches the expected schema, and the second element is a list of
-            tuples containing mismatched column names and their respective issues.
+        Tuple of (is_valid, list_of_errors)
     """
     actual = extract_schema(df)
     result, errors = __compare_schemas(actual, expected)

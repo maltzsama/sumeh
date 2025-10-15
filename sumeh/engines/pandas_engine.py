@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides a set of data quality validation functions using the Pandas library.
-It includes various checks for data validation, such as completeness, uniqueness, range checks,
-pattern matching, date validations, SQL-style custom expressions, and schema validation.
+Pandas engine for data quality validation.
+
+Provides row-level and table-level validation functions for pandas DataFrames,
+including completeness, uniqueness, range checks, pattern matching, date validations,
+SQL-style custom expressions, and schema validation.
 
 Functions:
     is_positive: Filters rows where the specified field is less than zero.
@@ -1620,20 +1622,14 @@ from datetime import datetime
 
 def validate_table_level(df: pd.DataFrame, rules: List[RuleDef]) -> pd.DataFrame:
     """
-    Valida regras em nível de tabela (agregações e schema).
+    Validates table-level rules (aggregations and schema).
+
+    Args:
+        df (pd.DataFrame): Input DataFrame to validate.
+        rules (List[RuleDef]): List of table-level validation rules.
 
     Returns:
-        DataFrame com uma linha por regra:
-        - id: UUID único da validação
-        - timestamp: quando foi executada
-        - level: sempre "TABLE"
-        - category: categoria da regra
-        - check_type: nome da validação
-        - field: coluna validada
-        - status: "PASS" ou "FAIL"
-        - expected: valor esperado
-        - actual: valor real calculado
-        - message: descrição (apenas se FAIL)
+        pd.DataFrame: Summary DataFrame with validation results.
     """
 
     # Filtrar regras aplicáveis
@@ -1795,17 +1791,17 @@ def validate(
     df: pd.DataFrame, rules: List[RuleDef]
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Executa validações de data quality em múltiplos níveis.
+    Main validation function that orchestrates row-level and table-level validations.
 
     Args:
-        df: DataFrame a ser validado
-        rules: Lista de regras (podem ser row-level e/ou table-level)
+        df (pd.DataFrame): Input DataFrame to validate.
+        rules (List[RuleDef]): List of all validation rules.
 
     Returns:
-        Tupla com 3 DataFrames:
-        - df_with_status: dados originais + coluna 'dq_status' (row-level)
-        - row_violations: violações detalhadas (row-level)
-        - table_summary: resumo de validações table-level
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+            - DataFrame with row-level violations and dq_status
+            - Raw row-level violations DataFrame
+            - Table-level summary DataFrame
     """
     row_rules = [
         r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"

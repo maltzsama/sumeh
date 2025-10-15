@@ -3,516 +3,380 @@
 
 # <h1 style="display: flex; align-items: center; gap: 0.5rem;"><img src="https://raw.githubusercontent.com/maltzsama/sumeh/refs/heads/main/docs/img/sumeh.svg" alt="Logo" style="height: 40px; width: auto; vertical-align: middle;" /> <span>Sumeh DQ</span> </h1>
 
-Sumeh is a unified data quality validation framework supporting multiple backends (PySpark, Dask, Polars, DuckDB) with centralized rule configuration.
+Sumeh is a unified data quality validation framework supporting multiple backends (PySpark, Dask, Polars, DuckDB, Pandas, BigQuery) with centralized rule configuration and schema validation.
 
 ## 🚀 Installation
 
 ```bash
-# Using pip
+# Base installation
 pip install sumeh
 
-# Or with conda-forge
-conda install -c conda-forge sumeh
+# With specific engine support
+pip install sumeh[pyspark]     # PySpark support
+pip install sumeh[aws]         # S3 + Pandas support
+pip install sumeh[mysql]       # MySQL support
+pip install sumeh[postgresql]  # PostgreSQL support
+pip install sumeh[bigquery]    # BigQuery support
+pip install sumeh[dashboard]   # Streamlit dashboard
+
+# All extras
+pip install sumeh[dev,aws,mysql,postgresql,bigquery,dashboard]
 ```
 
 **Prerequisites:**  
 - Python 3.10+  
-- One or more of: `pyspark`, `dask[dataframe]`, `polars`, `duckdb`, `cuallee`
+- One or more of: `pyspark`, `dask[dataframe]`, `polars`, `duckdb`, `pandas`
 
 ## 🔍 Core API
 
-- **`report(df, rules, name="Quality Check")`**  
-  Apply your validation rules over any DataFrame (Pandas, Spark, Dask, Polars, or DuckDB).  
-- **`validate(df, rules)`** *(per-engine)*  
-  Returns a DataFrame with a `dq_status` column listing violations.  
-- **`summarize(qc_df, rules, total_rows)`** *(per-engine)*  
-  Consolidates violations into a summary report.
+Sumeh uses a **dispatcher pattern** for clean engine-specific access:
+
+```python
+from sumeh import validate, summarize, get_rules_config
+
+# Load rules from various sources
+rules = get_rules_config.csv("rules.csv")
+rules = get_rules_config.s3("s3://bucket/rules.csv")
+rules = get_rules_config.mysql(host="localhost", table="rules")
+
+# Engine-specific validation
+result = validate.pandas(df, rules)
+result = validate.pyspark(spark, df, rules)
+result = validate.duckdb(conn, df_rel, rules)
+
+# Generate summary reports
+summary = summarize.pandas(result, rules, total_rows=len(df))
+```
 
 ## ⚙️ Supported Engines
 
-Each engine implements the `validate()` + `summarize()` pair:
+All engines implement the same `validate()` + `summarize()` interface:
 
-| Engine                | Module                                  | Status          |
-|-----------------------|-----------------------------------------|-----------------|
-| PySpark               | `sumeh.engines.pyspark_engine`           | ✅ Fully implemented |
-| Dask                  | `sumeh.engines.dask_engine`              | ✅ Fully implemented |
-| Polars                | `sumeh.engines.polars_engine`            | ✅ Fully implemented |
-| DuckDB                | `sumeh.engines.duckdb_engine`            | ✅ Fully implemented |
-| Pandas                | `sumeh.engines.pandas_engine`            | ✅ Fully implemented |
-| BigQuery (SQL)        | `sumeh.engines.bigquery_engine`          | 🔧 Stub implementation |
+| Engine                | Module                                  | Status          | Streaming Support |
+|-----------------------|-----------------------------------------|-----------------|-------------------|
+| **Pandas**            | `sumeh.engines.pandas_engine`           | ✅ Fully implemented | ❌ Batch only |
+| **PySpark**           | `sumeh.engines.pyspark_engine`          | ✅ Fully implemented | ✅ Structured Streaming |
+| **Dask**              | `sumeh.engines.dask_engine`             | ✅ Fully implemented | ❌ Batch only |
+| **Polars**            | `sumeh.engines.polars_engine`           | ✅ Fully implemented | ❌ Batch only |
+| **DuckDB**            | `sumeh.engines.duckdb_engine`           | ✅ Fully implemented | ❌ Batch only |
+| **BigQuery**          | `sumeh.engines.bigquery_engine`         | ✅ Fully implemented | ❌ Batch only |
 
 ## 🏗 Configuration Sources
 
-**Load rules from CSV**
+Sumeh supports loading rules from multiple sources using the dispatcher pattern:
 
+### CSV Files
 ```python
 from sumeh import get_rules_config
 
-rules = get_rules_config("rules.csv", delimiter=";")
+# Local CSV
+rules = get_rules_config.csv("rules.csv", delimiter=";")
+
+# S3 CSV
+rules = get_rules_config.s3("s3://bucket/path/rules.csv", delimiter=";")
 ```
 
-**Load rules from S3**
+### Database Sources
 ```python
-from sumeh import get_rules_config
-bucket_name = "<bucket>"
-path = "<path>"
-file_name = "<file_name>"
+# MySQL
+rules = get_rules_config.mysql(
+    host="localhost",
+    user="root", 
+    password="secret",
+    database="mydb",
+    table="rules"
+)
 
-rules = get_rules_config(f"s3://{bucket_name}/{path}/{file_name}", delimiter=";")
+# PostgreSQL
+rules = get_rules_config.postgresql(
+    host="localhost",
+    user="postgres",
+    password="secret", 
+    database="mydb",
+    schema="public",
+    table="rules"
+)
 
+# BigQuery
+rules = get_rules_config.bigquery(
+    project_id="my-project",
+    dataset_id="my-dataset", 
+    table_id="rules"
+)
+
+# DuckDB
+import duckdb
+conn = duckdb.connect("my.db")
+rules = get_rules_config.duckdb(conn=conn, table="rules")
 ```
 
-**Load rules from MySQL**
+### Cloud Data Catalogs
 ```python
-from sumeh import get_rules_config
-
-host = "<host>"
-port = "<port>" #optional
-user = "<username>"
-password = "<passwd>"
-database = "<database>"
-table = "<rules_table>"
-query = "<select * from rules>" # optional
-
-rules = get_rules_config(
-    source="mysql", 
-    host=host, 
-    user=user, 
-    password=password, 
-    database=database, 
-    table=table, 
-    query=query
-)
-
-# or using Mysql Connector
-import mysql.connector
-conn = mysql.connector.connect(
-    host=host,
-    port=port,
-    database=database,
-    user=user,
-    password=password
-)
-
-rules = get_rules_config(source="mysql", connection=conn, query=query)
-
-```
-
-**Load rules from Postgres**
-```python
-from sumeh import get_rules_config
-
-host = "<host>"
-port = "<port>" #optional
-user = "<username>"
-password = "<passwd>"
-database = "<database>"
-schema = "<public>"
-table = "<rules_table>"
-query = "<select * from rules>" # optional
-
-rules_pgsql = get_rules_config(
-    source="postgresql", 
-    host=host, user=user, 
-    password=password, 
-    database=database, 
-    schema=schema, 
-    table=table, 
-    query=query
-)
-
-# Or using the PostgreSQL Connector
-import psycopg2
-
-conn = psycopg2.connect(
-            host=host,
-            database=database,
-            user=user,
-            password=password
-)
-
-rules_pgsql = get_rules_config(source="postgresql", connection=conn, query=query)
-
-```
-
-**Load rules from AWS Glue Data Catalog**
-```python
-from pyspark.context import SparkContext
-from awsglue.utils import getResolvedOptions
+# AWS Glue
 from awsglue.context import GlueContext
-from awsglue.job import Job
-
-from sumeh import get_rules_config
-
-args = getResolvedOptions(sys.argv, ['JOB_NAME'])
-
-sc = SparkContext()
-glue_context = GlueContext(sc)
-spark = glue_context.spark_session
-job = Job(glue_context)
-job.init(args['JOB_NAME'], args)
-
-
-database_name = "<database>"
-table_name = "<table>"
-
-rules = get_rules_config(
-    source="glue",
+rules = get_rules_config.glue(
     glue_context=glue_context,
-    database_name=database_name,
-    table_name=table_name
+    database_name="my_database",
+    table_name="rules"
 )
 
-job.commit()
-
-```
-
-**Load rules from Databricks Data Catalog**
-```python
-from sumeh import get_rules_config
-
-catalog = "<catalog>"
-database_name = "<database>"
-table_name = "<table>"
-query = "<query>" # OPTIONAL
-
-rules = get_rules_config(
-    "databricks", 
-    spark=spark, 
-    catalog="sumeh_demo", 
-    schema="sample_data", 
-    table="rules",
-    query=query
+# Databricks Unity Catalog
+rules = get_rules_config.databricks(
+    spark=spark,
+    catalog="main",
+    schema="default", 
+    table="rules"
 )
-
 ```
 
-
-## 🏃‍♂️ Typical Workflow
-
+### Using Existing Connections
 ```python
-from sumeh import report
-from sumeh.engines.polars_engine import validate, summarize
+# Reuse MySQL connection
+import mysql.connector
+conn = mysql.connector.connect(host="localhost", user="root", password="secret")
+rules = get_rules_config.mysql(conn=conn, query="SELECT * FROM rules WHERE active=1")
+
+# Reuse PostgreSQL connection  
+import psycopg2
+conn = psycopg2.connect(host="localhost", user="postgres", password="secret")
+rules = get_rules_config.postgresql(conn=conn, query="SELECT * FROM public.rules")
+```
+
+## 🏃 Typical Workflow
+
+### Modern Dispatcher API (Recommended)
+```python
+from sumeh import validate, summarize, get_rules_config
 import polars as pl
 
-# 1) Load data
+# 1) Load rules and data
+rules = get_rules_config.csv("rules.csv")
 df = pl.read_csv("data.csv")
 
-# 2) Run validation
-result, result_raw = validate(df, rules)
+# 2) Run validation (returns 3 DataFrames)
+df_errors, violations, table_summary = validate.polars(df, rules)
 
-# 3) Generate summary
-total = df.height
-report = summarize(result_raw, rules, total_rows=total)
-print(report)
+# 3) Generate consolidated summary
+summary = summarize.polars(
+    validation_result=(df_errors, violations, table_summary),
+    rules=rules,
+    total_rows=len(df)
+)
+print(summary)
 ```
 
-**Or simply:**
+### Engine-Specific Examples
+```python
+# Pandas
+df_errors, violations, table_sum = validate.pandas(df, rules)
+summary = summarize.pandas((df_errors, violations, table_sum), rules, len(df))
 
+# PySpark
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+df_errors, violations, table_sum = validate.pyspark(spark, df, rules)
+summary = summarize.pyspark((df_errors, violations, table_sum), rules, df.count())
+
+# DuckDB
+import duckdb
+conn = duckdb.connect()
+df_rel = conn.sql("SELECT * FROM my_table")
+df_errors, violations, table_sum = validate.duckdb(conn, df_rel, rules)
+summary = summarize.duckdb((df_errors, violations, table_sum), rules, df_rel.count("*").fetchone()[0])
+```
+
+### Legacy API (Still Supported)
 ```python
 from sumeh import report
 
-report = report(df, rules)
+# Simple one-liner using cuallee backend
+report_df = report(df, rules, name="Quality Check")
 ```
 
-## 📋 Rule Definition Example
+## 📋 Rule Definition
 
-```json
-{
-  "field": "customer_id",
-  "check_type": "is_complete",
-  "threshold": 0.99,
-  "value": null,
-  "execute": true
-}
-```
+Sumeh uses the `RuleDef` class for type-safe rule definitions with automatic validation:
 
-## Supported Validation Rules
-
-### Numeric checks
-
-| Test                 | Description                                                                                               |
-| -------------------- | --------------------------------------------------------------------------------------------------------- |
-| **is_in_millions**   | Retains rows where the column value is **less than** 1,000,000 (fails the "in millions" criteria).        |
-| **is_in_billions**   | Retains rows where the column value is **less than** 1,000,000,000 (fails the "in billions" criteria).    |
-
----
-
-### Completeness & Uniqueness
-
-| Test                   | Description                                                                 |
-| ---------------------- | --------------------------------------------------------------------------- |
-| **is_complete**        | Filters rows where the column value is null.                                |
-| **are_complete**       | Filters rows where **any** of the specified columns are null.               |
-| **is_unique**          | Identifies rows with duplicate values in the specified column.              |
-| **are_unique**         | Identifies rows with duplicate combinations of the specified columns.       |
-| **is_primary_key**     | Alias for `is_unique` (checks uniqueness of a single column).               |
-| **is_composite_key**   | Alias for `are_unique` (checks combined uniqueness of multiple columns).    |
-
----
-
-### Comparison & Range
-
-| Test                             | Description                                                                             |
-| -------------------------------- | --------------------------------------------------------------------------------------- |
-| **is_equal**                     | Filters rows where the column is not equal to the provided value (null-safe).           |
-| **is_equal_than**                | Alias for `is_equal`.                                                                   |
-| **is_between**                   | Filters rows where the column value is **outside** the numeric range `[min, max]`.       |
-| **is_greater_than**              | Filters rows where the column value is **≤** the threshold (fails "greater than").       |
-| **is_greater_or_equal_than**     | Filters rows where the column value is **<** the threshold (fails "greater or equal").   |
-| **is_less_than**                 | Filters rows where the column value is **≥** the threshold (fails "less than").          |
-| **is_less_or_equal_than**        | Filters rows where the column value is **>** the threshold (fails "less or equal").      |
-| **is_positive**                  | Filters rows where the column value is **< 0** (fails "positive").                       |
-| **is_negative**                  | Filters rows where the column value is **≥ 0** (fails "negative").                       |
-
----
-
-### Membership & Pattern
-
-| Test                   | Description                                                                               |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| **is_contained_in**    | Filters rows where the column value is **not** in the provided list.                       |
-| **not_contained_in**   | Filters rows where the column value **is** in the provided list.                           |
-| **has_pattern**        | Filters rows where the column value does **not** match the specified regex.                |
-| **is_legit**           | Filters rows where the column value is null or contains whitespace (i.e., not `\S+`).      |
-
----
-
-### Aggregate checks
-
-| Test                 | Description                                                                                                      |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **has_min**          | Returns all rows if the column's minimum value **causes failure** (value < threshold); otherwise returns empty.   |
-| **has_max**          | Returns all rows if the column's maximum value **causes failure** (value > threshold); otherwise returns empty.   |
-| **has_sum**          | Returns all rows if the column's sum **causes failure** (sum > threshold); otherwise returns empty.               |
-| **has_mean**         | Returns all rows if the column's mean **causes failure** (mean > threshold); otherwise returns empty.             |
-| **has_std**          | Returns all rows if the column's standard deviation **causes failure** (std > threshold); otherwise returns empty.|
-| **has_cardinality**  | Returns all rows if the number of distinct values **causes failure** (count > threshold); otherwise returns empty.|
-| **has_infogain**     | Same logic as `has_cardinality` (proxy for information gain).                                                    |
-| **has_entropy**      | Same logic as `has_cardinality` (proxy for entropy).                                                             |
-
----
-
-### SQL & Schema
-
-| Test                 | Description                                                                                                     |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **satisfies**        | Filters rows where the SQL expression (based on `rule["value"]`) is **not** satisfied.                          |
-| **validate_schema**  | Compares the DataFrame's actual schema against the expected one and returns a match flag + error list.          |
-| **validate**         | Executes a list of named rules and returns two DataFrames: one with aggregated status and one with raw violations. |
-
----
-
-### Date-related checks
-
-| Test                       | Description                                                                                     |
-| -------------------------- | ----------------------------------------------------------------------------------------------- |
-| **is_t_minus_1**           | Retains rows where the date in the column is **not** equal to yesterday (T–1).                       |
-| **is_t_minus_2**           | Retains rows where the date in the column is **not** equal to two days ago (T–2).                    |
-| **is_t_minus_3**           | Retains rows where the date in the column is **not** equal to three days ago (T–3).                  |
-| **is_today**               | Retains rows where the date in the column is **not** equal to today.                                 |
-| **is_yesterday**           | Retains rows where the date in the column is **not** equal to yesterday.                             |
-| **is_on_weekday**          | Retains rows where the date in the column **NOT FALLS** on a weekend (fails "weekday").              |
-| **is_on_weekend**          | Retains rows where the date in the column **NOT FALLS** on a weekday (fails "weekend").              |
-| **is_on_monday**           | Retains rows where the date in the column is **not** Monday.                                         |
-| **is_on_tuesday**          | Retains rows where the date in the column is **not** Tuesday.                                        |
-| **is_on_wednesday**        | Retains rows where the date in the column is **not** Wednesday.                                      |
-| **is_on_thursday**         | Retains rows where the date in the column is **not** Thursday.                                       |
-| **is_on_friday**           | Retains rows where the date in the column is **not** Friday.                                         |
-| **is_on_saturday**         | Retains rows where the date in the column is **not** Saturday.                                       |
-| **is_on_sunday**           | Retains rows where the date in the column is **not** Sunday.                                         |
-| **validate_date_format**   | Filters rows where the date doesn't match the expected format or is null.                        |
-| **is_future_date**         | Filters rows where the date in the column is **not** after today.                                    |
-| **is_past_date**           | Filters rows where the date in the column is **not** before today.                                   |
-| **is_date_after**          | Filters rows where the date in the column is **not** before the date provided in the rule.           |
-| **is_date_before**         | Filters rows where the date in the column is **not** after the date provided in the rule.            |
-| **is_date_between**        | Filters rows where the date in the column is **not** outside the range `[start, end]`.               |
-| **all_date_checks**        | Alias for `is_past_date` (same logic: date before today).                                        |
-
-
-
-## Schema Validation
-
-Sumeh allows you to validate your DataFrame schemas against a schema registry stored in various data sources (BigQuery, MySQL, PostgreSQL, DuckDB, Databricks, Glue, CSV, S3).
-
-### Step 1: Store Your Schema Registry
-
-First, create a `schema_registry` table in your data source with the following structure:
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | int | Auto-increment ID |
-| environment | string | Environment (e.g., 'prod', 'staging', 'dev') |
-| source_type | string | Source type (e.g., 'bigquery', 'mysql') |
-| database_name | string | Database/project name |
-| catalog_name | string | Catalog name (for Databricks) |
-| schema_name | string | Schema name (for PostgreSQL) |
-| table_name | string | Table name |
-| field | string | Column name |
-| data_type | string | Data type |
-| nullable | boolean | Whether column can be null |
-| max_length | int | Maximum length for strings |
-| comment | string | Description/comment |
-| created_at | datetime | Creation timestamp |
-| updated_at | datetime | Last update timestamp |
-
-### Step 2: Get Schema Configuration
-
-Use `get_schema_config()` to retrieve the expected schema from your registry:
-
-#### BigQuery
-
+### Basic Rule Structure
 ```python
-from sumeh.core import get_schema_config
+from sumeh.core.rules import RuleDef
 
-schema = get_schema_config(
-    source="bigquery",
-    project_id="my-project",
-    dataset_id="my-dataset",
-    table_id="users",
-    environment="prod"  # optional, defaults to 'prod'
+# Create rule programmatically
+rule = RuleDef(
+    field="customer_id",
+    check_type="is_complete", 
+    threshold=0.99,
+    value=None,
+    execute=True
 )
+
+# Or from dictionary
+rule = RuleDef.from_dict({
+    "field": "customer_id",
+    "check_type": "is_complete",
+    "threshold": 0.99,
+    "value": None,
+    "execute": True
+})
 ```
 
-#### MySQL
+### CSV Format Example
+```csv
+field,check_type,threshold,value,execute
+customer_id,is_complete,0.99,,true
+email,has_pattern,1.0,"^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$",true
+age,is_between,1.0,"[18, 120]",true
+status,is_contained_in,1.0,"['active', 'inactive', 'pending']",true
+"[first_name,last_name]",are_complete,0.95,,true
+```
+
+### Advanced Features
+- **Auto-parsing**: Values are automatically converted to correct types (int, float, list, date, regex)
+- **Multi-column rules**: Use `[col1,col2]` syntax for composite validations
+- **Metadata enrichment**: Category and level are auto-populated from rule registry
+- **Engine compatibility**: Automatic validation against supported engines
+
+## 📊 Supported Validation Rules
+
+Sumeh supports **60+ validation rules** organized by level and category. All rules are defined in the [manifest.json](sumeh/core/rules/manifest.json) registry.
+
+### Row-Level Validations
+
+#### Completeness
+| Rule | Description | Example |
+|------|-------------|----------|
+| `is_complete` | Column has no null values | `{"field": "email", "check_type": "is_complete"}` |
+| `are_complete` | Multiple columns have no nulls | `{"field": "[name,email]", "check_type": "are_complete"}` |
+
+#### Uniqueness  
+| Rule | Description | Example |
+|------|-------------|----------|
+| `is_unique` | Column values are unique | `{"field": "user_id", "check_type": "is_unique"}` |
+| `are_unique` | Column combination is unique | `{"field": "[email,phone]", "check_type": "are_unique"}` |
+| `is_primary_key` | Alias for `is_unique` | `{"field": "id", "check_type": "is_primary_key"}` |
+
+#### Comparison & Range
+| Rule | Description | Example |
+|------|-------------|----------|
+| `is_between` | Value within range | `{"field": "age", "check_type": "is_between", "value": [18, 65]}` |
+| `is_greater_than` | Value > threshold | `{"field": "score", "check_type": "is_greater_than", "value": 0}` |
+| `is_positive` | Value > 0 | `{"field": "amount", "check_type": "is_positive"}` |
+| `is_in_millions` | Value >= 1,000,000 | `{"field": "revenue", "check_type": "is_in_millions"}` |
+
+#### Membership & Pattern
+| Rule | Description | Example |
+|------|-------------|----------|
+| `is_contained_in` | Value in allowed list | `{"field": "status", "check_type": "is_contained_in", "value": ["active", "inactive"]}` |
+| `has_pattern` | Matches regex pattern | `{"field": "email", "check_type": "has_pattern", "value": "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$"}` |
+| `is_legit` | Non-empty, non-whitespace | `{"field": "name", "check_type": "is_legit"}` |
+
+#### Date Validations
+| Rule | Description | Example |
+|------|-------------|----------|
+| `is_past_date` | Date before today | `{"field": "birth_date", "check_type": "is_past_date"}` |
+| `is_future_date` | Date after today | `{"field": "expiry_date", "check_type": "is_future_date"}` |
+| `is_date_between` | Date within range | `{"field": "created_at", "check_type": "is_date_between", "value": ["2023-01-01", "2023-12-31"]}` |
+| `is_on_weekday` | Date falls on weekday | `{"field": "transaction_date", "check_type": "is_on_weekday"}` |
+| `validate_date_format` | Matches date format | `{"field": "date_str", "check_type": "validate_date_format", "value": "%Y-%m-%d"}` |
+
+#### SQL Custom Rules
+| Rule | Description | Example |
+|------|-------------|----------|
+| `satisfies` | Custom SQL condition | `{"field": "*", "check_type": "satisfies", "value": "age >= 18 AND status = 'active'"}` |
+
+### Table-Level Validations
+
+#### Aggregation Checks
+| Rule | Description | Example |
+|------|-------------|----------|
+| `has_min` | Minimum value check | `{"field": "price", "check_type": "has_min", "value": 0}` |
+| `has_max` | Maximum value check | `{"field": "age", "check_type": "has_max", "value": 120}` |
+| `has_cardinality` | Distinct count check | `{"field": "category", "check_type": "has_cardinality", "value": 10}` |
+| `has_mean` | Average value check | `{"field": "rating", "check_type": "has_mean", "value": 3.5}` |
+| `has_std` | Standard deviation check | `{"field": "scores", "check_type": "has_std", "value": 2.0}` |
+
+#### Schema Validation
+| Rule | Description | Example |
+|------|-------------|----------|
+| `validate_schema` | Schema structure check | `{"field": "*", "check_type": "validate_schema", "value": expected_schema}` |
+
+### Engine Compatibility
+All rules support all engines: **Pandas**, **PySpark**, **Dask**, **Polars**, **DuckDB**, **BigQuery**
+
+## 🔍 Schema Validation
+
+Sumeh provides comprehensive schema validation against registries stored in multiple data sources.
+
+### Schema Registry Structure
+
+Create a `schema_registry` table with this structure:
+
+```sql
+CREATE TABLE schema_registry (
+    id INTEGER PRIMARY KEY,
+    environment VARCHAR(50),     -- 'prod', 'staging', 'dev'
+    source_type VARCHAR(50),     -- 'bigquery', 'mysql', etc.
+    database_name VARCHAR(100),
+    catalog_name VARCHAR(100),   -- For Databricks
+    schema_name VARCHAR(100),    -- For PostgreSQL
+    table_name VARCHAR(100),
+    field VARCHAR(100),
+    data_type VARCHAR(50),
+    nullable BOOLEAN,
+    max_length INTEGER,
+    comment TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+```
+
+### Get Schema Configuration
 
 ```python
-# Option 1: Create connection internally
-schema = get_schema_config(
-    source="mysql",
+from sumeh import get_schema_config
+
+# From various sources
+schema = get_schema_config.bigquery(
+    project_id="my-project",
+    dataset_id="my-dataset", 
+    table_id="users",
+    environment="prod"
+)
+
+schema = get_schema_config.mysql(
     host="localhost",
     user="root",
     password="secret",
     database="mydb",
-    table="users",
-    environment="prod"
+    table="users"
 )
 
-# Option 2: Reuse existing connection
-import mysql.connector
-conn = mysql.connector.connect(host="localhost", user="root", password="secret", database="mydb")
+schema = get_schema_config.csv(
+    "schema_registry.csv",
+    table="users"
+)
 
-schema = get_schema_config(
-    source="mysql",
-    conn=conn,
-    table="users",
-    environment="prod"
+schema = get_schema_config.s3(
+    "s3://bucket/schema_registry.csv",
+    table="users"
 )
 ```
 
-#### PostgreSQL
+### Extract & Validate Schema
 
 ```python
-# Option 1: Create connection internally
-schema = get_schema_config(
-    source="postgresql",
-    host="localhost",
-    user="postgres",
-    password="secret",
-    database="mydb",
-    schema="public",
-    table="users",
-    environment="prod"
-)
-
-# Option 2: Reuse existing connection
-import psycopg2
-conn = psycopg2.connect(host="localhost", user="postgres", password="secret", dbname="mydb")
-
-schema = get_schema_config(
-    source="postgresql",
-    conn=conn,
-    schema="public",
-    table="users",
-    environment="prod"
-)
-```
-
-#### DuckDB
-
-```python
-import duckdb
-
-conn = duckdb.connect("my_database.db")
-
-schema = get_schema_config(
-    source="duckdb",
-    conn=conn,
-    table="users",
-    environment="prod"
-)
-```
-
-#### Databricks
-
-```python
-from pyspark.sql import SparkSession
-
-spark = SparkSession.builder.getOrCreate()
-
-schema = get_schema_config(
-    source="databricks",
-    spark=spark,
-    catalog="main",
-    schema="default",
-    table="users",
-    environment="prod"
-)
-```
-
-#### AWS Glue
-
-```python
-from awsglue.context import GlueContext
-from pyspark.context import SparkContext
-
-glueContext = GlueContext(SparkContext.getOrCreate())
-
-schema = get_schema_config(
-    source="glue",
-    glue_context=glueContext,
-    database_name="my_database",
-    table_name="users",
-    environment="prod"
-)
-```
-
-#### CSV
-
-```python
-schema = get_schema_config(
-    source="schema_registry.csv",
-    table="users",
-    environment="prod"
-)
-```
-
-#### S3
-
-```python
-schema = get_schema_config(
-    source="s3://my-bucket/path/schema_registry.csv",
-    table="users",
-    environment="prod"
-)
-```
-
-### Step 3: Validate DataFrame Schema
-
-Once you have the expected schema, validate your DataFrame against it:
-
-```python
-from sumeh.core import validate_schema
-
-# Load your DataFrame (example with pandas)
+from sumeh import extract_schema, validate_schema
 import pandas as pd
+
+# Extract actual schema from DataFrame
 df = pd.read_csv("users.csv")
+actual_schema = extract_schema.pandas(df)
+
+# Get expected schema from registry
+expected_schema = get_schema_config.csv("schema_registry.csv", table="users")
 
 # Validate
-is_valid, errors = validate_schema(
-    df_or_conn=df,
-    expected=schema
-)
+is_valid, errors = validate_schema.pandas(df, expected_schema)
 
 if is_valid:
     print("✅ Schema is valid!")
@@ -522,87 +386,436 @@ else:
         print(f"  - {field}: {error}")
 ```
 
-#### Example Output
+### Engine Support
 
-```
-❌ Schema validation failed:
-  - email: missing
-  - age: type mismatch (got 'object', expected 'int64')
-  - created_at: nullable but expected non-nullable
-  - extra_field: extra column
-```
+Schema validation works with all engines:
+- `extract_schema.pandas(df)`
+- `extract_schema.pyspark(df)`  
+- `extract_schema.polars(df)`
+- `extract_schema.duckdb(conn, relation)`
+- `validate_schema.pandas(df, expected)`
+- `validate_schema.pyspark(df, expected)`
+- etc.
 
-### Advanced: Custom Filters
-
-You can add custom WHERE clauses to filter the schema registry:
+### Custom Filters
 
 ```python
-schema = get_schema_config(
-    source="bigquery",
-    project_id="my-project",
-    dataset_id="my-dataset",
-    table_id="users",
-    environment="prod",
-    query="source_type = 'bigquery' AND catalog_name IS NOT NULL"
+# Add custom WHERE conditions
+schema = get_schema_config.mysql(
+    host="localhost",
+    table="users",
+    query="environment = 'prod' AND source_type = 'mysql'"
 )
 ```
 
-**Note:** The `query` parameter adds additional filters to the base filter (`table_name` and `environment`).
+## 🛠️ Table Generators
 
-### Supported Engines
+Sumeh includes SQL DDL generators for creating `rules` and `schema_registry` tables across multiple database dialects:
 
-Schema validation works with all supported DataFrame engines:
-- Dask
-- DuckDB
-- Pandas
-- Polars
-- PySpark
+### Generate DDL Statements
 
-**Important:** Make sure the `data_type` values in your `schema_registry` match the exact format returned by your DataFrame engine (e.g., `int64` for pandas, `string` for PySpark). Comparisons are case-insensitive.
+```python
+from sumeh.generators import SQLGenerator
 
+# Generate rules table for PostgreSQL
+ddl = SQLGenerator.generate(table="rules", dialect="postgres", schema="public")
+print(ddl)
 
-## 📂 Project Layout
+# Generate schema_registry table for BigQuery
+ddl = SQLGenerator.generate(
+    table="schema_registry", 
+    dialect="bigquery",
+    schema="my_dataset",
+    partition_by="DATE(created_at)",
+    cluster_by=["table_name", "environment"]
+)
+print(ddl)
+
+# Generate both tables for MySQL
+ddl = SQLGenerator.generate(table="all", dialect="mysql", engine="InnoDB")
+print(ddl)
+```
+
+### Supported Dialects
+
+- **PostgreSQL** (`postgres`)
+- **MySQL** (`mysql`) 
+- **BigQuery** (`bigquery`)
+- **Snowflake** (`snowflake`)
+- **Redshift** (`redshift`)
+- **Databricks** (`databricks`)
+- **DuckDB** (`duckdb`)
+- **SQLite** (`sqlite`)
+- **Athena** (`athena`)
+- **And more...**
+
+### Dialect-Specific Features
+
+```python
+# BigQuery with partitioning and clustering
+SQLGenerator.generate(
+    table="rules",
+    dialect="bigquery",
+    partition_by="DATE(created_at)",
+    cluster_by=["environment", "table_name"]
+)
+
+# Snowflake with clustering
+SQLGenerator.generate(
+    table="schema_registry",
+    dialect="snowflake",
+    cluster_by=["table_name", "field"]
+)
+
+# Redshift with distribution and sort keys
+SQLGenerator.generate(
+    table="rules",
+    dialect="redshift",
+    distkey="table_name",
+    sortkey=["created_at", "environment"]
+)
+```
+
+### Utility Functions
+
+```python
+# List available dialects
+print(SQLGenerator.list_dialects())
+# ['athena', 'bigquery', 'databricks', 'duckdb', 'mysql', ...]
+
+# List available tables
+print(SQLGenerator.list_tables())
+# ['rules', 'schema_registry']
+
+# Transpile SQL between dialects
+sql = "SELECT * FROM users WHERE created_at >= CURRENT_DATE - 7"
+transpiled = SQLGenerator.transpile(sql, "postgres", "bigquery")
+print(transpiled)
+```
+
+## 📋 Table Schemas
+
+### Rules Table Structure
+
+```sql
+CREATE TABLE rules (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    environment VARCHAR(50) NOT NULL,
+    source_type VARCHAR(50) NOT NULL,
+    database_name VARCHAR(255) NOT NULL,
+    catalog_name VARCHAR(255),
+    schema_name VARCHAR(255),
+    table_name VARCHAR(255) NOT NULL,
+    field VARCHAR(255) NOT NULL,
+    level VARCHAR(100) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    check_type VARCHAR(100) NOT NULL,
+    value TEXT,
+    threshold FLOAT DEFAULT 1.0,
+    execute BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+```
+
+### Schema Registry Table Structure
+
+```sql
+CREATE TABLE schema_registry (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    environment VARCHAR(50) NOT NULL,
+    source_type VARCHAR(50) NOT NULL,
+    database_name VARCHAR(255) NOT NULL,
+    catalog_name VARCHAR(255),
+    schema_name VARCHAR(255),
+    table_name VARCHAR(255) NOT NULL,
+    field VARCHAR(255) NOT NULL,
+    data_type VARCHAR(100) NOT NULL,
+    nullable BOOLEAN DEFAULT TRUE,
+    max_length INTEGER,
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+```
+
+## 🏗️ Architecture
+
+Sumeh follows a modular, dispatcher-based architecture:
 
 ```
 sumeh/
-├── poetry.lock
-├── pyproject.toml
-├── README.md
-└── sumeh
-    ├── __init__.py
-    ├── cli.py
-    ├── core.py
-    ├── engine
-    │   ├── __init__.py
-    │   ├── bigquery_engine.py
-    │   ├── dask_engine.py
-    │   ├── duckdb_engine.py
-    │   ├── pandas_engine.py
-    │   ├── polars_engine.py
-    │   └── pyspark_engine.py
-    └── services
-        ├── __init__.py
-        ├── config.py
-        ├── index.html
-        └── utils.py
+├── cli/                    # Command-line interface
+├── core/                   # Core framework
+│   ├── rules/             # Rule definitions & registry
+│   │   ├── manifest.json  # 60+ validation rules
+│   │   ├── rule_model.py  # RuleDef class
+│   │   └── regristry.py   # Rule registry
+│   ├── __init__.py        # Dispatchers (validate, summarize, etc.)
+│   ├── config.py          # Multi-source configuration
+│   ├── report.py          # Legacy cuallee integration
+│   └── utils.py           # Utilities
+├── engines/               # Engine implementations
+│   ├── pandas_engine.py   # Pandas backend
+│   ├── pyspark_engine.py  # PySpark backend  
+│   ├── dask_engine.py     # Dask backend
+│   ├── polars_engine.py   # Polars backend
+│   ├── duckdb_engine.py   # DuckDB backend
+│   └── bigquery_engine.py # BigQuery backend (stub)
+├── dash/                  # Streamlit dashboard
+└── generators/            # SQL generation utilities
+```
 
+### Key Components
+
+- **Dispatchers**: Clean API for engine-specific operations (`validate.pandas()`, `summarize.pyspark()`)
+- **RuleDef**: Type-safe rule definitions with auto-validation
+- **Rule Registry**: Centralized manifest of 60+ validation rules
+- **Multi-source Config**: Load rules from CSV, S3, MySQL, PostgreSQL, BigQuery, etc.
+- **Schema Validation**: Extract and validate DataFrame schemas
+- **Engine Abstraction**: Consistent interface across all backends
+
+## 🔍 Row-Level vs Table-Level Validations
+
+Sumeh supports **two types** of validation rules:
+
+### 🔸 **Row-Level Validations**
+Validate individual rows and return violating records:
+
+```python
+# Examples of row-level rules
+row_rules = [
+    {"field": "email", "check_type": "is_complete", "level": "ROW"},
+    {"field": "age", "check_type": "is_between", "value": "[18,120]", "level": "ROW"},
+    {"field": "status", "check_type": "is_contained_in", "value": "['active','inactive']", "level": "ROW"}
+]
+
+# Returns: DataFrame with violating rows + dq_status column
+df_errors, violations, _ = validate.pandas(df, row_rules)
+```
+
+#### 🌊 **Spark Structured Streaming Support**
+Row-level validations are **fully compatible** with Spark Structured Streaming for real-time data quality:
+
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+from sumeh import validate
+
+spark = SparkSession.builder.getOrCreate()
+
+# Create streaming DataFrame
+streaming_df = spark \
+    .readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("subscribe", "events") \
+    .load()
+
+# Apply row-level validation to streaming data
+row_rules = [
+    {"field": "user_id", "check_type": "is_complete", "level": "ROW"},
+    {"field": "event_type", "check_type": "is_contained_in", "value": "['click','view','purchase']", "level": "ROW"}
+]
+
+# Validate streaming data
+validated_stream = validate.pyspark(spark, streaming_df, row_rules)
+
+# Write violations to output sink
+query = validated_stream[0] \
+    .writeStream \
+    .outputMode("append") \
+    .format("console") \
+    .start()
+```
+
+> **Note**: Table-level validations require complete datasets and are not compatible with streaming.
+
+### 🔸 **Table-Level Validations**  
+Validate aggregate statistics and return summary metrics:
+
+```python
+# Examples of table-level rules
+table_rules = [
+    {"field": "salary", "check_type": "has_mean", "value": 50000, "level": "TABLE"},
+    {"field": "department", "check_type": "has_cardinality", "value": 5, "level": "TABLE"},
+    {"field": "score", "check_type": "has_max", "value": 100, "level": "TABLE"},
+    {"field": "rating", "check_type": "has_std", "value": 2.0, "level": "TABLE"}
+]
+
+# Returns: Summary DataFrame with PASS/FAIL status
+_, _, table_summary = validate.pandas(df, table_rules)
+```
+
+### 🔸 **Available Table-Level Rules**
+
+| Rule | Description | Example |
+|------|-------------|----------|
+| `has_min` | Minimum value check | `{"field": "age", "check_type": "has_min", "value": 18}` |
+| `has_max` | Maximum value check | `{"field": "score", "check_type": "has_max", "value": 100}` |
+| `has_mean` | Average value check | `{"field": "salary", "check_type": "has_mean", "value": 50000}` |
+| `has_std` | Standard deviation check | `{"field": "ratings", "check_type": "has_std", "value": 2.0}` |
+| `has_sum` | Total sum check | `{"field": "revenue", "check_type": "has_sum", "value": 1000000}` |
+| `has_cardinality` | Distinct count check | `{"field": "categories", "check_type": "has_cardinality", "value": 10}` |
+| `has_entropy` | Data entropy check | `{"field": "distribution", "check_type": "has_entropy", "value": 2.5}` |
+| `has_infogain` | Information gain check | `{"field": "features", "check_type": "has_infogain", "value": 0.8}` |
+
+## 🚀 CLI Usage
+
+Sumeh includes a powerful CLI built with **Typer** for validation workflows:
+
+### Core Commands
+
+```bash
+# Install with CLI support
+pip install sumeh
+
+# Initialize new project
+sumeh init my-project
+
+# Validate data with rules
+sumeh validate --data data.csv --rules rules.csv --engine pandas
+
+# Get version and system info
+sumeh info
+
+# Manage rules
+sumeh rules list                    # List available rules
+sumeh rules info is_complete        # Get rule details
+sumeh rules search "date"           # Search rules by keyword
+sumeh rules template                # Generate rule template
+
+# Schema operations
+sumeh schema extract --data data.csv --output schema.json
+sumeh schema validate --data data.csv --registry schema_registry.csv
+
+# Generate SQL DDL for 17+ dialects
+sumeh sql generate --table rules --dialect postgres
+sumeh sql generate --table schema_registry --dialect bigquery
+sumeh sql transpile --sql "SELECT * FROM users" --from postgres --to bigquery
+
+# Web configuration UI
+sumeh config --port 8080
+```
+
+### Available CLI Commands
+
+| Command | Description | Example |
+|---------|-------------|----------|
+| `init` | Initialize new Sumeh project | `sumeh init my-project` |
+| `validate` | Run data validation | `sumeh validate --data data.csv --rules rules.csv` |
+| `info` | Show version and system info | `sumeh info` |
+| `rules` | Manage validation rules | `sumeh rules list` |
+| `schema` | Schema operations | `sumeh schema extract --data data.csv` |
+| `sql` | Generate/transpile SQL | `sumeh sql generate --table rules --dialect mysql` |
+| `config` | Launch web configuration UI | `sumeh config --port 8080` |
+
+## 📊 Dashboard
+
+Optional Streamlit dashboard for interactive validation:
+
+```bash
+# Install dashboard dependencies
+pip install sumeh[dashboard]
+
+# Launch dashboard
+sumeh dashboard --port 8501
+```
+
+## 🔧 Advanced Usage
+
+### Custom Rule Development
+```python
+from sumeh.core.rules import RuleDef, RuleRegistry
+
+# Check available rules
+print(RuleRegistry.list_rules())
+
+# Get rule details
+rule_info = RuleRegistry.get_rule("is_complete")
+print(rule_info["description"])
+
+# Check engine compatibility
+print(RuleRegistry.is_rule_supported("has_pattern", "duckdb"))  # True
+```
+
+### Performance Optimization
+```python
+# Filter rules by engine compatibility
+rules = get_rules_config.csv("rules.csv")
+compatible_rules = [r for r in rules if r.is_supported_by_engine("polars")]
+
+# Skip disabled rules
+active_rules = [r for r in rules if r.execute]
+
+# Level-specific validation
+row_rules = [r for r in rules if r.is_applicable_for_level("ROW")]
+table_rules = [r for r in rules if r.is_applicable_for_level("TABLE")]
+```
+
+### BigQuery Engine Features
+
+The BigQuery engine is **fully implemented** with advanced SQL generation using **SQLGlot**:
+
+```python
+from sumeh import validate
+from google.cloud import bigquery
+
+# BigQuery validation with automatic SQL generation
+client = bigquery.Client(project="my-project")
+table_ref = "my-project.my_dataset.my_table"
+
+# Supports all 60+ validation rules
+rules = [
+    {"field": "email", "check_type": "has_pattern", "value": r"^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$"},
+    {"field": "created_at", "check_type": "is_past_date"},
+    {"field": "status", "check_type": "is_contained_in", "value": "['active','inactive']"},
+    {"field": "revenue", "check_type": "has_mean", "value": 100000, "level": "TABLE"}
+]
+
+# Execute validation directly on BigQuery
+df_errors, violations, table_summary = validate.bigquery(client, table_ref, rules)
 ```
 
 ## 📈 Roadmap
 
-- [ ] Complete BigQuery engine implementation
-- ✅ Complete Pandas engine implementation
-- ✅ Enhanced documentation
-- ✅ More validation rule types
-- [ ] Performance optimizations
+- ✅ **Dispatcher architecture**: Clean API with engine-specific dispatchers
+- ✅ **60+ validation rules** across all engines
+- ✅ **Multi-source configuration** (CSV, S3, MySQL, PostgreSQL, BigQuery, etc.)
+- ✅ **Type-safe rule definitions** with auto-validation
+- ✅ **Schema extraction & validation**
+- ✅ **Complete BigQuery engine** implementation with SQLGlot
+- ✅ **CLI with Typer**: 7 commands (validate, init, info, rules, schema, sql, config)
+- ✅ **Row-level vs Table-level** validation distinction
+- ✅ **SQL DDL generators** for 17+ dialects
+- ✅ **Web configuration UI** for interactive setup
+- 🔧 **Performance optimizations** & caching
+- ✅ **Real-time streaming validation** (PySpark Structured Streaming)
+- 🔧 **Plugin architecture** for custom engines
 
 ## 🤝 Contributing
 
-1. Fork & create a feature branch  
-2. Implement new checks or engines, following existing signatures  
-3. Add tests under `tests/`  
-4. Open a PR and ensure CI passes
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Implement** following existing patterns:
+   - Add rules to `manifest.json`
+   - Implement in all engines
+   - Add comprehensive tests
+4. **Test**: `pytest tests/`
+5. **Submit** a Pull Request
+
+### Development Setup
+```bash
+git clone https://github.com/maltzsama/sumeh.git
+cd sumeh
+poetry install --with dev
+poetry run pytest
+```
 
 ## 📜 License
 
 Licensed under the [Apache License 2.0](LICENSE).
+
+---
+
+**Built with ❤️ by the Sumeh team**
