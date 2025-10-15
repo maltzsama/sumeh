@@ -1,5 +1,10 @@
-![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Build Status](https://github.com/maltzsama/sumeh/workflows/Publish%20Python%20Package/badge.svg)](https://github.com/maltzsama/sumeh/actions)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg?logo=open-source-initiative&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+[![Coverage](https://codecov.io/gh/maltzsama/sumeh/branch/main/graph/badge.svg)](https://codecov.io/gh/maltzsama/sumeh)
+[![Downloads](https://img.shields.io/pypi/dm/sumeh?logo=pypi&logoColor=white)](https://pypi.org/project/sumeh/)
+[![PyPI Version](https://img.shields.io/pypi/v/sumeh?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/sumeh/)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/maltzsama/sumeh/releases)
 
 # <h1 style="display: flex; align-items: center; gap: 0.5rem;"><img src="https://raw.githubusercontent.com/maltzsama/sumeh/refs/heads/main/docs/img/sumeh.svg" alt="Logo" style="height: 40px; width: auto; vertical-align: middle;" /> <span>Sumeh DQ</span> </h1>
 
