@@ -68,7 +68,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          poetry install --with dev,pyspark,bigquery,aws,postgresql,mysql
+          poetry install --with dev --all-extras
           pytest --cov=sumeh --cov-report=xml
 
       - name: Upload coverage to Codecov
