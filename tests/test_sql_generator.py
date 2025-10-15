@@ -1,6 +1,7 @@
 """Tests for SQL DDL generation."""
 
 import pytest
+
 from sumeh.generators import SQLGenerator
 
 

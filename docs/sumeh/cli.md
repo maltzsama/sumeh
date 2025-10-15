@@ -1,3 +1,3 @@
-# cli
+# CLI
 
 ::: sumeh.cli

@@ -1,0 +1,281 @@
+{
+  "validation_framework": {
+    "version": "1.0.0",
+    "description": "Sumeh Data Quality Validation Framework — definition of all supported rules, grouped by level, category and engine compatibility.",
+    "engines_supported": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"],
+
+    "levels": {
+      "row_level": {
+        "description": "Validations applied at the record/row level (each data point is evaluated individually).",
+        "categories": {
+          "completeness": {
+            "description": "Checks that ensure fields are populated (not null).",
+            "rules": {
+              "is_complete": {
+                "description": "Filters rows where the column value is null.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "are_complete": {
+                "description": "Filters rows where any of the specified columns are null.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "uniqueness": {
+            "description": "Checks for unique or primary key constraints.",
+            "rules": {
+              "is_unique": {
+                "description": "Identifies rows with duplicate values in the specified column.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "are_unique": {
+                "description": "Identifies rows with duplicate combinations of specified columns.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_primary_key": {
+                "description": "Alias for is_unique (checks uniqueness of a single column).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_composite_key": {
+                "description": "Alias for are_unique (checks combined uniqueness of multiple columns).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "comparison": {
+            "description": "Value comparison operations against thresholds or other columns.",
+            "rules": {
+              "is_equal": {
+                "description": "Checks if value equals specified threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_equal_than": {
+                "description": "Checks if value equals another column's value.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_between": {
+                "description": "Checks if value is within specified range (inclusive).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_greater_than": {
+                "description": "Checks if value is greater than specified threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_less_than": {
+                "description": "Checks if value is less than specified threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_greater_or_equal_than": {
+                "description": "Checks if value is greater than or equal to specified threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_less_or_equal_than": {
+                "description": "Checks if value is less than or equal to specified threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_positive": {
+                "description": "Checks if numeric value is positive (> 0).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_negative": {
+                "description": "Checks if numeric value is negative (< 0).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_in_millions": {
+                "description": "Checks if numeric value is in millions range.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_in_billions": {
+                "description": "Checks if numeric value is in billions range.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "membership": {
+            "description": "Checks for value membership in sets or lists.",
+            "rules": {
+              "is_contained_in": {
+                "description": "Checks if value is contained within specified list.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "not_contained_in": {
+                "description": "Checks if value is not contained within specified list.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_in": {
+                "description": "Alias for is_contained_in.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "not_in": {
+                "description": "Alias for not_contained_in.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "pattern": {
+            "description": "Pattern matching and format validation checks.",
+            "rules": {
+              "has_pattern": {
+                "description": "Validates if value matches specified regex pattern.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_legit": {
+                "description": "Validates if value meets legitimacy criteria (custom business rules).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "date": {
+            "description": "Date and time specific validations.",
+            "rules": {
+              "is_today": {
+                "description": "Checks if date is today's date.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_t_minus_1": {
+                "description": "Checks if date is yesterday (today - 1 day).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_past_date": {
+                "description": "Checks if date is in the past (before today).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_weekday": {
+                "description": "Checks if date falls on a weekday (Monday-Friday).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_weekend": {
+                "description": "Checks if date falls on a weekend (Saturday-Sunday).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "validate_date_format": {
+                "description": "Validates if date string matches expected format.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_future_date": {
+                "description": "Checks if date is in the future (after today).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_date_between": {
+                "description": "Checks if date falls within specified date range.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_date_after": {
+                "description": "Checks if date is after specified date.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_date_before": {
+                "description": "Checks if date is before specified date.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_t_minus_2": {
+                "description": "Checks if date is today - 2 days.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_t_minus_3": {
+                "description": "Checks if date is today - 3 days.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_yesterday": {
+                "description": "Alias for is_t_minus_1.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_monday": {
+                "description": "Checks if date falls on a Monday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_tuesday": {
+                "description": "Checks if date falls on a Tuesday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_wednesday": {
+                "description": "Checks if date falls on a Wednesday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_thursday": {
+                "description": "Checks if date falls on a Thursday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_friday": {
+                "description": "Checks if date falls on a Friday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_saturday": {
+                "description": "Checks if date falls on a Saturday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "is_on_sunday": {
+                "description": "Checks if date falls on a Sunday.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "all_date_checks": {
+                "description": "Runs comprehensive date validation suite.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "sql": {
+            "description": "SQL-based custom validation rules.",
+            "rules": {
+              "satisfies": {
+                "description": "Validates if row satisfies custom SQL condition.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          }
+        }
+      },
+      "table_level": {
+        "description": "Validations applied to entire tables (aggregate metrics or global checks).",
+        "categories": {
+          "aggregation": {
+            "description": "Checks that aggregate statistics match expected thresholds.",
+            "rules": {
+              "has_min": {
+                "description": "Validates that the column's minimum meets the expected threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_max": {
+                "description": "Validates that the column's maximum meets the expected threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_sum": {
+                "description": "Validates that the sum of the column meets the expected threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_mean": {
+                "description": "Validates that the average value of the column meets the expected threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_std": {
+                "description": "Validates that the column's standard deviation meets the expected threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_cardinality": {
+                "description": "Validates that the number of distinct values meets the expected threshold.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_entropy": {
+                "description": "Validates that column entropy (information disorder) is within expected bounds.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              },
+              "has_infogain": {
+                "description": "Validates information gain metric (proxy for column variability).",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          },
+          "schema": {
+            "description": "Schema-level checks ensuring structure and metadata consistency.",
+            "rules": {
+              "validate_schema": {
+                "description": "Compares DataFrame schema against expected definitions.",
+                "engines": ["bigquery", "pyspark", "pandas", "polars", "duckdb", "dask"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

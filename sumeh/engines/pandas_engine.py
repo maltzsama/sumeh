@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides a set of data quality validation functions using the Pandas library.
-It includes various checks for data validation, such as completeness, uniqueness, range checks,
-pattern matching, date validations, SQL-style custom expressions, and schema validation.
+Pandas engine for data quality validation.
+
+Provides row-level and table-level validation functions for pandas DataFrames,
+including completeness, uniqueness, range checks, pattern matching, date validations,
+SQL-style custom expressions, and schema validation.
 
 Functions:
     is_positive: Filters rows where the specified field is less than zero.
@@ -112,23 +114,23 @@ Functions:
 
     validate_schema: Validates the schema of a DataFrame against an expected schema and returns a boolean result and a list of errors.
 """
-import warnings
 import re
+import warnings
+from datetime import date, timedelta
+from typing import List, Dict, Any, Tuple, Optional
+
+import numpy as np
 import pandas as pd
-from datetime import datetime, date, timedelta
+
+from sumeh.core.rules.rule_model import RuleDef
 from sumeh.core.utils import (
     __convert_value,
-    __extract_params,
     __compare_schemas,
     __transform_date_format_in_pattern,
 )
 
-from typing import List, Dict, Any, Tuple
-import uuid
-import numpy as np
 
-
-def is_positive(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_positive(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Identifies rows in a DataFrame where the specified field contains negative values.
 
@@ -142,21 +144,20 @@ def is_positive(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame containing only the rows where the specified field has negative values.
                       An additional column 'dq_status' is added to indicate the rule violation in the format
-                      "{field}:{check}:{value}".
+                      "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] < 0].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol = df[df[rule.field] < 0].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_negative(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_negative(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to identify rows where a specified field does not satisfy a "negative" condition.
 
     Args:
         df (pd.DataFrame): The input DataFrame to be checked.
-        rule (dict): A dictionary containing the rule parameters. It is expected to include:
+        rule (RuleDef): A dictionary containing the rule parameters. It is expected to include:
             - 'field': The column name in the DataFrame to check.
             - 'check': The type of check being performed (e.g., "negative").
             - 'value': Additional value associated with the rule (not used in this function).
@@ -164,15 +165,14 @@ def is_negative(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A new DataFrame containing rows where the specified field is non-negative (>= 0).
                       An additional column 'dq_status' is added to indicate the rule violation in the format
-                      "{field}:{check}:{value}".
+                      "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] >= 0].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol = df[df[rule.field] >= 0].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_complete(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_complete(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Checks for missing values in a specified field of a DataFrame based on a given rule.
 
@@ -187,13 +187,12 @@ def is_complete(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A DataFrame containing rows where the specified field has missing values.
                       An additional column 'dq_status' is added to indicate the rule that was violated.
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field].isna()].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol = df[df[rule.field].isna()].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_unique(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_unique(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Checks for duplicate values in a specified field of a DataFrame based on a rule.
 
@@ -208,14 +207,13 @@ def is_unique(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       to indicate the field, check type, and value associated with
                       the rule.
     """
-    field, check, value = __extract_params(rule)
-    dup = df[field].duplicated(keep=False)
+    dup = df[rule.field].duplicated(keep=False)
     viol = df[dup].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def are_complete(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def are_complete(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Checks for completeness of specified fields in a DataFrame based on a given rule.
 
@@ -237,14 +235,15 @@ def are_complete(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         The returned DataFrame includes all original columns and an additional column
         `dq_status` that describes the rule violation in the format "fields:check:value".
     """
-    fields, check, value = __extract_params(rule)
+
+    fields = rule.field if isinstance(rule.field, list) else [rule.field]
     mask = df[fields].isna().any(axis=1)
     viol = df[mask].copy()
-    viol["dq_status"] = f"{fields}:{check}:{value}"
+    viol["dq_status"] = f"{fields}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def are_unique(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def are_unique(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Checks for duplicate rows in the specified fields of a DataFrame based on a given rule.
 
@@ -260,15 +259,15 @@ def are_unique(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       An additional column 'dq_status' is added to indicate the rule
                       that was violated in the format "{fields}:{check}:{value}".
     """
-    fields, check, value = __extract_params(rule)
+    fields = rule.field if isinstance(rule.field, list) else [rule.field]
     combo = df[fields].astype(str).agg("|".join, axis=1)
     dup = combo.duplicated(keep=False)
     viol = df[dup].copy()
-    viol["dq_status"] = f"{fields}:{check}:{value}"
+    viol["dq_status"] = f"{fields}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_greater_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_greater_than(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to return rows where a specified field's value is greater than a given threshold.
 
@@ -283,13 +282,13 @@ def is_greater_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A new DataFrame containing rows where the specified field's value is greater than the given threshold.
                       An additional column 'dq_status' is added to indicate the rule applied in the format "field:check:value".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] <= value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+
+    viol = df[df[rule.field] <= rule.value].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_greater_or_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_greater_or_equal_than(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the value in a specified field
     is greater than or equal to a given threshold. Adds a 'dq_status' column to
@@ -306,13 +305,12 @@ def is_greater_or_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A new DataFrame containing only the rows that satisfy the rule,
         with an additional 'dq_status' column describing the rule applied.
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] < value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol = df[df[rule.field] < rule.value].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_less_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_less_than(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to return rows where a specified field's value is less than a given threshold.
 
@@ -328,13 +326,13 @@ def is_less_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         is less than the given threshold. An additional column 'dq_status' is added to indicate
         the rule applied in the format "field:check:value".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] >= value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+
+    viol = df[df[rule.field] >= rule.value].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_less_or_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_less_or_equal_than(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters rows in a DataFrame where the value in a specified field is less than or equal to a given value.
 
@@ -348,15 +346,15 @@ def is_less_or_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A new DataFrame containing only the rows that satisfy the condition.
                       An additional column 'dq_status' is added to indicate the rule applied
-                      in the format "{field}:{check}:{value}".
+                      in the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] > value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+
+    viol = df[df[rule.field] > rule.value].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_equal(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_equal(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to identify rows where the value in a specified field
     does not match a given value, and annotates these rows with a data quality status.
@@ -371,15 +369,15 @@ def is_equal(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame containing rows that do not satisfy the equality check.
         An additional column 'dq_status' is added to indicate the data quality status
-        in the format "{field}:{check}:{value}".
+        in the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] != value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+
+    viol = df[df[rule.field] != rule.value].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_equal_than(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Compares the values in a DataFrame against a specified rule and returns the result.
 
@@ -396,7 +394,7 @@ def is_equal_than(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return is_equal(df, rule)
 
 
-def is_contained_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_contained_in(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to identify rows where the values in a specified field
     are not contained within a given set of values.
@@ -415,16 +413,16 @@ def is_contained_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       'dq_status' is added to indicate the rule violation in
                       the format "field:check:value".
     """
-    field, check, value = __extract_params(rule)
-    vals = re.findall(r"'([^']*)'", str(value)) or [
-        v.strip() for v in str(value).strip("[]").split(",")
+
+    vals = re.findall(r"'([^']*)'", str(rule.value)) or [
+        v.strip() for v in str(rule.value).strip("[]").split(",")
     ]
-    viol = df[~df[field].isin(vals)].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol = df[~df[rule.field].isin(vals)].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_in(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Checks if the values in a DataFrame satisfy a given rule by delegating
     the operation to the `is_contained_in` function.
@@ -439,7 +437,7 @@ def is_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return is_contained_in(df, rule)
 
 
-def not_contained_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def not_contained_in(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to return rows where the specified field contains values
     that are not allowed according to the provided rule.
@@ -454,18 +452,17 @@ def not_contained_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame containing rows that violate the rule. An additional
         column 'dq_status' is added to indicate the rule violation in the format
-        "{field}:{check}:{value}".
+        "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    vals = re.findall(r"'([^']*)'", str(value)) or [
-        v.strip() for v in str(value).strip("[]").split(",")
+    vals = re.findall(r"'([^']*)'", str(rule.value)) or [
+        v.strip() for v in str(rule.value).strip("[]").split(",")
     ]
-    viol = df[df[field].isin(vals)].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol = df[df[rule.field].isin(vals)].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def not_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def not_in(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame by excluding rows that match the specified rule.
 
@@ -482,7 +479,7 @@ def not_in(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return not_contained_in(df, rule)
 
 
-def is_between(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_between(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to identify rows where a specified field's values are not within a given range.
 
@@ -497,14 +494,14 @@ def is_between(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A DataFrame containing rows that violate the range condition.
                       An additional column 'dq_status' is added to indicate the rule violation in the format 'field:check:value'.
     """
-    field, check, value = __extract_params(rule)
-    lo, hi = [__convert_value(x) for x in str(value).strip("[]").split(",")]
-    viol = df[~df[field].between(lo, hi)].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+
+    lo, hi = [__convert_value(x) for x in str(rule.value).strip("[]").split(",")]
+    viol = df[~df[rule.field].between(lo, hi)].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def has_pattern(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_pattern(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Checks if the values in a specified column of a DataFrame match a given pattern.
 
@@ -520,13 +517,13 @@ def has_pattern(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       An additional column 'dq_status' is added to indicate the
                       field, check, and pattern that caused the violation.
     """
-    field, check, pattern = __extract_params(rule)
-    viol = df[~df[field].astype(str).str.contains(pattern, na=False)].copy()
-    viol["dq_status"] = f"{field}:{check}:{pattern}"
+
+    viol = df[~df[rule.field].astype(str).str.contains(rule.value, na=False)].copy()
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_legit(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_legit(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Validates a DataFrame against a specified rule and identifies rows that violate the rule.
 
@@ -539,16 +536,18 @@ def is_legit(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame containing rows that violate the rule. An additional
                       column 'dq_status' is added to indicate the field, check, and value
-                      that caused the violation in the format "{field}:{check}:{value}".
+                      that caused the violation in the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    mask = df[field].notna() & df[field].astype(str).str.contains(r"^\S+$", na=False)
+
+    mask = df[rule.field].notna() & df[rule.field].astype(str).str.contains(
+        r"^\S+$", na=False
+    )
     viol = df[~mask].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def has_max(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_max(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Identifies rows in a DataFrame where the value in a specified field exceeds a given maximum value.
 
@@ -563,13 +562,47 @@ def has_max(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A DataFrame containing rows that violate the rule, with an additional column
         'dq_status' indicating the rule violation in the format "field:check:value".
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] > value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
-    return viol
+
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_max",
+        }
+
+    try:
+        actual = float(df[field].max())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            max_expected = expected * threshold
+            passed = actual <= max_expected
+            msg = f"Max {actual:.2f} > maximum {max_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual <= expected
+            msg = f"Max {actual:.2f} > expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
-def has_min(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_min(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to identify rows where a specified field's value is less than a given threshold.
 
@@ -584,171 +617,440 @@ def has_min(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A new DataFrame containing rows that violate the rule, with an additional
         column 'dq_status' indicating the field, check type, and threshold value.
     """
-    field, check, value = __extract_params(rule)
-    viol = df[df[field] < value].copy()
-    viol["dq_status"] = f"{field}:{check}:{value}"
-    return viol
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_min",
+        }
+
+    try:
+        actual = float(df[field].min())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Min {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Min {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
-def has_std(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_std(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
-    Checks if the standard deviation of a specified field in the DataFrame exceeds a given value.
-
-    Parameters:
-        df (pd.DataFrame): The input DataFrame to evaluate.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field': The column name in the DataFrame to calculate the standard deviation for.
-            - 'check': A string representing the type of check (not used in the logic but included in the output).
-            - 'value': A numeric threshold to compare the standard deviation against.
-
-    Returns:
-        pd.DataFrame:
-            - If the standard deviation of the specified field exceeds the given value,
-              returns a copy of the DataFrame with an additional column 'dq_status' indicating the rule details.
-            - If the standard deviation does not exceed the value, returns an empty DataFrame with the same structure as the input.
-    """
-    field, check, value = __extract_params(rule)
-    std_val = df[field].std(skipna=True) or 0.0
-    if std_val > value:
-        out = df.copy()
-        out["dq_status"] = f"{field}:{check}:{value}"
-        return out
-    return df.iloc[0:0].copy()
-
-
-def has_mean(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
-    """
-    Checks if the mean of a specified column in a DataFrame satisfies a given condition.
-
-    Parameters:
-        df (pd.DataFrame): The input DataFrame to evaluate.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field' (str): The column name to calculate the mean for.
-            - 'check' (str): The condition to check (e.g., 'greater_than').
-            - 'value' (float): The threshold value to compare the mean against.
-
-    Returns:
-        pd.DataFrame: A copy of the input DataFrame with an additional column 'dq_status'
-        if the condition is met. The 'dq_status' column contains a string in the format
-        "{field}:{check}:{value}". If the condition is not met, an empty DataFrame is returned.
-    """
-    field, check, value = __extract_params(rule)
-    mean_val = df[field].mean(skipna=True) or 0.0
-    if mean_val > value:
-        out = df.copy()
-        out["dq_status"] = f"{field}:{check}:{value}"
-        return out
-    return df.iloc[0:0].copy()
-
-
-def has_sum(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
-    """
-    Checks if the sum of values in a specified column of a DataFrame exceeds a given threshold.
+    Validates that the standard deviation of the specified column meets the expected threshold.
+    Supports both range-based validation (for thresholds < 1.0) and simple comparison.
 
     Args:
-        df (pd.DataFrame): The input DataFrame containing the data to be checked.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field' (str): The column name to calculate the sum for.
-            - 'check' (str): A descriptive label for the check (used in the output).
-            - 'value' (float): The threshold value to compare the sum against.
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate the standard deviation for.
+            - value (float): The expected standard deviation value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, creates an acceptable range around the expected value.
 
     Returns:
-        pd.DataFrame:
-            - If the sum of the specified column exceeds the threshold, returns a copy of the input DataFrame
-              with an additional column 'dq_status' indicating the rule that was applied.
-            - If the sum does not exceed the threshold, returns an empty DataFrame with the same structure as the input.
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed standard deviation
+            - message (str): Description of failure or error, None if passed
     """
-    field, check, value = __extract_params(rule)
-    sum_val = df[field].sum(skipna=True) or 0.0
-    if sum_val > value:
-        out = df.copy()
-        out["dq_status"] = f"{field}:{check}:{value}"
-        return out
-    return df.iloc[0:0].copy()
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_std",
+        }
+
+    try:
+        actual = float(df[field].std())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_val = expected * threshold
+            max_val = expected * (2 - threshold)
+            passed = min_val <= actual <= max_val
+            msg = f"Std {actual:.2f} outside range [{min_val:.2f}, {max_val:.2f}]"
+        else:
+            passed = actual >= expected
+            msg = f"Std {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
-def has_cardinality(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_mean(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
-    Checks if the cardinality (number of unique values) of a specified field in the DataFrame
-    exceeds a given value and returns a modified DataFrame if the condition is met.
-
-    Parameters:
-        df (pd.DataFrame): The input DataFrame to check.
-        rule (dict): A dictionary containing the rule parameters. It should include:
-            - 'field': The column name in the DataFrame to check.
-            - 'check': The type of check being performed (e.g., 'cardinality').
-            - 'value': The threshold value for the cardinality.
-
-    Returns:
-        pd.DataFrame:
-            - If the cardinality of the specified field exceeds the given value,
-              a copy of the DataFrame is returned with an additional column 'dq_status'
-              indicating the field, check, and value.
-            - If the cardinality does not exceed the value, an empty DataFrame is returned.
-    """
-    field, check, value = __extract_params(rule)
-    card = df[field].nunique(dropna=True) or 0
-    if card > value:
-        out = df.copy()
-        out["dq_status"] = f"{field}:{check}:{value}"
-        return out
-    return df.iloc[0:0].copy()
-
-
-def has_infogain(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
-    """
-    Checks if the given DataFrame satisfies the information gain criteria
-    defined by the provided rule. This function internally delegates the
-    operation to the `has_cardinality` function.
+    Validates that the mean (average) value of the specified column meets the expected threshold.
+    Applies tolerance logic where threshold < 1.0 represents a percentage of the expected value.
 
     Args:
-        df (pd.DataFrame): The input DataFrame to be evaluated.
-        rule (dict): A dictionary defining the rule for information gain.
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate the mean for.
+            - value (float): The expected mean value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
 
     Returns:
-        pd.DataFrame: The resulting DataFrame after applying the rule.
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed mean
+            - message (str): Description of failure or error, None if passed
     """
-    return has_cardinality(df, rule)
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_mean",
+        }
+
+    try:
+        actual = float(df[field].mean())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Mean {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Mean {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
-def has_entropy(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_sum(df: pd.DataFrame, rule: RuleDef) -> dict:
     """
-    Checks if the given DataFrame satisfies a specific rule related to entropy.
-
-    This function is a wrapper around the `has_cardinality` function, delegating
-    the rule-checking logic to it.
+    Validates that the sum of values in the specified column meets the expected threshold.
+    Applies tolerance logic where threshold < 1.0 represents a percentage of the expected value.
 
     Args:
-        df (pd.DataFrame): The input DataFrame to be evaluated.
-        rule (dict): A dictionary containing the rule to be applied.
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate the sum for.
+            - value (float): The expected sum value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
 
     Returns:
-        pd.DataFrame: The resulting DataFrame after applying the rule.
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed sum
+            - message (str): Description of failure or error, None if passed
     """
-    return has_cardinality(df, rule)
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_sum",
+        }
+
+    try:
+        actual = float(df[field].sum())
+        expected = float(expected)
+
+        if threshold < 1.0:
+            min_expected = expected * threshold
+            passed = actual >= min_expected
+            msg = f"Sum {actual:.2f} < minimum {min_expected:.2f} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Sum {actual:.2f} < expected {expected:.2f}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
 
 
-def satisfies(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def has_cardinality(df: pd.DataFrame, rule: RuleDef) -> dict:
+    """
+    Validates that the number of distinct values (cardinality) in the specified column
+    meets the expected threshold. Applies tolerance logic for partial matches.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate cardinality for.
+            - value (int): The expected number of distinct values to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
+
+    Returns:
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (int): The expected threshold value
+            - actual (int): The actual computed cardinality
+            - message (str): Description of failure or error, None if passed
+    """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_cardinality",
+        }
+
+    try:
+        actual = int(df[field].nunique())
+        expected = int(expected)
+
+        if threshold < 1.0:
+            min_expected = int(expected * threshold)
+            passed = actual >= min_expected
+            msg = f"Cardinality {actual} < minimum {min_expected} ({threshold * 100}% of {expected})"
+        else:
+            passed = actual >= expected
+            msg = f"Cardinality {actual} < expected {expected}"
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": None if passed else msg,
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+
+def has_infogain(df: pd.DataFrame, rule: RuleDef) -> dict:
+    """
+    Validates the information gain of the specified column.
+    Information gain measures how much useful variability the column possesses.
+    Calculated as normalized entropy by the maximum possible entropy.
+
+    Value ranges from 0 to 1:
+    - 1.0 = perfectly uniform distribution (maximum information)
+    - 0.0 = all values are identical (no information)
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate information gain for.
+            - value (float): The expected information gain value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
+
+    Returns:
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed information gain
+            - message (str): Description of failure or error, None if passed
+    """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined",
+        }
+
+    try:
+        # Calculate current entropy
+        value_counts = df[field].value_counts()
+        probabilities = value_counts / len(df)
+        entropy = -np.sum(probabilities * np.log2(probabilities + 1e-10))
+
+        # Calculate maximum possible entropy (uniform distribution)
+        n_unique = len(value_counts)
+        max_entropy = np.log2(n_unique) if n_unique > 1 else 1.0
+
+        # Normalized information gain (0 to 1)
+        info_gain = entropy / max_entropy if max_entropy > 0 else 0.0
+        actual = float(info_gain)
+
+        min_acceptable = expected * threshold
+        passed = actual >= min_acceptable
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": (
+                None
+                if passed
+                else f"Info gain {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+            ),
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+
+def has_entropy(df: pd.DataFrame, rule: RuleDef) -> dict:
+    """
+    Validates the Shannon entropy of the specified column.
+    Entropy measures the randomness/disorder in data distribution:
+    - High entropy = data is widely distributed across values
+    - Low entropy = data is concentrated in few values
+
+    Formula: H(X) = -Σ(p(x) * log2(p(x)))
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the data to be validated.
+        rule (RuleDef): A dictionary containing the rule parameters. It should include:
+            - field (str): The name of the column to calculate entropy for.
+            - value (float): The expected entropy value to validate against.
+            - threshold (float, optional): Tolerance threshold (default: 1.0).
+              If < 1.0, represents minimum acceptable percentage of expected value.
+
+    Returns:
+        dict: A dictionary containing validation results with keys:
+            - status (str): "PASS", "FAIL", or "ERROR"
+            - expected (float): The expected threshold value
+            - actual (float): The actual computed entropy
+            - message (str): Description of failure or error, None if passed
+    """
+    field = rule.field
+    expected = rule.value
+    threshold = rule.threshold if rule.threshold else 1.0
+
+    if expected is None:
+        return {
+            "status": "ERROR",
+            "expected": None,
+            "actual": None,
+            "message": "Expected value not defined for has_entropy",
+        }
+
+    try:
+        value_counts = df[field].value_counts()
+        total = len(df)
+        probabilities = value_counts / total
+        entropy = float(-np.sum(probabilities * np.log2(probabilities)))
+        actual = entropy
+        expected = float(expected)
+
+        min_acceptable = expected * threshold
+        passed = actual >= min_acceptable
+
+        return {
+            "status": "PASS" if passed else "FAIL",
+            "expected": expected,
+            "actual": actual,
+            "message": (
+                None
+                if passed
+                else f"Entropy {actual:.4f} < minimum {min_acceptable:.4f} (threshold: {threshold * 100:.0f}%)"
+            ),
+        }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "expected": expected,
+            "actual": None,
+            "message": f"Error: {str(e)}",
+        }
+
+
+def satisfies(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame based on a rule and returns rows that do not satisfy the rule.
 
     Args:
         df (pd.DataFrame): The input DataFrame to be evaluated.
-        rule (dict): A dictionary containing the rule to be applied. It is expected
-            to contain parameters that can be extracted using the `__extract_params` function.
+        rule (RuleDef): A dictionary containing the rule to be applied.
 
     Returns:
         pd.DataFrame: A DataFrame containing rows that do not satisfy the rule. An additional
         column `dq_status` is added to indicate the field, check, and expression that failed.
     """
-    field, check, expr = __extract_params(rule)
-    mask = df.eval(expr)
+    mask = df.eval(rule.value)
     viol = df[~mask].copy()
-    viol["dq_status"] = f"{field}:{check}:{expr}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def validate_date_format(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def validate_date_format(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Validates the date format of a specified field in a DataFrame against a given format.
 
@@ -764,15 +1066,17 @@ def validate_date_format(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       An additional column 'dq_status' is added to indicate the
                       validation status in the format "{field}:{check}:{fmt}".
     """
-    field, check, fmt = __extract_params(rule)
+    fmt = rule.value
     pattern = __transform_date_format_in_pattern(fmt)
-    mask = ~df[field].astype(str).str.match(pattern, na=False) | df[field].isna()
+    mask = (
+        ~df[rule.field].astype(str).str.match(pattern, na=False) | df[rule.field].isna()
+    )
     viol = df[mask].copy()
-    viol["dq_status"] = f"{field}:{check}:{fmt}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{fmt}"
     return viol
 
 
-def is_future_date(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_future_date(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Identifies rows in a DataFrame where the date in a specified field is in the future.
 
@@ -786,15 +1090,16 @@ def is_future_date(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       field is in the future. An additional column 'dq_status' is added to
                       indicate the field, check type, and the current date in ISO format.
     """
-    field, check, _ = __extract_params(rule)
-    today = date.today()
-    dates = pd.to_datetime(df[field], errors="coerce")
-    viol = df[dates > today].copy()
-    viol["dq_status"] = f"{field}:{check}:{today.isoformat()}"
-    return viol
+
+    field = rule.field
+    check = rule.check_type
+    value = rule.value
+    today = pd.Timestamp("today").normalize()
+    viol = df[df[field] > today]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
-def is_past_date(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_past_date(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Identifies rows in a DataFrame where the date in a specified column is in the past.
 
@@ -813,15 +1118,16 @@ def is_past_date(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
           Any invalid date entries will be coerced to NaT (Not a Time).
         - Rows with invalid or missing dates are excluded from the result.
     """
-    field, check, _ = __extract_params(rule)
-    today = date.today()
-    dates = pd.to_datetime(df[field], errors="coerce")
-    viol = df[dates < today].copy()
-    viol["dq_status"] = f"{field}:{check}:{today.isoformat()}"
-    return viol
+
+    field = rule.field
+    check = rule.check_type
+    value = rule.value
+    today = pd.Timestamp("today").normalize()
+    viol = df[df[field] < today]
+    return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
-def is_date_between(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_date_between(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters rows in a DataFrame where the values in a specified date column
     are not within a given date range.
@@ -842,18 +1148,18 @@ def is_date_between(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
                       additional column 'dq_status' is added to indicate the
                       rule that was violated.
     """
-    field, check, raw = __extract_params(rule)
-    start_str, end_str = [s.strip() for s in raw.strip("[]").split(",")]
+
+    start_str, end_str = [s.strip() for s in rule.value.strip("[]").split(",")]
     start = pd.to_datetime(start_str)
     end = pd.to_datetime(end_str)
-    dates = pd.to_datetime(df[field], errors="coerce")
+    dates = pd.to_datetime(df[rule.field], errors="coerce")
     mask = ~dates.between(start, end)
     viol = df[mask].copy()
-    viol["dq_status"] = f"{field}:{check}:{raw}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_date_after(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_date_after(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to return rows where a specified date field is earlier than a given target date.
 
@@ -869,15 +1175,15 @@ def is_date_after(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         than the target date. An additional column `dq_status` is added to indicate the rule that
         was violated in the format "{field}:{check}:{date_str}".
     """
-    field, check, date_str = __extract_params(rule)
-    target = pd.to_datetime(date_str)
-    dates = pd.to_datetime(df[field], errors="coerce")
+
+    target = pd.to_datetime(rule.value)
+    dates = pd.to_datetime(df[rule.field], errors="coerce")
     viol = df[dates < target].copy()
-    viol["dq_status"] = f"{field}:{check}:{date_str}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def is_date_before(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_date_before(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to identify rows where a date field is after a specified target date.
 
@@ -893,15 +1199,15 @@ def is_date_before(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         the target date. An additional column `dq_status` is added to indicate the rule that was
         violated in the format "{field}:{check}:{date_str}".
     """
-    field, check, date_str = __extract_params(rule)
-    target = pd.to_datetime(date_str)
-    dates = pd.to_datetime(df[field], errors="coerce")
+
+    target = pd.to_datetime(rule.value)
+    dates = pd.to_datetime(df[rule.field], errors="coerce")
     viol = df[dates > target].copy()
-    viol["dq_status"] = f"{field}:{check}:{date_str}"
+    viol["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return viol
 
 
-def all_date_checks(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def all_date_checks(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Applies all date-related validation checks on the given DataFrame based on the specified rule.
 
@@ -915,7 +1221,7 @@ def all_date_checks(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return is_past_date(df, rule)
 
 
-def is_in_millions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_in_millions(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters rows in the DataFrame where the specified field's value is greater than or equal to one million
     and adds a "dq_status" column with a formatted string indicating the rule applied.
@@ -931,13 +1237,13 @@ def is_in_millions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A new DataFrame containing rows where the specified field's value is >= 1,000,000.
                       Includes an additional "dq_status" column with the rule details.
     """
-    field, check, value = __extract_params(rule)
-    out = df[df[field] < 1_000_000].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+
+    out = df[df[rule.field] < 1_000_000].copy()
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_in_billions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_in_billions(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified field's value
     is greater than or equal to one billion, and adds a data quality status column.
@@ -952,15 +1258,15 @@ def is_in_billions(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A new DataFrame containing rows where the specified field's
         value is greater than or equal to one billion. Includes an additional
-        column `dq_status` with the format "{field}:{check}:{value}".
+        column `dq_status` with the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
-    out = df[df[field] < 1_000_000_000].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+
+    out = df[df[rule.field] < 1_000_000_000].copy()
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_today(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_today(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified date field matches today's date.
 
@@ -972,40 +1278,40 @@ def is_today(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A new DataFrame containing only the rows where the specified date field
                       matches today's date. An additional column "dq_status" is added to indicate
-                      the rule applied in the format "{field}:{check}:{value}".
+                      the rule applied in the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
+
     today = pd.Timestamp(date.today())
-    mask = df[field].dt.normalize() != today
+    mask = df[rule.field].dt.normalize() != today
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_yesterday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_yesterday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified date field matches yesterday's date.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing the data to filter.
-        rule (dict): A dictionary containing the rule parameters. It is expected to have
-                     keys that allow `__extract_params(rule)` to return the field name,
+        rule (RuleDef): A rule parameters. It is expected to have
+                      to return the field name,
                      check type, and value.
 
     Returns:
         pd.DataFrame: A filtered DataFrame containing only rows where the specified date field
                       matches yesterday's date. An additional column `dq_status` is added to
-                      indicate the data quality status in the format "{field}:{check}:{value}".
+                      indicate the data quality status in the format "{rule.field}:{rule.check_type}:{rule.value}".
     """
-    field, check, value = __extract_params(rule)
+
     target = pd.Timestamp(date.today() - timedelta(days=1))
-    mask = df[field].dt.normalize() != target
+    mask = df[rule.field].dt.normalize() != target
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_t_minus_2(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_t_minus_2(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified date field
     matches the date two days prior to the current date.
@@ -1020,15 +1326,15 @@ def is_t_minus_2(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         specified date field matches the target date (two days prior). An
         additional column "dq_status" is added to indicate the rule applied.
     """
-    field, check, value = __extract_params(rule)
+
     target = pd.Timestamp(date.today() - timedelta(days=2))
-    mask = df[field].dt.normalize() != target
+    mask = df[rule.field].dt.normalize() != target
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_t_minus_3(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_t_minus_3(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified date field
     matches the date three days prior to the current date.
@@ -1043,15 +1349,15 @@ def is_t_minus_3(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         specified date field matches the target date (three days prior). An
         additional column "dq_status" is added to indicate the rule applied.
     """
-    field, check, value = __extract_params(rule)
+
     target = pd.Timestamp(date.today() - timedelta(days=3))
-    mask = df[field].dt.normalize() != target
+    mask = df[rule.field].dt.normalize() != target
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_on_weekday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_weekday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified date field falls on a weekday
     (Monday to Friday) and adds a "dq_status" column indicating the rule applied.
@@ -1067,14 +1373,14 @@ def is_on_weekday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A filtered DataFrame containing only rows where the specified date field
         falls on a weekday, with an additional "dq_status" column describing the rule applied.
     """
-    field, check, value = __extract_params(rule)
-    mask = ~df[field].dt.dayofweek.between(0, 4)
+
+    mask = ~df[rule.field].dt.dayofweek.between(0, 4)
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_on_weekend(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_weekend(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the specified date field falls on a weekend
     (Saturday or Sunday) and adds a "dq_status" column indicating the rule applied.
@@ -1090,40 +1396,40 @@ def is_on_weekend(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
         pd.DataFrame: A new DataFrame containing only the rows where the specified date field
         falls on a weekend. Includes an additional "dq_status" column with the rule details.
     """
-    field, check, value = __extract_params(rule)
-    mask = ~df[field].dt.dayofweek.isin([5, 6])
+
+    mask = ~df[rule.field].dt.dayofweek.isin([5, 6])
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def _day_of_week(df: pd.DataFrame, rule: dict, dow: int) -> pd.DataFrame:
+def _day_of_week(df: pd.DataFrame, rule: RuleDef, dow: int) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the day of the week of a specified datetime field matches the given day.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing a datetime field.
-        rule (dict): A dictionary containing rule parameters. The function expects this to be parsed by `__extract_params`.
+        rule (RuleDef): A dictionary containing rule parameters.
         dow (int): The day of the week to filter by (0=Monday, 6=Sunday).
 
     Returns:
         pd.DataFrame: A filtered DataFrame containing only rows where the day of the week matches `dow`.
                       An additional column, "dq_status", is added to indicate the rule applied.
     """
-    field, check, value = __extract_params(rule)
-    mask = df[field].dt.dayofweek != dow
+
+    mask = df[rule.field].dt.dayofweek != dow
     out = df[mask].copy()
-    out["dq_status"] = f"{field}:{check}:{value}"
+    out["dq_status"] = f"{rule.field}:{rule.check_type}:{rule.value}"
     return out
 
 
-def is_on_monday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_monday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters the rows of a DataFrame based on whether a specific date column corresponds to a Monday.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing the data to be filtered.
-        rule (dict): A dictionary containing the filtering rules, including the column to check.
+        rule (RuleDef): A dictionary containing the filtering rules, including the column to check.
 
     Returns:
         pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column corresponds to a Monday.
@@ -1131,13 +1437,13 @@ def is_on_monday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 0)
 
 
-def is_on_tuesday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_tuesday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters the rows of a DataFrame based on whether a specific date column corresponds to a Tuesday.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing the data to be filtered.
-        rule (dict): A dictionary containing the filtering rules, including the column to check.
+        rule (RuleDef): A dictionary containing the filtering rules, including the column to check.
 
     Returns:
         pd.DataFrame: A filtered DataFrame containing only the rows where the specified date column corresponds to a Tuesday.
@@ -1145,7 +1451,7 @@ def is_on_tuesday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 1)
 
 
-def is_on_wednesday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_wednesday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters the rows of a DataFrame based on whether a date column corresponds to Wednesday.
 
@@ -1161,7 +1467,7 @@ def is_on_wednesday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 2)
 
 
-def is_on_thursday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_thursday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters the rows of a DataFrame based on whether a date column corresponds to a Thursday.
 
@@ -1176,7 +1482,7 @@ def is_on_thursday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 3)
 
 
-def is_on_friday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_friday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters the rows of a DataFrame based on whether a specific date column corresponds to a Friday.
 
@@ -1191,7 +1497,7 @@ def is_on_friday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 4)
 
 
-def is_on_saturday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_saturday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters a DataFrame to include only rows where the date corresponds to a Saturday.
 
@@ -1205,7 +1511,7 @@ def is_on_saturday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 5)
 
 
-def is_on_sunday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
+def is_on_sunday(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Determines whether the dates in a given DataFrame fall on a Sunday.
 
@@ -1219,193 +1525,495 @@ def is_on_sunday(df: pd.DataFrame, rule: dict) -> pd.DataFrame:
     return _day_of_week(df, rule, 6)
 
 
-def validate(df: pd.DataFrame, rules: list[dict]) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def validate_row_level(
+    df: pd.DataFrame, rules: List[RuleDef]
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Validates a pandas DataFrame against a set of rules and returns the processed DataFrame
-    along with a DataFrame containing validation violations.
+    Validates a pandas DataFrame against a set of rules.
 
     Args:
-        df (pd.DataFrame): The input DataFrame to validate.
-        rules (list[dict]): A list of dictionaries, where each dictionary represents a validation
-            rule. Each rule should contain the following keys:
-            - 'check_type' (str): The type of validation to perform. This should correspond to a
-              function name available in the global scope. Special cases include 'is_primary_key'
-              and 'is_composite_key', which map to 'is_unique' and 'are_unique', respectively.
-            - 'execute' (bool, optional): Whether to execute the rule. Defaults to True.
+        df: Input DataFrame to validate
+        rules: List of Rule objects defining validation checks
 
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: A tuple containing:
-            - The processed DataFrame with validation statuses merged.
-            - A DataFrame containing rows that violated the validation rules.
+        Tuple containing:
+            - DataFrame with ONLY rows that failed validation + 'dq_status' column
+            - DataFrame with violations exploded (one row per violation per rule)
 
     Notes:
-        - The input DataFrame is copied and reset to ensure the original data is not modified.
-        - An '_id' column is temporarily added to track row indices during validation.
-        - If a rule's 'check_type' does not correspond to a known function, a warning is issued.
-        - The 'dq_status' column in the violations DataFrame summarizes validation issues for
-          each row.
+        - Only returns rows that violated at least one rule
+        - 'dq_status' column summarizes all validation issues per row
     """
+    engine = "pandas"
+    rules_valid = []
+    rules_ignored = []
+    ignored_reasons = {}
+
+    for rule in rules:
+        skip_reason = rule.get_skip_reason(target_level="row_level", engine=engine)
+
+        if skip_reason:
+            rules_ignored.append(rule)
+            ignored_reasons[skip_reason] = ignored_reasons.get(skip_reason, 0) + 1
+        else:
+            rules_valid.append(rule)
+
+    if rules_ignored:
+        warnings.warn(
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n"
+            + "\n".join(
+                f"  • {reason}: {count} rule(s)"
+                for reason, count in ignored_reasons.items()
+            )
+        )
+
+    if not rules_valid:
+        warnings.warn(
+            f"No valid rules to execute for level='row_level' and engine='{engine}'."
+        )
+        return pd.DataFrame(), pd.DataFrame()
+
     df = df.copy().reset_index(drop=True)
     df["_id"] = df.index
     raw_list = []
-    for rule in rules:
-        if not rule.get("execute", True):
-            continue
-        rt = rule["check_type"]
-        fn = globals().get(
-            rt
-            if rt not in ("is_primary_key", "is_composite_key")
-            else ("is_unique" if rt == "is_primary_key" else "are_unique")
-        )
-        if fn is None:
-            warnings.warn(f"Unknown rule: {rt}")
-            continue
-        viol = fn(df, rule)
-        raw_list.append(viol)
 
-    raw = (
-        pd.concat(raw_list, ignore_index=True)
-        if raw_list
-        else pd.DataFrame(columns=df.columns)
-    )
+    for rule in rules_valid:
+        # Handle alias mappings
+        check_type = rule.check_type
+        if check_type == "is_primary_key":
+            check_type = "is_unique"
+        elif check_type == "is_composite_key":
+            check_type = "are_unique"
+        elif check_type == "is_yesterday":
+            check_type = "is_t_minus_1"
+        elif check_type == "is_in":
+            check_type = "is_contained_in"
+        elif check_type == "not_in":
+            check_type = "not_contained_in"
+
+        # Get validation function
+        fn = globals().get(check_type)
+        if fn is None:
+            warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
+            continue
+
+        try:
+            viol = fn(df, rule)
+            raw_list.append(viol)
+        except Exception as e:
+            warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
+            continue
+
+    raw = pd.concat(raw_list, ignore_index=True) if raw_list else pd.DataFrame()
 
     if raw.empty or "dq_status" not in raw.columns:
-
-        executed_rules = [r for r in rules if r.get("execute", True)]
-        warnings.warn(
-            f"No validation results generated.\n"
-            f"  Total rules: {len(rules)}\n"
-            f"  Rules with execute=True: {len(executed_rules)}\n"
-            f"  Rules executed: 0\n"
-            f"  Data columns: {list(df.columns)}\n"
-            f"  Possible causes:\n"
-            f"    - Rule columns don't exist in data\n"
-            f"    - All rules have execute=False\n"
-            f"    - All check_type functions returned empty results"
-        )
-        return df.drop(columns=["_id"]), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame()
 
     summary = raw.groupby("_id")["dq_status"].agg(";".join).reset_index()
-    out = df.merge(summary, on="_id", how="left").drop(columns=["_id"])
+
+    out = df.merge(summary, on="_id", how="inner").drop(columns=["_id"])
+
     return out, raw
 
 
-def __build_rules_df(rules: List[dict]) -> pd.DataFrame:
+import uuid
+from datetime import datetime
+
+
+def validate_table_level(df: pd.DataFrame, rules: List[RuleDef]) -> pd.DataFrame:
     """
-    Builds a pandas DataFrame from a list of rule dictionaries.
+    Validates table-level rules (aggregations and schema).
 
     Args:
-        rules (List[dict]): A list of dictionaries where each dictionary represents a rule.
-            Each rule dictionary may contain the following keys:
-                - "field" (str or list): The column(s) the rule applies to.
-                - "check_type" (str): The type of check or rule to apply.
-                - "value" (optional): The value associated with the rule.
-                - "threshold" (optional): A numeric threshold for the rule. Defaults to 1.0 if not provided or invalid.
-                - "execute" (optional): A boolean indicating whether the rule should be executed. Defaults to True.
+        df (pd.DataFrame): Input DataFrame to validate.
+        rules (List[RuleDef]): List of table-level validation rules.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the processed rules with the following columns:
-            - "column": The column(s) the rule applies to, as a comma-separated string if multiple.
-            - "rule": The type of check or rule.
-            - "value": The value associated with the rule, or an empty string if not provided.
-            - "pass_threshold": The numeric threshold for the rule.
-
-    Notes:
-        - Rules with "execute" set to False are skipped.
-        - Duplicate rows based on "column", "rule", and "value" are removed from the resulting DataFrame.
+        pd.DataFrame: Summary DataFrame with validation results.
     """
-    rows = []
-    for r in rules:
-        if not r.get("execute", True):
-            continue
 
-        col = ",".join(r["field"]) if isinstance(r["field"], list) else r["field"]
+    # Filtrar regras aplicáveis
+    engine: str = "pandas"
+    rules_valid = []
+    rules_ignored = []
+    ignored_reasons = {}
 
-        thr_raw = r.get("threshold")
-        try:
-            thr = float(thr_raw) if thr_raw is not None else 1.0
-        except (TypeError, ValueError):
-            thr = 1.0
+    for rule in rules:
+        skip_reason = rule.get_skip_reason(target_level="table_level", engine=engine)
 
-        val = r.get("value")
-        rows.append(
-            {
-                "column": col,
-                "rule": r["check_type"],
-                "value": val if val is not None else "",
-                "pass_threshold": thr,
-            }
+        if skip_reason:
+            rules_ignored.append(rule)
+            ignored_reasons[skip_reason] = ignored_reasons.get(skip_reason, 0) + 1
+        else:
+            rules_valid.append(rule)
+
+    # Avisar sobre regras ignoradas
+    if rules_ignored:
+        warnings.warn(
+            f"⚠️  {len(rules_ignored)}/{len(rules)} rules ignored:\n"
+            + "\n".join(
+                f"  • {reason}: {count} rule(s)"
+                for reason, count in ignored_reasons.items()
+            )
         )
 
-    df_rules = pd.DataFrame(rows)
-    if not df_rules.empty:
-        df_rules = df_rules.drop_duplicates(subset=["column", "rule", "value"])
-    return df_rules
+    # Se não há regras válidas, retornar DataFrame vazio
+    if not rules_valid:
+        warnings.warn(
+            f"No valid rules to execute for level='table_level' and engine='{engine}'."
+        )
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
+
+    # Timestamp único para todas as validações desta execução
+    execution_time = datetime.utcnow()
+
+    # Lista para armazenar resultados
+    results = []
+
+    for rule in rules_valid:
+        check_type = rule.check_type
+
+        # Get validation function
+        fn = globals().get(check_type)
+        if fn is None:
+            warnings.warn(f"❌ Function not found: {check_type} for field {rule.field}")
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": rule.value,
+                    "actual": None,
+                    "message": f"Function '{check_type}' not implemented",
+                }
+            )
+            continue
+
+        try:
+            # Executar validação table-level
+            result = fn(df, rule)
+
+            # Padronizar formato
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": result.get("status", "ERROR"),
+                    "expected": result.get("expected"),
+                    "actual": result.get("actual"),
+                    "message": result.get("message"),
+                }
+            )
+
+        except Exception as e:
+            warnings.warn(f"❌ Error executing {check_type} on {rule.field}: {e}")
+            results.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": execution_time,
+                    "level": "TABLE",
+                    "category": rule.category or "unknown",
+                    "check_type": check_type,
+                    "field": str(rule.field),
+                    "status": "ERROR",
+                    "expected": rule.value,
+                    "actual": None,
+                    "message": f"Execution error: {str(e)}",
+                }
+            )
+
+    # Converter para DataFrame
+    if not results:
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
+
+    summary_df = pd.DataFrame(results)
+
+    # Reordenar colunas
+    column_order = [
+        "id",
+        "timestamp",
+        "level",
+        "category",
+        "check_type",
+        "field",
+        "status",
+        "expected",
+        "actual",
+        "message",
+    ]
+    summary_df = summary_df[column_order]
+
+    # Ordenar: FAIL primeiro, depois PASS
+    status_order = {"FAIL": 0, "ERROR": 1, "PASS": 2}
+    summary_df["_sort"] = summary_df["status"].map(status_order)
+    summary_df = (
+        summary_df.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+    )
+
+    return summary_df
 
 
-def summarize(qc_df: pd.DataFrame, rules: list[dict], total_rows: int) -> pd.DataFrame:
+def validate(
+    df: pd.DataFrame, rules: List[RuleDef]
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Main validation function that orchestrates row-level and table-level validations.
+
+    Args:
+        df (pd.DataFrame): Input DataFrame to validate.
+        rules (List[RuleDef]): List of all validation rules.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+            - DataFrame with row-level violations and dq_status
+            - Raw row-level violations DataFrame
+            - Table-level summary DataFrame
+    """
+    row_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
+    ]
+    table_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "TABLE"
+    ]
+
+    no_level = [r for r in rules if not r.level]
+    if no_level:
+        warnings.warn(
+            f"⚠️  {len(no_level)} rule(s) without level defined. "
+            f"These will be skipped. Please set 'level' to 'ROW' or 'TABLE'."
+        )
+
+    if row_rules:
+        df_with_status, row_violations = validate_row_level(df, row_rules)
+    else:
+        df_with_status = df.copy()
+        row_violations = pd.DataFrame()
+
+    if table_rules:
+        table_summary = validate_table_level(df, table_rules)
+    else:
+        table_summary = pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
+
+    return df_with_status, row_violations, table_summary
+
+
+def summarize(
+    rules: List[RuleDef],
+    total_rows: int,
+    df_with_errors: Optional[pd.DataFrame] = None,
+    table_error: Optional[pd.DataFrame] = None,
+) -> pd.DataFrame:
     """
     Summarizes quality check results for a given DataFrame based on specified rules.
 
     Args:
-        qc_df (pd.DataFrame): The input DataFrame containing a 'dq_status' column with
-            quality check results in the format 'column:rule:value', separated by semicolons.
-        rules (list[dict]): A list of dictionaries representing the quality check rules.
-            Each dictionary should define the 'column', 'rule', 'value', and 'pass_threshold'.
-        total_rows (int): The total number of rows in the original dataset.
+        rules: List of RuleDef objects representing quality check rules
+        total_rows: Total number of rows in the original dataset
+        df_with_errors: DataFrame with 'dq_status' column from row-level validations
+        table_error: DataFrame with table-level validation results
 
     Returns:
-        pd.DataFrame: A DataFrame summarizing the quality check results with the following columns:
-            - 'id': A unique identifier for each rule.
-            - 'timestamp': The timestamp of the summary generation.
-            - 'check': The type of check performed (e.g., 'Quality Check').
-            - 'level': The severity level of the check (e.g., 'WARNING').
-            - 'column': The column name associated with the rule.
-            - 'rule': The rule being checked.
-            - 'value': The value associated with the rule.
-            - 'rows': The total number of rows in the dataset.
-            - 'violations': The number of rows that violated the rule.
-            - 'pass_rate': The proportion of rows that passed the rule.
-            - 'pass_threshold': The threshold for passing the rule.
-            - 'status': The status of the rule ('PASS' or 'FAIL') based on the pass rate.
-
-    Notes:
-        - The function calculates the number of violations for each rule and merges it with the
-          provided rules to compute the pass rate and status.
-        - The 'timestamp' column is set to the current time with seconds and microseconds set to zero.
+        DataFrame with columns:
+            - id: Unique identifier for each rule
+            - timestamp: Summary generation timestamp
+            - check: Type of check performed
+            - level: Validation level (ROW or TABLE from RuleDef)
+            - category: Rule category (from RuleDef)
+            - column: Column name associated with the rule
+            - rule: Rule being checked
+            - value: Value associated with the rule
+            - rows: Total number of rows in dataset
+            - violations: Number of rows that violated the rule
+            - pass_rate: Proportion of rows that passed
+            - pass_threshold: Threshold for passing
+            - status: PASS or FAIL based on pass rate
     """
-    split = qc_df["dq_status"].str.split(";").explode().dropna()
-    parts = split.str.split(":", expand=True)
-    parts.columns = ["column", "rule", "value"]
-    viol_count = (
-        parts.groupby(["column", "rule", "value"]).size().reset_index(name="violations")
-    )
-    rules_df = __build_rules_df(rules)
-    df = rules_df.merge(viol_count, on=["column", "rule", "value"], how="left")
-    df["violations"] = df["violations"].fillna(0).astype(int)
-    df["rows"] = total_rows
-    df["pass_rate"] = (total_rows - df["violations"]) / total_rows
-    df["status"] = np.where(df["pass_rate"] >= df["pass_threshold"], "PASS", "FAIL")
-    df["timestamp"] = datetime.now().replace(second=0, microsecond=0)
-    df["check"] = "Quality Check"
-    df["level"] = "WARNING"
-    df.insert(0, "id", np.array([uuid.uuid4() for _ in range(len(df))], dtype="object"))
-    return df[
-        [
-            "id",
-            "timestamp",
-            "check",
-            "level",
-            "column",
-            "rule",
-            "value",
-            "rows",
-            "violations",
-            "pass_rate",
-            "pass_threshold",
-            "status",
-        ]
+    # Parse violations from dq_status
+    summaries = []
+
+    # ========== ROW-LEVEL SUMMARY ==========
+    row_rules = [
+        r for r in rules if r.level and r.level.upper().replace("_LEVEL", "") == "ROW"
     ]
+
+    if row_rules and df_with_errors is not None:
+        # Parse violations do dq_status
+        if "dq_status" in df_with_errors.columns:
+            violations_series = df_with_errors["dq_status"].dropna()
+
+            if not violations_series.empty:
+                split = violations_series.str.split(";").explode()
+                parts = split.str.split(":", expand=True, n=2)
+
+                if len(parts.columns) >= 2:
+                    parts.columns = (
+                        ["check_type", "field", "details"]
+                        if len(parts.columns) == 3
+                        else ["check_type", "field"]
+                    )
+                    viol_count = (
+                        parts.groupby(["check_type", "field"])
+                        .size()
+                        .reset_index(name="violations")
+                    )
+                else:
+                    viol_count = pd.DataFrame(
+                        columns=["check_type", "field", "violations"]
+                    )
+            else:
+                viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
+        else:
+            viol_count = pd.DataFrame(columns=["check_type", "field", "violations"])
+
+        for rule in row_rules:
+            field_str = (
+                rule.field if isinstance(rule.field, str) else ",".join(rule.field)
+            )
+
+            mask = (viol_count["check_type"] == rule.check_type) & (
+                viol_count["field"] == field_str
+            )
+            violations = (
+                int(viol_count.loc[mask, "violations"].sum()) if mask.any() else 0
+            )
+
+            pass_count = total_rows - violations
+            pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
+            pass_threshold = rule.threshold if rule.threshold else 1.0
+
+            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
+
+            summaries.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "timestamp": datetime.utcnow(),
+                    "level": "ROW",
+                    "category": rule.category or "unknown",
+                    "check_type": rule.check_type,
+                    "field": field_str,
+                    "rows": total_rows,
+                    "violations": violations,
+                    "pass_rate": round(pass_rate, 4),
+                    "pass_threshold": pass_threshold,
+                    "status": status,
+                    "expected": rule.value,
+                    "actual": None,
+                    "message": (
+                        None
+                        if status == "PASS"
+                        else f"{violations} row(s) failed validation"
+                    ),
+                }
+            )
+
+    # ========== TABLE-LEVEL SUMMARY ==========
+    if table_error is not None and not table_error.empty:
+        for _, row in table_error.iterrows():
+            expected = row.get("expected", None)
+            actual = row.get("actual", None)
+
+            # Calcula taxa só se der
+            if pd.notna(expected) and pd.notna(actual) and expected != 0:
+                compliance_rate = round(actual / expected, 4)
+            else:
+                compliance_rate = None
+
+            summaries.append(
+                {
+                    "id": row["id"],
+                    "timestamp": row["timestamp"],
+                    "level": row["level"],
+                    "category": row["category"],
+                    "check_type": row["check_type"],
+                    "field": row["field"],
+                    "status": row["status"],
+                    "expected": expected,
+                    "actual": actual,
+                    "pass_rate": compliance_rate,
+                    "message": row["message"],
+                }
+            )
+
+    if not summaries:
+        return pd.DataFrame(
+            columns=[
+                "id",
+                "timestamp",
+                "level",
+                "category",
+                "check_type",
+                "field",
+                "rows",
+                "violations",
+                "pass_rate",
+                "pass_threshold",
+                "status",
+                "expected",
+                "actual",
+                "message",
+            ]
+        )
+
+    summary_df = pd.DataFrame(summaries)
+
+    status_order = {"FAIL": 0, "ERROR": 1, "PASS": 2}
+    summary_df["_sort_status"] = summary_df["status"].map(status_order)
+    summary_df["_sort_level"] = summary_df["level"].map({"ROW": 0, "TABLE": 1})
+
+    summary_df = (
+        summary_df.sort_values(["_sort_status", "_sort_level", "check_type"])
+        .drop(columns=["_sort_status", "_sort_level"])
+        .reset_index(drop=True)
+    )
+
+    return summary_df
 
 
 def extract_schema(df) -> List[Dict[str, Any]]:

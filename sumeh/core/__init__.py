@@ -1,48 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This module provides a set of functions and utilities for data validation, schema
-retrieval, and summarization. It supports multiple data sources and engines,
-including BigQuery, S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB, and Databricks.
+Sumeh Core Module - Data Quality Validation Framework
 
-Functions:
-    get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
-        Retrieves configuration rules based on the specified source.
+This module provides dispatchers for data validation, summarization, and configuration
+retrieval across multiple data sources and engines (Pandas, Dask, PySpark, Polars,
+DuckDB, BigQuery).
 
-    get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
-        Retrieves the schema configuration based on the provided data source.
+Classes:
+    _ValidateDispatcher: Dispatcher for validate functions across engines
+    _SummarizeDispatcher: Dispatcher for summarize functions across engines
+    _RulesConfigDispatcher: Dispatcher for retrieving validation rules
+    _SchemaConfigDispatcher: Dispatcher for retrieving schema configurations
+    _ExtractSchemaDispatcher: Dispatcher for extracting schemas
+    _ValidateSchemaDispatcher: Dispatcher for validating schemas
 
-    validate(df, rules, **context):
+Exports:
+    validate: Dispatcher instance for validation
+    summarize: Dispatcher instance for summarization
+    get_rules_config: Dispatcher instance for rules retrieval
+    get_schema_config: Dispatcher instance for schema retrieval
+    extract_schema: Dispatcher instance for schema extraction
+    validate_schema: Dispatcher instance for schema validation
+    report: Legacy cuallee-based validation (deprecated)
 
-    summarize(df, rules: list[dict], **context):
+Usage:
+    from sumeh import validate, summarize, get_rules_config, extract_schema
 
-    report(df, rules: list[dict], name: str = "Quality Check"):
+    # Get rules
+    rules = get_rules_config.csv("rules.csv")
 
-Imports:
-    cuallee: Provides the `Check` and `CheckLevel` classes for data validation.
-    warnings: Used to issue warnings for unknown rule names.
-    importlib: Dynamically imports modules based on engine detection.
-    typing: Provides type hints for function arguments and return values.
-    re: Used for regular expression matching in source string parsing.
-    sumeh.core: Contains functions for retrieving configurations and schemas
-      from various data sources.
-    sumeh.core.utils: Provides utility functions for value conversion and URI parsing.
+    # Validate
+    result = validate.pandas(df, rules)
 
-    The module uses Python's structural pattern matching (`match-case`) to handle
-    different data source types and validation rules.
-    The `report` function supports a wide range of validation checks, including
-    completeness, uniqueness, value comparisons, patterns, and date-related checks.
-    The `validate` and `summarize` functions dynamically detect the appropriate engine
-    based on the input DataFrame type and delegate the processing to the corresponding
-    engine module.
+    # Summarize
+    summary = summarize.pandas(result, rules, total_rows=len(df))
+
+    # Extract schema
+    schema = extract_schema.pandas(df)
 """
 
-from cuallee import Check, CheckLevel
-import warnings
-from importlib import import_module
-from typing import List, Dict, Any
 import re
-from .utils import __convert_value, __detect_engine
+import warnings
+from typing import List, Dict, Any, Optional
+
+import pandas as pd
+
 from sumeh.core.config import (
     get_config_from_s3,
     get_config_from_csv,
@@ -61,365 +64,1035 @@ from sumeh.core.config import (
     get_schema_from_databricks,
     get_schema_from_glue,
 )
+from .utils import __convert_value
 
 
-def get_rules_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+# ============================================================================
+# VALIDATION DISPATCHER
+# ============================================================================
+
+
+class _ValidateDispatcher:
     """
-    Retrieve configuration rules based on the specified source.
+    Dispatcher for validate functions across different engines.
 
-    Dispatches to the appropriate loader according to the format of `source`,
-    returning a list of parsed rule dictionaries.
+    Usage:
+        from sumeh import validate
 
-    Supported sources:
-      - `"bigquery" <project>.<dataset>.<table>`
-      - `s3://<bucket>/<path>`
-      - `<file>.csv`
-      - `"mysql"` or `"postgresql"` (requires host/user/etc. in kwargs)
-      - `"glue"` (AWS Glue Data Catalog)
-      - `duckdb://<db_path>.<table>`
-      - `databricks://<catalog>.<schema>.<table>`
+        # Direct engine call
+        result = validate.pandas(df, rules)
+        result = validate.bigquery(table_ref, rules, client=bq_client)
+        result = validate.duckdb(df_rel, rules, conn=duck_conn)
 
-    Args:
-        source (str):
-            Identifier of the rules configuration location. Determines which
-            handler is invoked.
-        **kwargs:
-            Loader-specific parameters (e.g. `host`, `user`, `password`,
-            `connection`, `query`, `delimiter`).
+        # Fallback with engine string
+        result = validate(engine="pandas", df, rules)
 
     Returns:
-        List[Dict[str, Any]]:
-            A list of dictionaries, each representing a validation rule with keys
-            like `"field"`, `"check_type"`, `"value"`, `"threshold"`, and `"execute"`.
-
-    Raises:
-        ValueError:
-            If `source` does not match any supported format.
+        Tuple[DataFrame, DataFrame, DataFrame]:
+            - df_with_errors: DataFrame with only rows that failed (with dq_status)
+            - violations: DataFrame with detailed violations (exploded)
+            - table_summary: DataFrame with table-level validation results
     """
-    match source:
-        case "bigquery":
-            required_params = ["project_id", "dataset_id", "table_id"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"BigQuery source requires '{param}' in kwargs")
 
-            return get_config_from_bigquery(**kwargs)
+    @property
+    def pandas(self):
+        """Validate for pandas DataFrame."""
+        from sumeh.engines import pandas_engine
 
-        case s if s.startswith("s3://"):
-            return get_config_from_s3(s, **kwargs)
+        return pandas_engine.validate
 
-        case s if re.search(r"\.csv$", s, re.IGNORECASE):
-            delimiter = kwargs.pop("delimiter", None)
-            return get_config_from_csv(s, delimiter=delimiter, **kwargs)
+    @property
+    def dask(self):
+        """Validate for Dask DataFrame."""
+        from sumeh.engines import dask_engine
 
-        case "mysql":
-            if "conn" not in kwargs:
-                required_params = ["host", "user", "password", "database"]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(
-                            f"MySQL schema requires 'conn' OR all of {required_params} in kwargs"
-                        )
+        return dask_engine.validate
 
-            return get_config_from_mysql(**kwargs)
+    @property
+    def pyspark(self):
+        """
+        Validate for PySpark DataFrame.
 
-        case "postgresql":
-            if "conn" not in kwargs:
-                required_params = [
-                    "host",
-                    "user",
-                    "password",
-                    "database",
-                    "schema",
-                    "table",
-                ]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(
-                            f"PostgreSQL source requires '{param}' in kwargs"
-                        )
+        Args:
+            spark (SparkSession): Active SparkSession instance
+            df (DataFrame): PySpark DataFrame to validate
+            rules (List[RuleDef]): List of validation rules
 
-            return get_config_from_postgresql(**kwargs)
+        Returns:
+            Tuple[DataFrame, DataFrame, DataFrame]:
+                - df_with_errors: DataFrame with violations and dq_status
+                - row_violations: Raw row-level violations DataFrame
+                - table_summary: Table-level validation results
 
-        case "glue":
-            required_params = ["glue_context", "database_name", "table_name"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"Glue source requires '{param}' in kwargs")
-            return get_config_from_glue_data_catalog(**kwargs)
+        Example:
+            from pyspark.sql import SparkSession
+            spark = SparkSession.builder.getOrCreate()
+            df_errors, violations, table_sum = validate.pyspark(spark, df, rules)
+        """
+        from sumeh.engines import pyspark_engine
 
-        case s if s.startswith("duckdb://"):
-            _, path = s.split("://", 1)
-            _, table = path.rsplit(".", 1)
-            conn = kwargs.pop("conn", None)
-            return get_config_from_duckdb(
-                conn=conn,
-                table=table,
+        return pyspark_engine.validate
+
+    @property
+    def polars(self):
+        """Validate for Polars DataFrame."""
+        from sumeh.engines import polars_engine
+
+        return polars_engine.validate
+
+    @property
+    def duckdb(self):
+        """
+        Validate for DuckDB Relation.
+
+        Args:
+            conn (duckdb.DuckDBPyConnection): Active DuckDB connection
+            df_rel (duckdb.DuckDBPyRelation): DuckDB relation to validate
+            rules (List[RuleDef]): List of validation rules
+
+        Returns:
+            Tuple[DuckDBPyRelation, DuckDBPyRelation, DuckDBPyRelation]:
+                - df_with_errors: Relation with violations and dq_status
+                - row_violations: Raw row-level violations relation
+                - table_summary: Table-level validation results
+
+        Example:
+            import duckdb
+            conn = duckdb.connect()
+            df_rel = conn.sql("SELECT * FROM my_table")
+
+            df_errors, violations, table_sum = validate.duckdb(conn, df_rel, rules)
+
+            # Convert to pandas if needed
+            df_errors_pd = df_errors.df()
+
+        Notes:
+            - Pattern matching (has_pattern) only works on string columns
+            - Numeric columns will be automatically cast to VARCHAR for regex operations
+            - Ensure all referenced columns exist in the relation
+        """
+        from sumeh.engines import duckdb_engine
+
+        def _call(conn, df_rel, rules):
+            import duckdb as dk
+
+            try:
+                return duckdb_engine.validate(conn, df_rel, rules)
+            except dk.BinderException as e:
+                if "regexp_matches" in str(e) and "BIGINT" in str(e):
+                    raise ValueError(
+                        "Regex pattern matching cannot be applied to numeric columns. "
+                        "Consider using CAST in your rule or ensuring the column is VARCHAR. "
+                        f"Original error: {e}"
+                    )
+                raise e
+            except Exception as e:
+                raise ValueError(f"DuckDB validation error: {e}")
+
+        return _call
+
+    @property
+    def bigquery(self):
+        """
+        Validate for BigQuery Table.
+
+        Args:
+            table_ref: BigQuery table reference
+            rules: List[RuleDef]
+            client: BigQuery client
+        """
+        from sumeh.engines import bigquery_engine
+
+        return bigquery_engine.validate
+
+    def __call__(self, engine: str, *args, **kwargs):
+        """
+        Fallback for calling with engine as string.
+
+        Usage:
+            validate(engine="pandas", df, rules)
+        """
+        engine_method = getattr(self, engine, None)
+        if engine_method is None:
+            available = ["pandas", "dask", "pyspark", "polars", "duckdb", "bigquery"]
+            raise ValueError(
+                f"Unknown engine '{engine}'. Available: {', '.join(available)}"
             )
+        return engine_method(*args, **kwargs)
 
-        case "databricks":
-            required_params = ["spark", "catalog", "schema", "table"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"Databricks source requires '{param}' in kwargs")
+    def __repr__(self):
+        return (
+            "Sumeh Validate Dispatcher\n"
+            "Available engines: pandas, dask, pyspark, polars, duckdb, bigquery\n\n"
+            "Usage:\n"
+            "  validate.pandas(df, rules)\n"
+            "  validate.bigquery(table_ref, rules, client=client)\n"
+            "  validate.duckdb(df_rel, rules, conn=conn)\n"
+            "  validate(engine='pandas', df, rules)  # fallback\n"
+        )
 
-            return get_config_from_databricks(**kwargs)
 
-        case _:
-            raise ValueError(f"Unknown source: {source}")
+# ============================================================================
+# SUMMARIZATION DISPATCHER
+# ============================================================================
 
 
-def get_schema_config(source: str, **kwargs) -> List[Dict[str, Any]]:
+class _SummarizeDispatcher:
     """
-    Retrieve the schema configuration based on the provided data source.
+    Dispatcher for summarize functions across different engines.
 
-    This function reads from a schema_registry table/file to get the expected
-    schema for a given table. Supports various data sources such as BigQuery,
-    S3, CSV files, MySQL, PostgreSQL, AWS Glue, DuckDB, and Databricks.
+    Usage:
+        from sumeh import summarize
 
-    Args:
-        source (str):
-            A string representing the data source. Supported formats:
-            - `bigquery`: BigQuery source
-            - `s3://<bucket>/<path>`: S3 CSV file
-            - `<file>.csv`: Local CSV file
-            - `mysql`: MySQL database
-            - `postgresql`: PostgreSQL database
-            - `glue`: AWS Glue Data Catalog
-            - `duckdb`: DuckDB database
-            - `databricks`: Databricks Unity Catalog
+        # After validation
+        df_errors, violations, table_sum = validate.pandas(df, rules)
 
-        **kwargs: Source-specific parameters. Common ones:
-            - table (str): Table name to look up (REQUIRED for all sources)
-            - environment (str): Environment filter (default: 'prod')
-            - query (str): Additional WHERE filters (optional)
+        # Generate summary
+        summary = summarize.pandas(
+            validation_result=(df_errors, violations, table_sum),
+            rules=rules,
+            total_rows=len(df)
+        )
 
-            For BigQuery: project_id, dataset_id, table_id
-            For MySQL/PostgreSQL: host, user, password, database OR conn
-            For Glue: glue_context, database_name, table_name
-            For DuckDB: conn, table
-            For Databricks: spark, catalog, schema, table
-            For CSV/S3: file_path/s3_path, table
+        # Or with engine string
+        summary = summarize(
+            engine="pandas",
+            validation_result=(df_errors, violations, table_sum),
+            rules=rules,
+            total_rows=len(df)
+        )
 
     Returns:
-        List[Dict[str, Any]]: Schema configuration from schema_registry
-
-    Raises:
-        ValueError: If source format is invalid or required params are missing
-
-    Examples:
-        >>> get_schema_config("bigquery", project_id="proj", dataset_id="ds", table_id="users")
-        >>> get_schema_config("mysql", conn=my_conn, table="users")
-        >>> get_schema_config("s3://bucket/registry.csv", table="users", environment="prod")
+        DataFrame with consolidated summary containing:
+        - id, timestamp, level, category, check_type, field
+        - rows, violations, pass_rate, pass_threshold (row-level)
+        - expected, actual (table-level)
+        - status, message
     """
-    match source:
-        case "bigquery":
-            required_params = ["project_id", "dataset_id", "table_id"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"BigQuery schema requires '{param}' in kwargs")
-            return get_schema_from_bigquery(**kwargs)
 
-        case s if s.startswith("s3://"):
-            if "table" not in kwargs:
-                raise ValueError("S3 schema requires 'table' in kwargs")
-            return get_schema_from_s3(s, **kwargs)
+    @property
+    def pandas(self):
+        from sumeh.engines import pandas_engine
 
-        case s if re.search(r"\.csv$", s, re.IGNORECASE):
-            if "table" not in kwargs:
-                raise ValueError("CSV schema requires 'table' in kwargs")
-            return get_schema_from_csv(s, **kwargs)
+        def _call(
+            rules: list,
+            total_rows: int,
+            df_with_errors: pd.DataFrame = None,
+            table_error: Optional[pd.DataFrame] = None,
+            **kwargs,
+        ):
 
-        case "mysql":
+            if not isinstance(total_rows, int) or total_rows <= 0:
+                raise ValueError("'total_rows' must be a positive integer")
 
-            if "conn" not in kwargs:
-                required_params = ["host", "user", "password", "database"]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(
-                            f"MySQL schema requires 'conn' OR all of {required_params} in kwargs"
-                        )
-            if "table" not in kwargs:
-                raise ValueError("MySQL schema requires 'table' in kwargs")
-            return get_schema_from_mysql(**kwargs)
+            if not isinstance(rules, list) or not all(
+                isinstance(r, dict) or hasattr(r, "check_type") for r in rules
+            ):
+                raise TypeError("'rules' must be a list of Rule objects or dicts")
 
-        case "postgresql":
-
-            if "conn" not in kwargs:
-                required_params = ["host", "user", "password", "database"]
-                for param in required_params:
-                    if param not in kwargs:
-                        raise ValueError(
-                            f"PostgreSQL schema requires 'conn' OR all of {required_params} in kwargs"
-                        )
-            if "table" not in kwargs:
-                raise ValueError("PostgreSQL schema requires 'table' in kwargs")
-            return get_schema_from_postgresql(**kwargs)
-
-        case "glue":
-            required_params = ["glue_context", "database_name", "table_name"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"Glue schema requires '{param}' in kwargs")
-            return get_schema_from_glue(**kwargs)
-
-        case "duckdb":
-            required_params = ["conn", "table"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"DuckDB schema requires '{param}' in kwargs")
-            return get_schema_from_duckdb(**kwargs)
-
-        case "databricks":
-            required_params = ["spark", "catalog", "schema", "table"]
-            for param in required_params:
-                if param not in kwargs:
-                    raise ValueError(f"Databricks schema requires '{param}' in kwargs")
-            return get_schema_from_databricks(**kwargs)
-
-        case _:
-            raise ValueError(f"Unknown source: {source}")
-
-
-def validate(df, rules, **context):
-    """
-    Validates a DataFrame against a set of rules using the appropriate engine.
-
-    This function dynamically detects the engine to use based on the input
-    DataFrame and delegates the validation process to the corresponding engine's
-    implementation.
-
-    Args:
-        df (DataFrame): The input DataFrame to be validated.
-        rules (list or dict): The validation rules to be applied to the DataFrame.
-        **context: Additional context parameters that may be required by the engine.
-            - conn (optional): A database connection object, required for certain engines
-              like "duckdb_engine".
-
-    Returns:
-        bool or dict: The result of the validation process. The return type and structure
-        depend on the specific engine's implementation.
-
-    Raises:
-        ImportError: If the required engine module cannot be imported.
-        AttributeError: If the detected engine does not have a `validate` method.
-
-    Notes:
-        - The engine is dynamically determined based on the DataFrame type or other
-          characteristics.
-        - For "duckdb_engine", a database connection object should be provided in the
-          context under the key "conn".
-    """
-    engine_name = __detect_engine(df, **context)
-    engine = import_module(f"sumeh.engines.{engine_name}")
-
-    match engine_name:
-        case "bigquery_engine":
-            client = context.get("client")
-            table_ref = context.get("table_ref")
-
-            if client is None or table_ref is None:
-                raise ValueError(
-                    "BigQuery engine requires 'client' and 'table_ref' in context."
-                )
-
-            return engine.validate(client=client, table_ref=table_ref, rules=rules)
-
-        case "duckdb_engine":
-            return engine.validate(df, rules, context.get("conn"))
-        case _:
-            return engine.validate(df, rules)
-
-
-def summarize(df, rules: list[dict], **context):
-    """
-    Summarizes a DataFrame based on the provided rules and context.
-
-    This function dynamically detects the appropriate engine to use for summarization
-    based on the type of the input DataFrame. It delegates the summarization process
-    to the corresponding engine module.
-
-    Args:
-        df: The input DataFrame to be summarized. The type of the DataFrame determines
-            the engine used for summarization.
-        rules (list[dict]): A list of dictionaries defining the summarization rules.
-            Each dictionary specifies the operations or transformations to be applied.
-        **context: Additional context parameters required by specific engines. Common
-            parameters include:
-            - conn: A database connection object (used by certain engines like DuckDB).
-            - total_rows: The total number of rows in the DataFrame (optional).
-
-    Returns:
-        The summarized DataFrame as processed by the appropriate engine.
-
-    Raises:
-        TypeError: If the type of the input DataFrame is unsupported.
-
-    Notes:
-        - The function uses the `__detect_engine` method to determine the engine name
-          based on the input DataFrame.
-        - Supported engines are dynamically imported from the `sumeh.engines` package.
-        - The "duckdb_engine" case requires a database connection (`conn`) to be passed
-          in the context.
-
-    Example:
-        summarized_df = summarize(df, rules=[{"operation": "sum", "column": "sales"}], conn=my_conn)
-    """
-    engine_name = __detect_engine(df, **context)
-    engine = import_module(f"sumeh.engines.{engine_name}")
-    match engine_name:
-        case "bigquery_engine":
-            client = context.get("client")
-
-            if client is None:
-                raise ValueError(
-                    "BigQuery engine requires 'client' and 'table_ref' in context."
-                )
-            return engine.summarize(
-                df,
-                rules,
-                total_rows=context.get("total_rows"),
-                client=context.get("client"),
-            )
-        case "duckdb_engine":
-            return engine.summarize(
-                df_rel=df,
+            return pandas_engine.summarize(
                 rules=rules,
-                conn=context.get("conn"),
-                total_rows=context.get("total_rows"),
+                total_rows=total_rows,
+                df_with_errors=df_with_errors,
+                table_error=table_error,
+                **kwargs,
             )
-        case _:
-            return engine.summarize(df, rules, total_rows=context.get("total_rows"))
+
+        return _call
+
+    @property
+    def dask(self):
+        """Summarize for Dask validation results."""
+        from sumeh.engines import dask_engine
+
+        return dask_engine.summarize
+
+    @property
+    def pyspark(self):
+        """
+        Summarize for PySpark validation results.
+
+        Args:
+            spark (SparkSession): Active SparkSession instance
+            rules (List[RuleDef]): List of validation rules
+            total_rows (int): Total number of rows in the original DataFrame
+            df_with_errors (Optional[DataFrame]): DataFrame with row-level violations
+            table_error (Optional[DataFrame]): DataFrame with table-level results
+
+        Returns:
+            DataFrame: Summary DataFrame with aggregated validation metrics
+
+        Example:
+            summary = summarize.pyspark(
+                spark=spark,
+                rules=rules,
+                total_rows=df.count(),
+                df_with_errors=df_errors,
+                table_error=table_sum
+            )
+        """
+        from sumeh.engines import pyspark_engine
+
+        def _call(
+            spark,
+            rules: list,
+            total_rows: int,
+            df_with_errors=None,
+            table_error=None,
+            **kwargs,
+        ):
+            # Validation
+            if spark is None:
+                raise ValueError(
+                    "PySpark summarize requires 'spark' (SparkSession) as first parameter"
+                )
+
+            if not isinstance(total_rows, int) or total_rows <= 0:
+                raise ValueError("'total_rows' must be a positive integer")
+
+            if not isinstance(rules, list) or not all(
+                isinstance(r, dict) or hasattr(r, "check_type") for r in rules
+            ):
+                raise TypeError("'rules' must be a list of Rule objects or dicts")
+
+            return pyspark_engine.summarize(
+                spark=spark,
+                rules=rules,
+                total_rows=total_rows,
+                df_with_errors=df_with_errors,
+                table_error=table_error,
+                **kwargs,
+            )
+
+        return _call
+
+    @property
+    def polars(self):
+        """Summarize for Polars validation results."""
+        from sumeh.engines import polars_engine
+
+        return polars_engine.summarize
+
+    @property
+    def duckdb(self):
+        """
+        Summarize for DuckDB validation results.
+
+        Args:
+            validation_result: Tuple from validate.duckdb()
+            rules: List[RuleDef]
+            total_rows: int
+            conn: DuckDB connection
+        """
+        from sumeh.engines import duckdb_engine
+
+        def _call(
+            conn, rules, total_rows, df_with_errors=None, table_error=None, **kwargs
+        ):
+            # Validações
+            if conn is None:
+                raise ValueError("DuckDB summarize requires 'conn' (DuckDB connection)")
+            if not isinstance(total_rows, int) or total_rows <= 0:
+                raise ValueError("'total_rows' must be a positive integer")
+
+            return duckdb_engine.summarize(
+                conn=conn,
+                rules=rules,
+                total_rows=total_rows,
+                df_with_errors=df_with_errors,
+                table_error=table_error,
+                **kwargs,
+            )
+
+        return _call
+
+    @property
+    def bigquery(self):
+        """
+        Summarize for BigQuery validation results.
+
+        Args:
+            validation_result: Tuple from validate.bigquery()
+            rules: List[RuleDef]
+            total_rows: int
+            client: BigQuery client
+        """
+        from sumeh.engines import bigquery_engine
+
+        return bigquery_engine.summarize
+
+    def __call__(self, engine: str, *args, **kwargs):
+        """
+        Fallback for calling with engine as string.
+
+        Usage:
+            summarize(engine="pandas", validation_result, rules, total_rows=1000)
+        """
+        engine_method = getattr(self, engine, None)
+        if engine_method is None:
+            available = ["pandas", "dask", "pyspark", "polars", "duckdb", "bigquery"]
+            raise ValueError(
+                f"Unknown engine '{engine}'. Available: {', '.join(available)}"
+            )
+        return engine_method(*args, **kwargs)
+
+    def __repr__(self):
+        return (
+            "Sumeh Summarize Dispatcher\n"
+            "Available engines: pandas, dask, pyspark, polars, duckdb, bigquery\n\n"
+            "Usage:\n"
+            "  summary = summarize.pandas(validation_result, rules, total_rows=1000)\n"
+            "  summary = summarize.bigquery(validation_result, rules, total_rows=1000, client=client)\n"
+            "  summary = summarize(engine='pandas', ...)  # fallback\n"
+        )
 
 
-# TODO: refactor to get better performance or remove
-def report(df, rules: list[dict], name: str = "Quality Check"):
+class _RulesConfigDispatcher:
     """
-    Performs a quality check on the given DataFrame based on the provided rules.
+    Dispatcher for retrieving validation rules from different sources.
+
+    Usage:
+        from sumeh import get_rules_config
+
+        # Local CSV
+        rules = get_rules_config.csv("rules.csv")
+        rules = get_rules_config.csv("rules.csv", delimiter=";")
+
+        # S3
+        rules = get_rules_config.s3("s3://bucket/rules.csv")
+
+        # BigQuery
+        rules = get_rules_config.bigquery(
+            project_id="proj",
+            dataset_id="ds",
+            table_id="rules"
+        )
+
+        # MySQL
+        rules = get_rules_config.mysql(conn=conn, table="rules")
+
+        # PostgreSQL
+        rules = get_rules_config.postgresql(conn=conn, table="rules")
+
+        # DuckDB
+        rules = get_rules_config.duckdb(conn=conn, table="rules")
+
+        # Databricks
+        rules = get_rules_config.databricks(
+            spark=spark,
+            catalog="cat",
+            schema="sch",
+            table="rules"
+        )
+
+        # AWS Glue
+        rules = get_rules_config.glue(
+            glue_context=glue_context,
+            database_name="db",
+            table_name="rules"
+        )
+    """
+
+    @property
+    def csv(self):
+        """
+        Get rules from local CSV file.
+
+        Args:
+            file_path (str): Path to CSV file
+            delimiter (str): CSV delimiter (default: ",")
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.csv("rules.csv")
+            rules = get_rules_config.csv("rules.csv", delimiter=";")
+        """
+        return get_config_from_csv
+
+    @property
+    def s3(self):
+        """
+        Get rules from S3 CSV file.
+
+        Args:
+            s3_path (str): S3 URI (s3://bucket/path/file.csv)
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.s3("s3://my-bucket/rules.csv")
+        """
+        return get_config_from_s3
+
+    @property
+    def bigquery(self):
+        """
+        Get rules from BigQuery table.
+
+        Args:
+            project_id (str): GCP project ID
+            dataset_id (str): BigQuery dataset
+            table_id (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.bigquery(
+                project_id="my-project",
+                dataset_id="my_dataset",
+                table_id="rules"
+            )
+        """
+        return get_config_from_bigquery
+
+    @property
+    def mysql(self):
+        """
+        Get rules from MySQL table.
+
+        Args:
+            conn: MySQL connection OR
+            host, user, password, database, table (if no conn)
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.mysql(conn=conn, table="rules")
+
+            # OR
+            rules = get_rules_config.mysql(
+                host="localhost",
+                user="root",
+                password="pass",
+                database="db",
+                table="rules"
+            )
+        """
+        return get_config_from_mysql
+
+    @property
+    def postgresql(self):
+        """
+        Get rules from PostgreSQL table.
+
+        Args:
+            conn: PostgreSQL connection OR
+            host, user, password, database, schema, table (if no conn)
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.postgresql(conn=conn, table="rules")
+        """
+        return get_config_from_postgresql
+
+    @property
+    def duckdb(self):
+        """
+        Get rules from DuckDB table.
+
+        Args:
+            conn (duckdb.DuckDBPyConnection): DuckDB connection
+            table (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            import duckdb
+            conn = duckdb.connect("my.db")
+            rules = get_rules_config.duckdb(conn=conn, table="rules")
+        """
+        return get_config_from_duckdb
+
+    @property
+    def databricks(self):
+        """
+        Get rules from Databricks table.
+
+        Args:
+            spark (SparkSession): Spark session
+            catalog (str): Catalog name
+            schema (str): Schema name
+            table (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.databricks(
+                spark=spark,
+                catalog="main",
+                schema="default",
+                table="rules"
+            )
+        """
+        return get_config_from_databricks
+
+    @property
+    def glue(self):
+        """
+        Get rules from AWS Glue Data Catalog.
+
+        Args:
+            glue_context: AWS Glue context
+            database_name (str): Database name
+            table_name (str): Table name
+
+        Returns:
+            List[RuleDef]: List of validation rules
+
+        Example:
+            rules = get_rules_config.glue(
+                glue_context=glueContext,
+                database_name="my_database",
+                table_name="rules"
+            )
+        """
+        return get_config_from_glue_data_catalog
+
+    def __repr__(self):
+        return (
+            "Sumeh Rules Config Dispatcher\n"
+            "Available sources: csv, s3, bigquery, mysql, postgresql, duckdb, databricks, glue\n\n"
+            "Usage:\n"
+            "  get_rules_config.csv('rules.csv')\n"
+            "  get_rules_config.csv('rules.csv', delimiter=';')\n"
+            "  get_rules_config.s3('s3://bucket/rules.csv')\n"
+            "  get_rules_config.bigquery(project_id='proj', dataset_id='ds', table_id='rules')\n"
+            "  get_rules_config.mysql(conn=conn, table='rules')\n"
+            "  get_rules_config.postgresql(conn=conn, table='rules')\n"
+            "  get_rules_config.duckdb(conn=conn, table='rules')\n"
+            "  get_rules_config.databricks(spark=spark, catalog='cat', schema='sch', table='rules')\n"
+            "  get_rules_config.glue(glue_context=ctx, database_name='db', table_name='rules')\n"
+        )
+
+
+# ============================================================================
+# SCHEMA CONFIG DISPATCHER
+# ============================================================================
+
+
+class _SchemaConfigDispatcher:
+    """
+    Dispatcher for retrieving schema configuration from different sources.
+
+    Usage:
+        from sumeh import get_schema_config
+
+        # Direct source call
+        schema = get_schema_config.bigquery(project_id="proj", dataset_id="ds", table_id="schema_registry")
+        schema = get_schema_config.s3("s3://bucket/schema.csv", table="users")
+        schema = get_schema_config.csv("schema.csv", table="users")
+        schema = get_schema_config.mysql(conn=conn, table="users")
+
+        # Fallback with source string
+        schema = get_schema_config(source="bigquery", ...)
+    """
+
+    @property
+    def bigquery(self):
+        """
+        Get schema from BigQuery.
+
+        Args:
+            project_id: GCP project ID
+            dataset_id: BigQuery dataset
+            table_id: Schema registry table name
+        """
+        return get_schema_from_bigquery
+
+    @property
+    def mysql(self):
+        """
+        Get schema from MySQL.
+
+        Args:
+            conn: MySQL connection OR (host, user, password, database)
+            table: Table name to look up
+        """
+        return get_schema_from_mysql
+
+    @property
+    def postgresql(self):
+        """
+        Get schema from PostgreSQL.
+
+        Args:
+            conn: PostgreSQL connection OR (host, user, password, database)
+            table: Table name to look up
+        """
+        return get_schema_from_postgresql
+
+    @property
+    def glue(self):
+        """
+        Get schema from AWS Glue Data Catalog.
+
+        Args:
+            glue_context: Glue context
+            database_name: Database name
+            table_name: Table name
+        """
+        return get_schema_from_glue
+
+    @property
+    def duckdb(self):
+        """
+        Get schema from DuckDB table.
+
+        Args:
+            conn: DuckDB connection
+            table: Table name to extract schema from
+            database: Database name (optional, default: 'main')
+            schema: Schema name (optional, default: 'main')
+
+        Returns:
+            List[Dict]: Schema information including field names, types, and nullability
+        """
+
+        def _call(conn, table, database="main", schema="main"):
+            if conn is None:
+                raise ValueError("DuckDB schema extraction requires 'conn'")
+            if not table:
+                raise ValueError("DuckDB schema extraction requires 'table'")
+
+            # Usar a função extract_schema do duckdb_engine
+            from sumeh.engines.duckdb_engine import extract_schema
+
+            return extract_schema(conn, table)
+
+        return _call
+
+    @property
+    def databricks(self):
+        """
+        Get schema from Databricks.
+
+        Args:
+            spark: Spark session
+            catalog: Catalog name
+            schema: Schema name
+            table: Table name to look up
+        """
+        return get_schema_from_databricks
+
+    def s3(self, s3_path: str, table: str, environment: str = "prod", **kwargs):
+        """
+        Get schema from S3 CSV file.
+
+        Args:
+            s3_path: S3 path to schema registry CSV
+            table: Table name to look up
+            environment: Environment filter (default: 'prod')
+            **kwargs: Additional parameters
+        """
+        return get_schema_from_s3(
+            s3_path, table=table, environment=environment, **kwargs
+        )
+
+    def csv(self, file_path: str, table: str, environment: str = "prod", **kwargs):
+        """
+        Get schema from local CSV file.
+
+        Args:
+            file_path: Path to schema registry CSV
+            table: Table name to look up
+            environment: Environment filter (default: 'prod')
+            **kwargs: Additional parameters
+        """
+        return get_schema_from_csv(
+            file_path, table=table, environment=environment, **kwargs
+        )
+
+    def __call__(self, source: str, **kwargs) -> List[Dict[str, Any]]:
+        """
+        Fallback for calling with source as string (backwards compatibility).
+
+        Args:
+            source: Source identifier
+            **kwargs: Source-specific parameters (must include 'table' for most sources)
+        """
+        match source:
+            case "bigquery":
+                required_params = ["project_id", "dataset_id", "table_id"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(
+                            f"BigQuery schema requires '{param}' in kwargs"
+                        )
+                return self.bigquery(**kwargs)
+
+            case s if s.startswith("s3://"):
+                if "table" not in kwargs:
+                    raise ValueError("S3 schema requires 'table' in kwargs")
+                return self.s3(s, **kwargs)
+
+            case s if re.search(r"\.csv$", s, re.IGNORECASE):
+                if "table" not in kwargs:
+                    raise ValueError("CSV schema requires 'table' in kwargs")
+                return self.csv(s, **kwargs)
+
+            case "mysql":
+                if "conn" not in kwargs:
+                    required_params = ["host", "user", "password", "database"]
+                    for param in required_params:
+                        if param not in kwargs:
+                            raise ValueError(
+                                f"MySQL schema requires 'conn' OR all of {required_params} in kwargs"
+                            )
+                if "table" not in kwargs:
+                    raise ValueError("MySQL schema requires 'table' in kwargs")
+                return self.mysql(**kwargs)
+
+            case "postgresql":
+                if "conn" not in kwargs:
+                    required_params = ["host", "user", "password", "database"]
+                    for param in required_params:
+                        if param not in kwargs:
+                            raise ValueError(
+                                f"PostgreSQL schema requires 'conn' OR all of {required_params} in kwargs"
+                            )
+                if "table" not in kwargs:
+                    raise ValueError("PostgreSQL schema requires 'table' in kwargs")
+                return self.postgresql(**kwargs)
+
+            case "glue":
+                required_params = ["glue_context", "database_name", "table_name"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(f"Glue schema requires '{param}' in kwargs")
+                return self.glue(**kwargs)
+
+            case "duckdb":
+                required_params = ["conn", "table"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(f"DuckDB schema requires '{param}' in kwargs")
+                return self.duckdb(**kwargs)
+
+            case "databricks":
+                required_params = ["spark", "catalog", "schema", "table"]
+                for param in required_params:
+                    if param not in kwargs:
+                        raise ValueError(
+                            f"Databricks schema requires '{param}' in kwargs"
+                        )
+                return self.databricks(**kwargs)
+
+            case _:
+                raise ValueError(f"Unknown source: {source}")
+
+    def __repr__(self):
+        return (
+            "Sumeh Schema Config Dispatcher\n"
+            "Available sources: bigquery, mysql, postgresql, glue, duckdb, databricks, s3, csv\n\n"
+            "Usage:\n"
+            "  get_schema_config.bigquery(project_id='proj', dataset_id='ds', table_id='schema_registry')\n"
+            "  get_schema_config.s3('s3://bucket/schema.csv', table='users')\n"
+            "  get_schema_config.csv('schema.csv', table='users')\n"
+            "  get_schema_config.mysql(conn=conn, table='users')\n"
+            "  get_schema_config(source='bigquery', ...)  # fallback\n"
+        )
+
+# ============================================================================
+# SCHEMA DISPATCHERS
+# ============================================================================
+
+class _ExtractSchemaDispatcher:
+    """
+    Dispatcher for extracting schema from DataFrames.
+
+    Usage:
+        from sumeh import extract_schema
+
+        schema = extract_schema.pandas(df)
+        schema = extract_schema.duckdb(conn, table="my_table")
+        schema = extract_schema.pyspark(spark, df)
+    """
+
+    @property
+    def pandas(self):
+        from sumeh.engines import pandas_engine
+        return pandas_engine.extract_schema
+
+    @property
+    def dask(self):
+        from sumeh.engines import dask_engine
+        return dask_engine.extract_schema
+
+    @property
+    def pyspark(self):
+        from sumeh.engines import pyspark_engine
+        return pyspark_engine.extract_schema
+
+    @property
+    def polars(self):
+        from sumeh.engines import polars_engine
+        return polars_engine.extract_schema
+
+    @property
+    def duckdb(self):
+        from sumeh.engines import duckdb_engine
+        return duckdb_engine.extract_schema
+
+    @property
+    def bigquery(self):
+        from sumeh.engines import bigquery_engine
+        return bigquery_engine.extract_schema
+
+    def __call__(self, df, **kwargs):
+        """Auto-detect engine and extract schema."""
+        from .utils import __detect_engine
+        from importlib import import_module
+
+        engine_name = __detect_engine(df, **kwargs)
+        engine = import_module(f"sumeh.engines.{engine_name}")
+
+        # DuckDB needs table_name
+        if engine_name == "duckdb_engine" and "table_name" not in kwargs:
+            raise ValueError("DuckDB extract_schema requires 'table_name' parameter")
+
+        return engine.extract_schema(df, **kwargs)
+
+    def __repr__(self):
+        return (
+            "Sumeh Extract Schema Dispatcher\n"
+            "Available engines: pandas, dask, pyspark, polars, duckdb, bigquery\n\n"
+            "Usage:\n"
+            "  extract_schema.pandas(df)\n"
+            "  extract_schema.duckdb(conn, table='my_table')\n"
+            "  extract_schema(df)  # auto-detect\n"
+        )
+
+
+class _ValidateSchemaDispatcher:
+    """
+    Dispatcher for validating DataFrame schema against expected schema.
+
+    Usage:
+        from sumeh import validate_schema
+
+        valid, errors = validate_schema.pandas(df, expected_schema)
+        valid, errors = validate_schema.duckdb(conn, relation, expected_schema)
+    """
+
+    @property
+    def pandas(self):
+        from sumeh.engines import pandas_engine
+        return pandas_engine.validate_schema
+
+    @property
+    def dask(self):
+        from sumeh.engines import dask_engine
+        return dask_engine.validate_schema
+
+    @property
+    def pyspark(self):
+        from sumeh.engines import pyspark_engine
+        return pyspark_engine.validate_schema
+
+    @property
+    def polars(self):
+        from sumeh.engines import polars_engine
+        return polars_engine.validate_schema
+
+    @property
+    def duckdb(self):
+        from sumeh.engines import duckdb_engine
+        return duckdb_engine.validate_schema
+
+    @property
+    def bigquery(self):
+        from sumeh.engines import bigquery_engine
+        return bigquery_engine.validate_schema
+
+    def __call__(self, df_or_conn, expected, **kwargs):
+        """Auto-detect engine and validate schema."""
+        from .utils import __detect_engine
+        from importlib import import_module
+
+        engine_name = __detect_engine(df_or_conn, **kwargs)
+        engine = import_module(f"sumeh.engines.{engine_name}")
+
+        return engine.validate_schema(df_or_conn, expected=expected, **kwargs)
+
+    def __repr__(self):
+        return (
+            "Sumeh Validate Schema Dispatcher\n"
+            "Available engines: pandas, dask, pyspark, polars, duckdb, bigquery\n\n"
+            "Usage:\n"
+            "  validate_schema.pandas(df, expected_schema)\n"
+            "  validate_schema.duckdb(conn, relation, expected_schema)\n"
+            "  validate_schema(df, expected_schema)  # auto-detect\n"
+        )
+
+
+# ============================================================================
+# INSTANTIATE ALL DISPATCHERS
+# ============================================================================
+
+validate = _ValidateDispatcher()
+summarize = _SummarizeDispatcher()
+get_rules_config = _RulesConfigDispatcher()
+get_schema_config = _SchemaConfigDispatcher()
+extract_schema = _ExtractSchemaDispatcher()
+validate_schema = _ValidateSchemaDispatcher()
+
+# ============================================================================
+# EXPORTS
+# ============================================================================
+
+__all__ = [
+    "validate",
+    "summarize",
+    "get_rules_config",
+    "get_schema_config",
+    "extract_schema",
+    "validate_schema",
+    "report",
+]
+
+# ============================================================================
+# LEGACY FUNCTION (DEPRECATED)
+# ============================================================================
+
+
+def report(df, rules: List[Dict], name: str = "Quality Check"):
+    """
+    [DEPRECATED] Performs a quality check using cuallee library.
+
+    This function is legacy and will be removed in future versions.
+    Use `validate.pandas()` or other engine-specific validators instead.
 
     The function iterates over a list of rules and applies different checks to the
-    specified fields of the DataFrame. The checks include validation of completeness,
-    uniqueness, specific values, patterns, and other conditions. Each rule corresponds
-    to a particular type of validation, such as 'is_complete', 'is_greater_than',
-    'has_mean', etc. After applying the checks, the function returns the result of
-    the validation.
+    specified fields of the DataFrame using the cuallee library.
 
     Parameters:
-    - df (DataFrame): The DataFrame to be validated.
-    - rules (list of dict): A list of rules defining the checks to be performed.
-        Each rule is a dictionary with the following keys:
-        - "check_type": The type of check to apply.
-        - "field": The column of the DataFrame to check.
-        - "value" (optional): The value used for comparison in some checks (e.g., for 'is_greater_than').
-        - "threshold" (optional): A percentage threshold to be applied in some checks.
-    - name (str): The name of the quality check (default is "Quality Check").
+        df (DataFrame): The DataFrame to be validated.
+        rules (list of dict): A list of rules defining the checks to be performed.
+        name (str): The name of the quality check (default is "Quality Check").
 
     Returns:
-    - quality_check (CheckResult): The result of the quality validation.
+        quality_check (CheckResult): The result of the quality validation.
 
     Warnings:
-    - If an unknown rule name is encountered, a warning is generated.
+        This function is deprecated. Use validate.pandas() instead.
     """
+    from cuallee import Check, CheckLevel
+
+    warnings.warn(
+        "report() is deprecated and will be removed in a future version. "
+        "Use validate.pandas() or other engine-specific validators instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     check = Check(CheckLevel.WARNING, name)
     for rule in rules:
@@ -429,7 +1102,6 @@ def report(df, rules: list[dict], name: str = "Quality Check"):
         threshold = 1.0 if threshold is None else threshold
 
         match rule_name:
-
             case "is_complete":
                 check = check.is_complete(field, pct=threshold)
 
