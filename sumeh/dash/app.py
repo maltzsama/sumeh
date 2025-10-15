@@ -1,16 +1,15 @@
 """Sumeh Data Quality Dashboard - The Ultimate Validation Experience"""
 
-import streamlit as st
-import pandas as pd
-
-import sys
 import json
+import sys
 import tempfile
-
 from datetime import datetime
 from typing import Dict, Any, Tuple, Sequence, Optional
+
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import streamlit as st
 
 
 def _setup_awesome_style(theme: str = "light"):
@@ -445,7 +444,6 @@ def launch_dashboard(validation_results=None, summary=None, metadata=None) -> No
 
     Args:
         validation_results: Results from validate() function
-        rules_config: Rules configuration
         summary: Validation summary
         metadata: Additional metadata
     """

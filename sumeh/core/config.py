@@ -66,12 +66,14 @@ Functions:
     infer_basic_type(val: str) -> str:
         Infers the basic data type of given value.
 """
-from io import StringIO
-
 import warnings
-from dateutil import parser
-from typing import List, Dict, Any, Tuple, Optional
 from datetime import date, datetime
+from io import StringIO
+from typing import List, Dict, Any, Tuple, Optional
+
+from dateutil import parser
+
+from .rules.rule_model import RuleDef
 
 
 def get_config_from_s3(s3_path: str, delimiter: Optional[str] = ","):
@@ -107,7 +109,7 @@ def get_config_from_mysql(
     port: int = 3306,
     query: str = None,
     conn=None,
-) -> List[Dict[str, Any]]:
+) -> List[RuleDef]:
     """
     Get configuration from MySQL table
 
@@ -172,7 +174,7 @@ def get_config_from_postgresql(
     schema: Optional[str] = None,
     table: Optional[str] = None,
     query: Optional[str] = None,
-) -> list[dict]:
+) -> List[RuleDef]:
     """
     Retrieves configuration data from a PostgreSQL database.
 
@@ -234,7 +236,7 @@ def get_config_from_bigquery(
     credentials_path: Optional[str] = None,
     client: Optional[Any] = None,
     query: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+) -> List[RuleDef]:
     """
     Retrieves configuration data from a Google BigQuery table.
 
@@ -309,7 +311,7 @@ def get_config_from_bigquery(
 
 def get_config_from_csv(
     file_path: str, delimiter: Optional[str] = ","
-) -> List[Dict[str, str]]:
+) -> List[RuleDef]:
     """
     Retrieves configuration data from a CSV file.
 
@@ -346,7 +348,7 @@ def get_config_from_csv(
 
 def get_config_from_glue_data_catalog(
     glue_context, database_name: str, table_name: str, query: Optional[str] = None
-) -> List[Dict[str, str]]:
+) -> List[RuleDef]:
     """
     Retrieves configuration data from AWS Glue Data Catalog.
 
@@ -393,7 +395,7 @@ def get_config_from_glue_data_catalog(
 
 def get_config_from_duckdb(
     table: str = None, query: str = None, conn=None
-) -> List[Dict[str, Any]]:
+) -> List[RuleDef]:
     """
     Retrieve configuration data from a DuckDB database.
 
@@ -435,7 +437,7 @@ def get_config_from_duckdb(
 
 def get_config_from_databricks(
     spark, catalog: Optional[str], schema: Optional[str], table: str, **kwargs
-) -> List[Dict[str, Any]]:
+) -> List[RuleDef]:
     """
     Retrieves configuration data from a Databricks table and returns it as a list of dictionaries.
 
@@ -1242,26 +1244,33 @@ def get_schema_from_duckdb(
     return schema
 
 
-def __parse_data(data: list[dict]) -> list[dict]:
+def __parse_data(data: list[dict]) -> List[RuleDef]:
     """
-    Parse the configuration data with robust type handling.
+    Parse configuration data into validated Rule objects.
 
     Args:
-        data (List[Dict[str, Any]]): The raw data to be parsed.
+        data: Raw configuration data as list of dictionaries
 
     Returns:
-        List[Dict[str, Any]]: A list of parsed configuration data.
+        List[Rule]: Validated Rule objects with enriched metadata
+
+    Note:
+        Engine compatibility is not validated here - only rule existence.
+        Engine validation happens during execution in validate().
     """
-    parsed_data = []
+    parsed_rules = []
 
     for row in data:
         try:
+            # Parse field (string ou lista)
             field_value = row.get("field", "")
             if isinstance(field_value, str) and "[" in field_value:
                 field_value = [
-                    item.strip() for item in field_value.strip("[]").split(",")
+                    item.strip().strip("'\"")
+                    for item in field_value.strip("[]").split(",")
                 ]
 
+            # Parse threshold
             threshold_value = row.get("threshold")
             if threshold_value in [None, "NULL", ""]:
                 threshold_value = 1.0
@@ -1271,6 +1280,7 @@ def __parse_data(data: list[dict]) -> list[dict]:
                 except (ValueError, TypeError):
                     threshold_value = 1.0
 
+            # Parse updated_at
             updated_at_value = row.get("updated_at")
             if updated_at_value in [None, "NULL", ""]:
                 updated_at_value = None
@@ -1282,18 +1292,18 @@ def __parse_data(data: list[dict]) -> list[dict]:
                 except (ValueError, TypeError):
                     updated_at_value = None
 
+            # Parse execute
             execute_value = row.get("execute", True)
             if isinstance(execute_value, str):
                 execute_value = execute_value.lower() in ["true", "1", "yes", "y", "t"]
             else:
                 execute_value = bool(execute_value)
 
-            # Value
             value_field = row.get("value")
             if value_field in ["NULL", "", None]:
                 value_field = None
 
-            parsed_row = {
+            rule_dict = {
                 "field": field_value,
                 "check_type": row.get("check_type", ""),
                 "value": value_field,
@@ -1301,13 +1311,18 @@ def __parse_data(data: list[dict]) -> list[dict]:
                 "execute": execute_value,
                 "updated_at": updated_at_value,
             }
-            parsed_data.append(parsed_row)
 
+            rule = RuleDef.from_dict(rule_dict)
+            parsed_rules.append(rule)
+
+        except ValueError as e:
+            warnings.warn(f"Warning: Invalid rule in row {row}. Error: {e}")
+            continue
         except Exception as e:
-            print(f"Warning: Error parsing row {row}. Error: {e}")
+            warnings.warn(f"Warning: Error parsing row {row}. Error: {e}")
             continue
 
-    return parsed_data
+    return parsed_rules
 
 
 def __escape_sql_string(value: str) -> str:

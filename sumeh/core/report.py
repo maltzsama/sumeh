@@ -1,8 +1,9 @@
 """Report generation functions."""
 
-from typing import Dict, Any
-import pandas as pd
 from datetime import datetime
+from typing import Dict, Any
+
+import pandas as pd
 
 
 def generate_html_report(results: Dict[str, Any]) -> str:

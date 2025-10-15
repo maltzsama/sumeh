@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Dict, Any, Tuple, Optional
 import ast
+from typing import List, Dict, Any, Tuple, Optional
 
 
 def __convert_value(value):
@@ -94,31 +94,6 @@ def __parse_field_list(field_input):
 
     else:
         return field_str.strip(" \"'")
-
-
-def __extract_params(rule: dict) -> tuple:
-    rule_name = rule["check_type"]
-    field = rule["field"]
-    raw_value = rule.get("value")
-
-    if isinstance(field, str):
-        parsed_field = __parse_field_list(field)
-
-        if isinstance(parsed_field, list) and len(parsed_field) == 1:
-            field = parsed_field[0]
-        else:
-            field = parsed_field
-
-    if isinstance(raw_value, str) and raw_value not in (None, "", "NULL"):
-        try:
-            value = __convert_value(raw_value)
-        except ValueError:
-            value = raw_value
-    else:
-        value = raw_value
-    value = value if value not in (None, "", "NULL") else ""
-
-    return field, rule_name, value
 
 
 SchemaDef = Dict[str, Any]
@@ -284,6 +259,8 @@ def __detect_engine(df, **context):
         return "bigquery_engine"
 
     mod = df.__class__.__module__
+    class_name = df.__class__.__name__
+
     match mod:
         case m if m.startswith("pyspark"):
             return "pyspark_engine"
@@ -293,14 +270,11 @@ def __detect_engine(df, **context):
             return "polars_engine"
         case m if m.startswith("pandas"):
             return "pandas_engine"
-        case m if m.startswith("duckdb"):
+        case m if (
+            m.startswith("duckdb") or m.startswith("_duckdb") or "DuckDB" in class_name
+        ):
             return "duckdb_engine"
         case m if "bigquery" in m:
             return "bigquery_engine"
         case _:
             raise TypeError(f"Unsupported DataFrame type: {type(df)}")
-
-
-def ___where_statment(query) -> str:
-    # monta a base da query
-    pass
