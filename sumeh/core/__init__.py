@@ -12,16 +12,20 @@ Classes:
     _SummarizeDispatcher: Dispatcher for summarize functions across engines
     _RulesConfigDispatcher: Dispatcher for retrieving validation rules
     _SchemaConfigDispatcher: Dispatcher for retrieving schema configurations
+    _ExtractSchemaDispatcher: Dispatcher for extracting schemas
+    _ValidateSchemaDispatcher: Dispatcher for validating schemas
 
 Exports:
     validate: Dispatcher instance for validation
     summarize: Dispatcher instance for summarization
     get_rules_config: Dispatcher instance for rules retrieval
     get_schema_config: Dispatcher instance for schema retrieval
+    extract_schema: Dispatcher instance for schema extraction
+    validate_schema: Dispatcher instance for schema validation
     report: Legacy cuallee-based validation (deprecated)
 
 Usage:
-    from sumeh import validate, summarize, get_rules_config, get_schema_config
+    from sumeh import validate, summarize, get_rules_config, extract_schema
 
     # Get rules
     rules = get_rules_config.csv("rules.csv")
@@ -31,13 +35,17 @@ Usage:
 
     # Summarize
     summary = summarize.pandas(result, rules, total_rows=len(df))
+
+    # Extract schema
+    schema = extract_schema.pandas(df)
 """
 
-from cuallee import Check, CheckLevel
-import warnings
 import re
+import warnings
 from typing import List, Dict, Any, Optional
-from .utils import __convert_value
+
+import pandas as pd
+
 from sumeh.core.config import (
     get_config_from_s3,
     get_config_from_csv,
@@ -56,8 +64,8 @@ from sumeh.core.config import (
     get_schema_from_databricks,
     get_schema_from_glue,
 )
+from .utils import __convert_value
 
-import pandas as pd
 
 # ============================================================================
 # VALIDATION DISPATCHER
@@ -893,23 +901,170 @@ class _SchemaConfigDispatcher:
             "  get_schema_config(source='bigquery', ...)  # fallback\n"
         )
 
+# ============================================================================
+# SCHEMA DISPATCHERS
+# ============================================================================
+
+class _ExtractSchemaDispatcher:
+    """
+    Dispatcher for extracting schema from DataFrames.
+
+    Usage:
+        from sumeh import extract_schema
+
+        schema = extract_schema.pandas(df)
+        schema = extract_schema.duckdb(conn, table="my_table")
+        schema = extract_schema.pyspark(spark, df)
+    """
+
+    @property
+    def pandas(self):
+        from sumeh.engines import pandas_engine
+        return pandas_engine.extract_schema
+
+    @property
+    def dask(self):
+        from sumeh.engines import dask_engine
+        return dask_engine.extract_schema
+
+    @property
+    def pyspark(self):
+        from sumeh.engines import pyspark_engine
+        return pyspark_engine.extract_schema
+
+    @property
+    def polars(self):
+        from sumeh.engines import polars_engine
+        return polars_engine.extract_schema
+
+    @property
+    def duckdb(self):
+        from sumeh.engines import duckdb_engine
+        return duckdb_engine.extract_schema
+
+    @property
+    def bigquery(self):
+        from sumeh.engines import bigquery_engine
+        return bigquery_engine.extract_schema
+
+    def __call__(self, df, **kwargs):
+        """Auto-detect engine and extract schema."""
+        from .utils import __detect_engine
+        from importlib import import_module
+
+        engine_name = __detect_engine(df, **kwargs)
+        engine = import_module(f"sumeh.engines.{engine_name}")
+
+        # DuckDB needs table_name
+        if engine_name == "duckdb_engine" and "table_name" not in kwargs:
+            raise ValueError("DuckDB extract_schema requires 'table_name' parameter")
+
+        return engine.extract_schema(df, **kwargs)
+
+    def __repr__(self):
+        return (
+            "Sumeh Extract Schema Dispatcher\n"
+            "Available engines: pandas, dask, pyspark, polars, duckdb, bigquery\n\n"
+            "Usage:\n"
+            "  extract_schema.pandas(df)\n"
+            "  extract_schema.duckdb(conn, table='my_table')\n"
+            "  extract_schema(df)  # auto-detect\n"
+        )
+
+
+class _ValidateSchemaDispatcher:
+    """
+    Dispatcher for validating DataFrame schema against expected schema.
+
+    Usage:
+        from sumeh import validate_schema
+
+        valid, errors = validate_schema.pandas(df, expected_schema)
+        valid, errors = validate_schema.duckdb(conn, relation, expected_schema)
+    """
+
+    @property
+    def pandas(self):
+        from sumeh.engines import pandas_engine
+        return pandas_engine.validate_schema
+
+    @property
+    def dask(self):
+        from sumeh.engines import dask_engine
+        return dask_engine.validate_schema
+
+    @property
+    def pyspark(self):
+        from sumeh.engines import pyspark_engine
+        return pyspark_engine.validate_schema
+
+    @property
+    def polars(self):
+        from sumeh.engines import polars_engine
+        return polars_engine.validate_schema
+
+    @property
+    def duckdb(self):
+        from sumeh.engines import duckdb_engine
+        return duckdb_engine.validate_schema
+
+    @property
+    def bigquery(self):
+        from sumeh.engines import bigquery_engine
+        return bigquery_engine.validate_schema
+
+    def __call__(self, df_or_conn, expected, **kwargs):
+        """Auto-detect engine and validate schema."""
+        from .utils import __detect_engine
+        from importlib import import_module
+
+        engine_name = __detect_engine(df_or_conn, **kwargs)
+        engine = import_module(f"sumeh.engines.{engine_name}")
+
+        return engine.validate_schema(df_or_conn, expected=expected, **kwargs)
+
+    def __repr__(self):
+        return (
+            "Sumeh Validate Schema Dispatcher\n"
+            "Available engines: pandas, dask, pyspark, polars, duckdb, bigquery\n\n"
+            "Usage:\n"
+            "  validate_schema.pandas(df, expected_schema)\n"
+            "  validate_schema.duckdb(conn, relation, expected_schema)\n"
+            "  validate_schema(df, expected_schema)  # auto-detect\n"
+        )
+
 
 # ============================================================================
-# INSTANTIATE DISPATCHERS
+# INSTANTIATE ALL DISPATCHERS
 # ============================================================================
 
 validate = _ValidateDispatcher()
 summarize = _SummarizeDispatcher()
 get_rules_config = _RulesConfigDispatcher()
 get_schema_config = _SchemaConfigDispatcher()
+extract_schema = _ExtractSchemaDispatcher()
+validate_schema = _ValidateSchemaDispatcher()
 
+# ============================================================================
+# EXPORTS
+# ============================================================================
+
+__all__ = [
+    "validate",
+    "summarize",
+    "get_rules_config",
+    "get_schema_config",
+    "extract_schema",
+    "validate_schema",
+    "report",
+]
 
 # ============================================================================
 # LEGACY FUNCTION (DEPRECATED)
 # ============================================================================
 
 
-def report(df, rules: list[dict], name: str = "Quality Check"):
+def report(df, rules: List[Dict], name: str = "Quality Check"):
     """
     [DEPRECATED] Performs a quality check using cuallee library.
 
@@ -930,6 +1085,8 @@ def report(df, rules: list[dict], name: str = "Quality Check"):
     Warnings:
         This function is deprecated. Use validate.pandas() instead.
     """
+    from cuallee import Check, CheckLevel
+
     warnings.warn(
         "report() is deprecated and will be removed in a future version. "
         "Use validate.pandas() or other engine-specific validators instead.",
