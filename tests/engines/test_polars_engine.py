@@ -2,8 +2,9 @@
 """
 Quick tests for Polars Engine
 """
-import pytest
 from datetime import date, timedelta
+
+import pytest
 
 pytest.importorskip("polars")
 

@@ -1,9 +1,11 @@
 # tests/conftest.py - A BASE DE TUDO
 """Fixtures compartilhadas para todos os testes"""
-import pytest
-import pandas as pd
-import dask.dataframe as dd
 from datetime import datetime, timedelta
+
+import dask.dataframe as dd
+import pandas as pd
+import pytest
+
 from sumeh.core.rules.rule_model import RuleDef
 
 

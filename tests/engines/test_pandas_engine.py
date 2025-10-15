@@ -3,13 +3,10 @@
 
 import unittest
 from datetime import date, timedelta
-from unittest.mock import patch, MagicMock
-import warnings
 
-import numpy as np
 import pandas as pd
-import pytest
 
+from sumeh.core.rules.rule_model import RuleDef
 from sumeh.engines.pandas_engine import (
     is_positive, is_negative, is_complete, is_unique, are_complete, are_unique,
     is_greater_than, is_less_than, is_equal, is_contained_in, not_contained_in,
@@ -18,7 +15,6 @@ from sumeh.engines.pandas_engine import (
     is_today, is_yesterday, validate_row_level, validate_table_level, validate,
     summarize, validate_schema
 )
-from sumeh.core.rules.rule_model import RuleDef
 
 
 class TestPandasEngine(unittest.TestCase):

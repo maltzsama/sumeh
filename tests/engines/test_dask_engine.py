@@ -1,10 +1,10 @@
 # tests/engines/test_dask_engine.py
 
-import pytest
-import pandas as pd
 import dask.dataframe as dd
-from datetime import datetime, timedelta
+import pandas as pd
+import pytest
 
+from sumeh.core.rules.rule_model import RuleDef
 # CORRIGIDO: importar validate do engine, não do sumeh
 from sumeh.engines.dask_engine import (
     validate,  # <-- AQUI
@@ -27,7 +27,6 @@ from sumeh.engines.dask_engine import (
     has_mean,
     has_std,
 )
-from sumeh.core.rules.rule_model import RuleDef
 
 
 @pytest.fixture

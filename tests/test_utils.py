@@ -2,8 +2,9 @@
 """
 Clean and modern tests for utility functions
 """
-import pytest
 from datetime import datetime
+
+import pytest
 
 from sumeh.core.utils import (
     __convert_value as convert_value,

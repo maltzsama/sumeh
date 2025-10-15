@@ -21,10 +21,10 @@ Environment:
     For dashboard rendering, Streamlit and Plotly are required.
 """
 
-import os
-import webbrowser
 import argparse
+import os
 import sys
+import webbrowser
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 

@@ -3,12 +3,11 @@
 Quick tests for PySpark Engine
 """
 import pytest
-from datetime import datetime
 
 pytest.importorskip("pyspark")
 
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, DateType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 
 from sumeh.engines.pyspark_engine import (
     validate,

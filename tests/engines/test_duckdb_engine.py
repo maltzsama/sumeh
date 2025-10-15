@@ -2,9 +2,9 @@
 """
 Clean and modern tests for DuckDB Engine
 """
-import pytest
-import pandas as pd
 import duckdb as dk
+import pandas as pd
+import pytest
 
 from sumeh.engines.duckdb_engine import (
     validate,
@@ -17,7 +17,6 @@ from sumeh.engines.duckdb_engine import (
     has_std,
     has_cardinality,
 )
-from sumeh.core.rules.rule_model import RuleDef
 
 
 @pytest.fixture

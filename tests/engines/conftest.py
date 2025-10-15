@@ -2,9 +2,11 @@
 """
 Shared fixtures for all engine tests
 """
-import pytest
+from datetime import datetime, timedelta
+
 import pandas as pd
-from datetime import datetime, timedelta, date
+import pytest
+
 from sumeh.core.rules.rule_model import RuleDef
 
 

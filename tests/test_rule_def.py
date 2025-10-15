@@ -2,8 +2,9 @@
 """
 Tests for RuleDef model
 """
-import pytest
 from datetime import datetime, date
+
+import pytest
 
 from sumeh.core.rules.rule_model import RuleDef
 

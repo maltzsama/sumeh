@@ -1,5 +1,6 @@
 import ast
 import re
+import warnings
 from dataclasses import dataclass, asdict
 from datetime import datetime, date
 from typing import Any, List, Union, Optional
@@ -7,7 +8,6 @@ from typing import Any, List, Union, Optional
 from dateutil import parser
 
 from .regristry import RuleRegistry
-import warnings
 
 
 @dataclass
