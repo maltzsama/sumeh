@@ -10,8 +10,9 @@ from .core import (
     summarize,
     get_rules_config,
     get_schema_config,
+    extract_schema,
+    validate_schema,
 )
-from .core.schema import extract_schema, validate_schema
 
 __all__ = [
     "report",
