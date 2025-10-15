@@ -423,12 +423,14 @@ def _is_yesterday(r: __RuleCtx) -> exp.Expression:
         expression=exp.Sub(this=exp.CurrentDate(), expression=Literal.number(1)),
     )
 
+
 def _is_t_minus_1(r: __RuleCtx) -> exp.Expression:
     """Checks if date equals yesterday."""
     return exp.EQ(
         this=Column(this=r.column),
         expression=exp.Sub(this=exp.CurrentDate(), expression=Literal.number(1)),
     )
+
 
 def _is_t_minus_2(r: __RuleCtx) -> exp.Expression:
     """Checks if date equals T-2."""

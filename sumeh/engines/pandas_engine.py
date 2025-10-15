@@ -1125,7 +1125,6 @@ def is_past_date(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     return viol.assign(dq_status=f"{field}:{check}:{value}")
 
 
-
 def is_date_between(df: pd.DataFrame, rule: RuleDef) -> pd.DataFrame:
     """
     Filters rows in a DataFrame where the values in a specified date column

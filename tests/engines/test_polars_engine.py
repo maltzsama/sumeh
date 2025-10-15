@@ -38,11 +38,13 @@ def sample_data(sample_pandas_df):
 @pytest.fixture
 def empty_data():
     """Empty Polars DataFrame"""
-    return pl.DataFrame({
-        "id": pl.Series([], dtype=pl.Int64),
-        "name": pl.Series([], dtype=pl.Utf8),
-        "value": pl.Series([], dtype=pl.Float64),
-    })
+    return pl.DataFrame(
+        {
+            "id": pl.Series([], dtype=pl.Int64),
+            "name": pl.Series([], dtype=pl.Utf8),
+            "value": pl.Series([], dtype=pl.Float64),
+        }
+    )
 
 
 class TestRowLevelFunctions:
@@ -235,10 +237,7 @@ class TestSummarize:
         total_rows = sample_data.shape[0]
 
         summary = summarize(
-            rules,
-            total_rows,
-            df_with_errors=violations,
-            table_error=table_summary
+            rules, total_rows, df_with_errors=violations, table_error=table_summary
         )
 
         assert summary.shape[0] == 2
@@ -260,7 +259,6 @@ class TestEdgeCases:
         assert table_summary.shape[0] == 0
 
 
-
 # tests/engines/test_polars_engine.py
 class TestDateFunctions:
 
@@ -270,13 +268,14 @@ class TestDateFunctions:
         future = today + timedelta(days=1)
 
         # Convert to ISO strings
-        df = pl.DataFrame({
-            "d": [past.isoformat(), today.isoformat(), future.isoformat()]
-        })
+        df = pl.DataFrame(
+            {"d": [past.isoformat(), today.isoformat(), future.isoformat()]}
+        )
 
         rule = rule_factory("d", "is_future_date")
 
         from sumeh.engines.polars_engine import is_future_date
+
         result = is_future_date(df, rule)
 
         assert result.shape[0] == 1
@@ -288,13 +287,14 @@ class TestDateFunctions:
         future = today + timedelta(days=1)
 
         # Convert to ISO strings
-        df = pl.DataFrame({
-            "d": [past.isoformat(), today.isoformat(), future.isoformat()]
-        })
+        df = pl.DataFrame(
+            {"d": [past.isoformat(), today.isoformat(), future.isoformat()]}
+        )
 
         rule = rule_factory("d", "is_past_date")
 
         from sumeh.engines.polars_engine import is_past_date
+
         result = is_past_date(df, rule)
 
         assert result.shape[0] == 1

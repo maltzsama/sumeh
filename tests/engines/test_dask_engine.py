@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from sumeh.core.rules.rule_model import RuleDef
+
 # CORRIGIDO: importar validate do engine, não do sumeh
 from sumeh.engines.dask_engine import (
     validate,  # <-- AQUI
@@ -31,20 +32,22 @@ from sumeh.engines.dask_engine import (
 
 @pytest.fixture
 def sample_data():
-    data = pd.DataFrame({
-        "id": [1, 2, 3, 4, 5],
-        "name": ["Alice", "Bob", "Charlie", None, "Eve"],
-        "age": [25, -30, 35, 40, -45],
-        "salary": [5000.0, 6000.0, 7000.0, 8000.0, 9000.0],
-        "email": [
-            "alice@example.com",
-            "invalid",
-            "charlie@test.com",
-            "david@test.com",
-            "eve@example.com"
-        ],
-        "department": ["HR", "HR", "IT", "IT", "Finance"],
-    })
+    data = pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", None, "Eve"],
+            "age": [25, -30, 35, 40, -45],
+            "salary": [5000.0, 6000.0, 7000.0, 8000.0, 9000.0],
+            "email": [
+                "alice@example.com",
+                "invalid",
+                "charlie@test.com",
+                "david@test.com",
+                "eve@example.com",
+            ],
+            "department": ["HR", "HR", "IT", "IT", "Finance"],
+        }
+    )
     return dd.from_pandas(data, npartitions=2)
 
 
@@ -57,14 +60,17 @@ def empty_data():
 @pytest.fixture
 def rule_factory():
     def _create(field, check_type, value="", threshold=1.0, level="ROW", **kwargs):
-        return RuleDef.from_dict({
-            "field": field,
-            "check_type": check_type,
-            "value": value,
-            "threshold": threshold,
-            "level": level,
-            **kwargs
-        })
+        return RuleDef.from_dict(
+            {
+                "field": field,
+                "check_type": check_type,
+                "value": value,
+                "threshold": threshold,
+                "level": level,
+                **kwargs,
+            }
+        )
+
     return _create
 
 
@@ -390,10 +396,7 @@ class TestSummarize:
         total_rows = len(sample_data)
 
         summary = summarize(
-            rules,
-            total_rows,
-            df_with_errors=violations,
-            table_error=table_summary
+            rules, total_rows, df_with_errors=violations, table_error=table_summary
         )
         summary_computed = summary.compute()
 
@@ -444,20 +447,24 @@ class TestEdgeCases:
 
     def test_cannot_create_invalid_rule(self):
         with pytest.raises(ValueError, match="Invalid rule type"):
-            RuleDef.from_dict({
-                "field": "age",
-                "check_type": "is_super_magic",
-                "value": "",
-                "level": "ROW",
-            })
+            RuleDef.from_dict(
+                {
+                    "field": "age",
+                    "check_type": "is_super_magic",
+                    "value": "",
+                    "level": "ROW",
+                }
+            )
 
     def test_rule_without_implementation_is_skipped(self, sample_data):
-        rule = RuleDef.from_dict({
-            "field": "age",
-            "check_type": "is_complete",
-            "value": "",
-            "level": "ROW",
-        })
+        rule = RuleDef.from_dict(
+            {
+                "field": "age",
+                "check_type": "is_complete",
+                "value": "",
+                "level": "ROW",
+            }
+        )
 
         rule.check_type = "nonexistent_function_xyz"
 
@@ -480,10 +487,7 @@ class TestIntegration:
 
         total_rows = len(sample_data)
         summary = summarize(
-            rules,
-            total_rows,
-            df_with_errors=violations,
-            table_error=table_summary
+            rules, total_rows, df_with_errors=violations, table_error=table_summary
         )
         summary_computed = summary.compute()
 

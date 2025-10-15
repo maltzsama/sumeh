@@ -122,14 +122,22 @@ class TestValueParsing:
         assert isinstance(rule.value, float)
 
     def test_parse_date_iso(self):
-        data = {"field": "date_col", "check_type": "is_date_after", "value": "2025-05-16"}
+        data = {
+            "field": "date_col",
+            "check_type": "is_date_after",
+            "value": "2025-05-16",
+        }
         rule = RuleDef.from_dict(data)
 
         assert isinstance(rule.value, date)
         assert rule.value == date(2025, 5, 16)
 
     def test_parse_list_of_strings(self):
-        data = {"field": "status", "check_type": "is_contained_in", "value": "[active, pending]"}
+        data = {
+            "field": "status",
+            "check_type": "is_contained_in",
+            "value": "[active, pending]",
+        }
         rule = RuleDef.from_dict(data)
 
         assert rule.value == ["active", "pending"]
@@ -141,7 +149,11 @@ class TestValueParsing:
         assert rule.value == [18, 65]
 
     def test_parse_regex_pattern(self):
-        data = {"field": "email", "check_type": "has_pattern", "value": r"^\w+@\w+\.\w+$"}
+        data = {
+            "field": "email",
+            "check_type": "has_pattern",
+            "value": r"^\w+@\w+\.\w+$",
+        }
         rule = RuleDef.from_dict(data)
 
         assert isinstance(rule.value, str)
@@ -290,7 +302,7 @@ class TestTimestamps:
         data = {
             "field": "age",
             "check_type": "is_positive",
-            "created_at": "2025-05-16T10:00:00"
+            "created_at": "2025-05-16T10:00:00",
         }
         rule = RuleDef.from_dict(data)
 
@@ -313,13 +325,21 @@ class TestEdgeCases:
         assert rule.value is None
 
     def test_complex_list_parsing(self):
-        data = {"field": "status", "check_type": "is_contained_in", "value": "['active', 'pending', 'closed']"}
+        data = {
+            "field": "status",
+            "check_type": "is_contained_in",
+            "value": "['active', 'pending', 'closed']",
+        }
         rule = RuleDef.from_dict(data)
 
         assert rule.value == ["active", "pending", "closed"]
 
     def test_mixed_type_list(self):
-        data = {"field": "codes", "check_type": "is_contained_in", "value": "[1, 'a', 3.5]"}
+        data = {
+            "field": "codes",
+            "check_type": "is_contained_in",
+            "value": "[1, 'a', 3.5]",
+        }
         rule = RuleDef.from_dict(data)
 
         assert rule.value == [1, "a", 3.5]

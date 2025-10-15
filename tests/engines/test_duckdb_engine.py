@@ -111,7 +111,9 @@ class TestValidateRowLevel:
         assert agg_rel is not None
         assert raw_rel is not None
 
-    def test_validate_row_level_finds_violations(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_row_level_finds_violations(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         """Test that violations are found and flagged"""
         rules = [rule_factory("age", "is_positive", level="ROW")]
 
@@ -125,7 +127,9 @@ class TestValidateRowLevel:
         # Verificar que dq_status contém a regra violada
         assert any("is_positive" in str(status) for status in raw_df["dq_status"])
 
-    def test_validate_row_level_multiple_rules(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_row_level_multiple_rules(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [
             rule_factory("age", "is_positive", level="ROW"),
             rule_factory("name", "is_complete", level="ROW"),
@@ -137,9 +141,9 @@ class TestValidateRowLevel:
         assert len(raw_df) > 0
         assert "dq_status" in raw_df.columns
 
-
-
-    def test_validate_row_level_with_empty_data(self, duckdb_conn, empty_relation, rule_factory):
+    def test_validate_row_level_with_empty_data(
+        self, duckdb_conn, empty_relation, rule_factory
+    ):
         rules = [rule_factory("name", "is_complete", level="ROW")]
 
         agg_rel, raw_rel = validate_row_level(duckdb_conn, empty_relation, rules)
@@ -150,7 +154,9 @@ class TestValidateRowLevel:
 
 class TestValidateTableLevel:
 
-    def test_validate_table_level_basic(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_table_level_basic(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [rule_factory("salary", "has_max", value=10000, level="TABLE")]
 
         summary_rel = validate_table_level(duckdb_conn, sample_relation, rules)
@@ -161,7 +167,9 @@ class TestValidateTableLevel:
         assert "expected" in summary_df.columns
         assert "actual" in summary_df.columns
 
-    def test_validate_table_level_multiple_rules(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_table_level_multiple_rules(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [
             rule_factory("salary", "has_max", value=10000, level="TABLE"),
             rule_factory("salary", "has_min", value=4000, level="TABLE"),
@@ -177,7 +185,9 @@ class TestValidateTableLevel:
 
 class TestValidate:
 
-    def test_validate_returns_three_values(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_returns_three_values(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [rule_factory("age", "is_positive", level="ROW")]
 
         result = validate(duckdb_conn, sample_relation, rules)
@@ -191,13 +201,17 @@ class TestValidate:
             rule_factory("name", "is_complete", level="ROW"),
         ]
 
-        df_with_status, violations, table_summary = validate(duckdb_conn, sample_relation, rules)
+        df_with_status, violations, table_summary = validate(
+            duckdb_conn, sample_relation, rules
+        )
 
         viol_df = violations.df()
         assert len(viol_df) > 0
         assert "dq_status" in viol_df.columns
 
-    def test_validate_with_table_rules(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_with_table_rules(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [
             rule_factory("salary", "has_max", value=10000, level="TABLE"),
             rule_factory("salary", "has_min", value=4000, level="TABLE"),
@@ -209,13 +223,17 @@ class TestValidate:
         assert len(summary_df) == 2
         assert all(summary_df["level"] == "TABLE")
 
-    def test_validate_with_mixed_rules(self, duckdb_conn, sample_relation, rule_factory):
+    def test_validate_with_mixed_rules(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [
             rule_factory("age", "is_positive", level="ROW"),
             rule_factory("salary", "has_max", value=10000, level="TABLE"),
         ]
 
-        df_with_status, violations, table_summary = validate(duckdb_conn, sample_relation, rules)
+        df_with_status, violations, table_summary = validate(
+            duckdb_conn, sample_relation, rules
+        )
 
         assert len(violations.df()) > 0
         assert len(table_summary.df()) == 1
@@ -228,7 +246,9 @@ class TestValidate:
         assert len(violations.df()) == 0
 
     def test_validate_with_no_rules(self, duckdb_conn, sample_relation):
-        df_with_status, violations, table_summary = validate(duckdb_conn, sample_relation, [])
+        df_with_status, violations, table_summary = validate(
+            duckdb_conn, sample_relation, []
+        )
 
         assert len(violations.df()) == 0
         assert len(table_summary.df()) == 0
@@ -245,20 +265,26 @@ class TestSummarize:
         _, violations, _ = validate(duckdb_conn, sample_relation, rules)
         total_rows = len(sample_relation.df())
 
-        summary_rel = summarize(duckdb_conn, rules, total_rows, df_with_errors=violations)
+        summary_rel = summarize(
+            duckdb_conn, rules, total_rows, df_with_errors=violations
+        )
         summary_df = summary_rel.df()
 
         assert len(summary_df) == 2
         assert "pass_rate" in summary_df.columns
         assert "status" in summary_df.columns
 
-    def test_summarize_calculates_pass_rate(self, duckdb_conn, sample_relation, rule_factory):
+    def test_summarize_calculates_pass_rate(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [rule_factory("age", "is_positive", level="ROW")]
 
         _, violations, _ = validate(duckdb_conn, sample_relation, rules)
         total_rows = len(sample_relation.df())
 
-        summary_rel = summarize(duckdb_conn, rules, total_rows, df_with_errors=violations)
+        summary_rel = summarize(
+            duckdb_conn, rules, total_rows, df_with_errors=violations
+        )
         summary_df = summary_rel.df()
 
         row = summary_df.iloc[0]
@@ -266,19 +292,25 @@ class TestSummarize:
         assert row["violations"] >= 0
         assert 0 <= row["pass_rate"] <= 1
 
-    def test_summarize_with_table_rules(self, duckdb_conn, sample_relation, rule_factory):
+    def test_summarize_with_table_rules(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [rule_factory("salary", "has_max", value=10000, level="TABLE")]
 
         _, _, table_summary = validate(duckdb_conn, sample_relation, rules)
         total_rows = len(sample_relation.df())
 
-        summary_rel = summarize(duckdb_conn, rules, total_rows, table_error=table_summary)
+        summary_rel = summarize(
+            duckdb_conn, rules, total_rows, table_error=table_summary
+        )
         summary_df = summary_rel.df()
 
         assert len(summary_df) == 1
         assert summary_df.iloc[0]["level"] == "TABLE"
 
-    def test_summarize_with_mixed_rules(self, duckdb_conn, sample_relation, rule_factory):
+    def test_summarize_with_mixed_rules(
+        self, duckdb_conn, sample_relation, rule_factory
+    ):
         rules = [
             rule_factory("age", "is_positive", level="ROW"),
             rule_factory("salary", "has_max", value=10000, level="TABLE"),
@@ -292,7 +324,7 @@ class TestSummarize:
             rules,
             total_rows,
             df_with_errors=violations,
-            table_error=table_summary
+            table_error=table_summary,
         )
         summary_df = summary_rel.df()
 
@@ -330,7 +362,9 @@ class TestIntegration:
             rule_factory("salary", "has_max", value=10000, level="TABLE"),
         ]
 
-        df_with_status, violations, table_summary = validate(duckdb_conn, sample_relation, rules)
+        df_with_status, violations, table_summary = validate(
+            duckdb_conn, sample_relation, rules
+        )
 
         total_rows = len(sample_relation.df())
         summary = summarize(
@@ -338,7 +372,7 @@ class TestIntegration:
             rules,
             total_rows,
             df_with_errors=violations,
-            table_error=table_summary
+            table_error=table_summary,
         )
         summary_df = summary.df()
 
@@ -347,10 +381,9 @@ class TestIntegration:
         assert all(summary_df["status"].isin(["PASS", "FAIL", "ERROR"]))
 
     def test_pipeline_with_no_violations(self, duckdb_conn, rule_factory):
-        data = pd.DataFrame({
-            "value": [1, 2, 3, 4, 5],
-            "name": ["A", "B", "C", "D", "E"]
-        })
+        data = pd.DataFrame(
+            {"value": [1, 2, 3, 4, 5], "name": ["A", "B", "C", "D", "E"]}
+        )
         relation = duckdb_conn.from_df(data)
 
         rules = [rule_factory("value", "is_positive", level="ROW")]
@@ -358,4 +391,3 @@ class TestIntegration:
         _, violations, _ = validate(duckdb_conn, relation, rules)
 
         assert len(violations.df()) >= 0
-

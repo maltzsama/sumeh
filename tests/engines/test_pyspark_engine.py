@@ -7,7 +7,13 @@ import pytest
 pytest.importorskip("pyspark")
 
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+    DoubleType,
+)
 
 from sumeh.engines.pyspark_engine import (
     validate,
@@ -28,8 +34,7 @@ from sumeh.engines.pyspark_engine import (
 def spark():
     """Create SparkSession for testing"""
     spark = (
-        SparkSession.builder
-        .master("local[1]")
+        SparkSession.builder.master("local[1]")
         .appName("sumeh-tests")
         .config("spark.sql.shuffle.partitions", "1")
         .getOrCreate()
@@ -47,11 +52,13 @@ def sample_df(spark, sample_pandas_df):
 @pytest.fixture
 def empty_df(spark):
     """Empty Spark DataFrame"""
-    schema = StructType([
-        StructField("id", IntegerType(), True),
-        StructField("name", StringType(), True),
-        StructField("value", DoubleType(), True),
-    ])
+    schema = StructType(
+        [
+            StructField("id", IntegerType(), True),
+            StructField("name", StringType(), True),
+            StructField("value", DoubleType(), True),
+        ]
+    )
     return spark.createDataFrame([], schema)
 
 
@@ -225,7 +232,7 @@ class TestSummarize:
             rules,
             total_rows,
             df_with_errors=violations,
-            table_error=table_summary
+            table_error=table_summary,
         )
 
         assert summary.count() == 2

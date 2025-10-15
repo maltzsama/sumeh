@@ -270,7 +270,9 @@ def __detect_engine(df, **context):
             return "polars_engine"
         case m if m.startswith("pandas"):
             return "pandas_engine"
-        case m if m.startswith("duckdb") or m.startswith("_duckdb") or "DuckDB" in class_name:
+        case m if (
+            m.startswith("duckdb") or m.startswith("_duckdb") or "DuckDB" in class_name
+        ):
             return "duckdb_engine"
         case m if "bigquery" in m:
             return "bigquery_engine"

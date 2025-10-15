@@ -1039,6 +1039,7 @@ def is_yesterday(df: DataFrame, rule: RuleDef) -> DataFrame:
     )
     return viol
 
+
 def is_t_minus_1(df: DataFrame, rule: RuleDef) -> DataFrame:
     """
     Alias for is_t_minus_1. Filters rows where date field does not equal yesterday.
@@ -1056,6 +1057,7 @@ def is_t_minus_1(df: DataFrame, rule: RuleDef) -> DataFrame:
         "dq_status", lit(f"{rule.field}:{rule.check_type}:{rule.value}")
     )
     return viol
+
 
 def is_t_minus_2(df: DataFrame, rule: RuleDef) -> DataFrame:
     """

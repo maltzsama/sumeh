@@ -14,11 +14,17 @@ class TestQualityFunction(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mock_data_file = os.path.join(os.path.dirname(__file__), "mock", "data.csv")
-        cls.mock_config_file = os.path.join(os.path.dirname(__file__), "mock", "config.csv")
+        cls.mock_config_file = os.path.join(
+            os.path.dirname(__file__), "mock", "config.csv"
+        )
 
         cls.mock_data = pd.read_csv(cls.mock_data_file, sep=",", header=0)
-        cls.mock_data["performance"] = pd.to_numeric(cls.mock_data["performance"], errors="coerce").fillna(0)
-        cls.mock_data["last_updated"] = pd.to_datetime(cls.mock_data["last_updated"], errors="coerce")
+        cls.mock_data["performance"] = pd.to_numeric(
+            cls.mock_data["performance"], errors="coerce"
+        ).fillna(0)
+        cls.mock_data["last_updated"] = pd.to_datetime(
+            cls.mock_data["last_updated"], errors="coerce"
+        )
         cls.mock_data["id"] = cls.mock_data["id"].astype(str)
 
     @staticmethod
@@ -81,14 +87,21 @@ class TestQualityFunction(unittest.TestCase):
 
         # USE AS COLUNAS CORRETAS QUE O REPORT REALMENTE RETORNA
         expected_cols = {
-            "id", "timestamp", "level", "column", "rule",
-            "status", "rows", "violations", "pass_rate"
+            "id",
+            "timestamp",
+            "level",
+            "column",
+            "rule",
+            "status",
+            "rows",
+            "violations",
+            "pass_rate",
         }
 
         missing = expected_cols - set(result.columns)
         self.assertTrue(
             expected_cols.issubset(result.columns),
-            f"Missing columns: {missing}. Available: {list(result.columns)}"
+            f"Missing columns: {missing}. Available: {list(result.columns)}",
         )
 
 

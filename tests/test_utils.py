@@ -94,7 +94,12 @@ class TestCompareSchemas:
         return [
             {"field": "id", "data_type": "integer", "nullable": False},
             {"field": "name", "data_type": "string", "nullable": True},
-            {"field": "price", "data_type": "float", "nullable": False, "max_length": 10},
+            {
+                "field": "price",
+                "data_type": "float",
+                "nullable": False,
+                "max_length": 10,
+            },
         ]
 
     def test_matching_schemas(self, base_schema):
@@ -208,6 +213,7 @@ class TestDetectEngine:
 
     def test_detect_pandas(self):
         import pandas as pd
+
         df = pd.DataFrame({"a": [1, 2, 3]})
 
         engine = detect_engine(df)
@@ -236,6 +242,7 @@ class TestDetectEngine:
     def test_detect_polars(self):
         try:
             import polars as pl
+
             df = pl.DataFrame({"a": [1, 2, 3]})
 
             engine = detect_engine(df)
@@ -259,6 +266,7 @@ class TestDetectEngine:
 
     def test_detect_bigquery_with_context(self):
         import pandas as pd
+
         df = pd.DataFrame({"a": [1, 2, 3]})
 
         engine = detect_engine(df, client="mock_client", table_ref="mock_ref")
