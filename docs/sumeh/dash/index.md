@@ -1,3 +1,3 @@
-# dash
+# Dashboard
 
 ::: sumeh.dash.app

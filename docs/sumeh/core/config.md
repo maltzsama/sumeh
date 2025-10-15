@@ -1,3 +1,3 @@
-# config
+# Configuration
 
-::: sumeh.core
+::: sumeh.core.config

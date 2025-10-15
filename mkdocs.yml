@@ -64,19 +64,7 @@ nav:
     - pandas: sumeh/engines/pandas.md
     - polars: sumeh/engines/polars.md
     - pyspark: sumeh/engines/pyspark.md
-  - generators:
-    - generator: sumeh/generators/generator.md
-    - dialects:
-      - base: sumeh/generators/dialects/base.md
-      - athena: sumeh/generators/dialects/athena.md
-      - bigquery: sumeh/generators/dialects/bigquery.md
-      - databricks: sumeh/generators/dialects/databricks.md
-      - duckdb: sumeh/generators/dialects/duckdb.md
-      - mysql: sumeh/generators/dialects/mysql.md
-      - postgres: sumeh/generators/dialects/postgres.md
-      - redshift: sumeh/generators/dialects/redshift.md
-      - snowflake: sumeh/generators/dialects/snowflake.md
-      - sqlite: sumeh/generators/dialects/sqlite.md
+  - generators: sumeh/generators.md
   - dash: sumeh/dash/index.md
 
 markdown_extensions:
