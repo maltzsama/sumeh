@@ -2,6 +2,79 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-10-16)
+
+### Bug Fixes
+
+- Dask dependancie error
+  ([`f8c1b62`](https://github.com/maltzsama/sumeh/commit/f8c1b62a09c2e503c8d342a27092fc82ea15e59b))
+
+### Code Style
+
+- Improve readability with standardized line breaks and spacing
+  ([`a220071`](https://github.com/maltzsama/sumeh/commit/a220071979be0b9444da74e598519de3b0caae86))
+
+- Standardize and clean up import ordering
+  ([`99cc1ae`](https://github.com/maltzsama/sumeh/commit/99cc1ae5b36c4013e7762855455f60beb71e77b0))
+
+### Continuous Integration
+
+- Simplify Poetry install by using `--all-extras` in publish workflow
+  ([`a8d59b3`](https://github.com/maltzsama/sumeh/commit/a8d59b32559d51e6d279d174278d677de383a7cf))
+
+### Features
+
+- Add full BigQuery table-level validation support and unify rule model across engines
+  ([`af58f5c`](https://github.com/maltzsama/sumeh/commit/af58f5cc9c877b14e1544537455f8fc27801126f))
+
+- Enhance DuckDB detection and refactor Pandas date checks
+  ([`39a64ca`](https://github.com/maltzsama/sumeh/commit/39a64ca9547ffcdca772f2add84a4dfbacb9d81f))
+
+- Enhance rule parsing and standardize rule usage in engines
+  ([`945ae8b`](https://github.com/maltzsama/sumeh/commit/945ae8bc98fe25fb0c0406acca9450d228c36ec6))
+
+- Refactor validation engine to use RuleDef model and fix ambiguity issues
+  ([`808ff22`](https://github.com/maltzsama/sumeh/commit/808ff222254484a1387a901966f25761f1a9edb0))
+
+- Standardize aggregation checks and implement multi-level validation
+  ([`bc56830`](https://github.com/maltzsama/sumeh/commit/bc5683029991f84bf25fb3f788a40fffcd37d181))
+
+- Unify table-level validation engine interface across all backends
+  ([`e1234fa`](https://github.com/maltzsama/sumeh/commit/e1234fa615227af4e722866d84e243edabcace16))
+
+- **core**: Implement Dispatcher pattern for core modules
+  ([`13a4349`](https://github.com/maltzsama/sumeh/commit/13a43495cb5c5902bf53724b9c58e23345d7c4c5))
+
+- **duckdb**: Enhance validation dispatchers, add robust error handling & input checks**
+  ([`82c4274`](https://github.com/maltzsama/sumeh/commit/82c427413d76c97db722fde9673790c1f9c37e61))
+
+### Refactoring
+
+- Clean up and organize imports across core modules and engines
+  ([`7953b20`](https://github.com/maltzsama/sumeh/commit/7953b20899bfb9b37b68325b56ddd4304fa6a681))
+
+- Introduce RuleDef model and registry for configuration
+  ([`90522e5`](https://github.com/maltzsama/sumeh/commit/90522e52aa8dc146f4b1eef805bb2c60b6f05720))
+
+- Remove obsolete extract_params test and align test suite with current codebase_
+  ([`5bfc07b`](https://github.com/maltzsama/sumeh/commit/5bfc07b7c45098db01c7eaf0df4037176705e051))
+
+- Standardize code formatting and improve error handling in BigQuery engine
+  ([`20c994a`](https://github.com/maltzsama/sumeh/commit/20c994ad953d09b6877e543e75adeb41afd3944c))
+
+- Unify and modernize configuration dispatchers with clear, consistent API
+  ([`8915815`](https://github.com/maltzsama/sumeh/commit/8915815e87407cc369368cbfeff3b7ae0653fde2))
+
+- Unify date validation aliases across all engines for consistency
+  ([`7becdd5`](https://github.com/maltzsama/sumeh/commit/7becdd5285f803f8fbf5dc59721670b48f6f5e3b))
+
+- **cli**: Migrate CLI implementation from argparse to Typer
+  ([`e161748`](https://github.com/maltzsama/sumeh/commit/e161748a4493dfe52216c14313c5bde731412f3e))
+
+- **pyspark**: Standardize validation functions and remove legacy logic
+  ([`fc03b78`](https://github.com/maltzsama/sumeh/commit/fc03b78e2713b9432c33a31659c283a6f520dcde))
+
+
 ## v1.2.0 (2025-10-09)
 
 ### Chores
