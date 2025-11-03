@@ -1600,9 +1600,9 @@ def summarize(
             violations = viol_dict.get((rule.check_type, field_str), 0)
             pass_count = total_rows - violations
             pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
-            pass_threshold = rule.threshold if rule.threshold else 1.0
+            threshold = rule.threshold if rule.threshold else 1.0
 
-            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
+            status = "PASS" if pass_rate >= threshold else "FAIL"
 
             # Convert expected value to float safely
             expected_val = None
@@ -1627,8 +1627,8 @@ def summarize(
                     "field": field_str,
                     "rows": total_rows,
                     "violations": violations,
+                    "threshold": threshold,
                     "pass_rate": round(pass_rate, 4),
-                    "pass_threshold": pass_threshold,
                     "status": status,
                     "expected": expected_val,
                     "actual": None,
@@ -1661,10 +1661,10 @@ def summarize(
                     "category": row["category"],
                     "check_type": row["check_type"],
                     "field": row["field"],
-                    "rows": None,  # table-level não tem rows
-                    "violations": None,  # table-level não tem violations
+                    "rows": None,
+                    "violations": None,
+                    "threshold": None,
                     "pass_rate": compliance_rate,
-                    "pass_threshold": None,  # table-level não tem pass_threshold
                     "status": row["status"],
                     "expected": expected,
                     "actual": actual,
@@ -1683,8 +1683,8 @@ def summarize(
             StructField("field", StringType(), True),
             StructField("rows", IntegerType(), True),
             StructField("violations", IntegerType(), True),
+            StructField("threshold", DoubleType(), True),
             StructField("pass_rate", DoubleType(), True),
-            StructField("pass_threshold", DoubleType(), True),
             StructField("status", StringType(), True),
             StructField("expected", DoubleType(), True),
             StructField("actual", DoubleType(), True),
@@ -1709,7 +1709,7 @@ def summarize(
                 rows=s["rows"],
                 violations=s["violations"],
                 pass_rate=s["pass_rate"],
-                pass_threshold=s["pass_threshold"],
+                threshold=s["threshold"],
                 status=s["status"],
                 expected=s["expected"],
                 actual=s["actual"],
