@@ -1966,9 +1966,9 @@ def summarize(
             violations = viol_dict.get((field_str, rule.check_type), 0)
             pass_count = total_rows - violations
             pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
-            pass_threshold = rule.threshold if rule.threshold else 1.0
+            threshold = rule.threshold if rule.threshold else 1.0
 
-            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
+            status = "PASS" if pass_rate >= threshold else "FAIL"
 
             # Convert expected value to float safely
             expected_val = None
@@ -1991,8 +1991,8 @@ def summarize(
                     "field": field_str,
                     "rows": total_rows,
                     "violations": violations,
+                    "threshold": threshold,
                     "pass_rate": round(pass_rate, 4),
-                    "pass_threshold": pass_threshold,
                     "status": status,
                     "expected": expected_val,
                     "actual": None,
@@ -2042,8 +2042,8 @@ def summarize(
                 "field",
                 "rows",
                 "violations",
+                "threshold",
                 "pass_rate",
-                "pass_threshold",
                 "status",
                 "expected",
                 "actual",
