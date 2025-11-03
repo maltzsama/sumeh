@@ -1503,7 +1503,7 @@ def __rules_to_bq_sql(rules: List[Dict]) -> str:
     Converts rule definitions into SQL representation using SQLGlot.
 
     Generates SQL query that represents each rule as a row with columns:
-    col, rule, pass_threshold, value
+    col, rule, threshold, value
 
     Args:
         rules: List of validation rule dictionaries
@@ -1540,7 +1540,7 @@ def __rules_to_bq_sql(rules: List[Dict]) -> str:
             expressions=[
                 exp.alias_(exp.Literal.string(col.strip()), "col"),
                 exp.alias_(exp.Literal.string(ctx.name), "rule"),
-                exp.alias_(exp.Literal.number(thr), "pass_threshold"),
+                exp.alias_(exp.Literal.number(thr), "threshold"),
                 exp.alias_(val_literal, "value"),
             ]
         )
@@ -1553,7 +1553,7 @@ def __rules_to_bq_sql(rules: List[Dict]) -> str:
             expressions=[
                 exp.alias_(exp.Null(), "col"),
                 exp.alias_(exp.Null(), "rule"),
-                exp.alias_(exp.Null(), "pass_threshold"),
+                exp.alias_(exp.Null(), "threshold"),
                 exp.alias_(exp.Null(), "value"),
             ]
         ).limit(0)
@@ -1568,7 +1568,7 @@ def __rules_to_bq_sql(rules: List[Dict]) -> str:
             expressions=[
                 exp.Column(this="col"),
                 exp.Column(this="rule"),
-                exp.Column(this="pass_threshold"),
+                exp.Column(this="threshold"),
                 exp.Column(this="value"),
             ]
         )
@@ -1625,9 +1625,9 @@ def summarize(
             violations = violations_count.get((field_str, rule.check_type), 0)
             pass_count = total_rows - violations
             pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
-            pass_threshold = rule.threshold if rule.threshold else 1.0
+            threshold = rule.threshold if rule.threshold else 1.0
 
-            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
+            status = "PASS" if pass_rate >= threshold else "FAIL"
 
             expected_val = None
             if rule.value is not None:
@@ -1649,8 +1649,8 @@ def summarize(
                     "field": field_str,
                     "rows": total_rows,
                     "violations": violations,
+                    "threshold": threshold,
                     "pass_rate": round(pass_rate, 4),
-                    "pass_threshold": pass_threshold,
                     "status": status,
                     "expected": expected_val,
                     "actual": None,
@@ -1700,8 +1700,8 @@ def summarize(
                 "field",
                 "rows",
                 "violations",
+                "threshold",
                 "pass_rate",
-                "pass_threshold",
                 "status",
                 "expected",
                 "actual",

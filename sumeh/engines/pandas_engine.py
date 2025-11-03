@@ -1871,8 +1871,8 @@ def summarize(
             - value: Value associated with the rule
             - rows: Total number of rows in dataset
             - violations: Number of rows that violated the rule
+            - threshold: Threshold for passing
             - pass_rate: Proportion of rows that passed
-            - pass_threshold: Threshold for passing
             - status: PASS or FAIL based on pass rate
     """
     # Parse violations from dq_status
@@ -1926,9 +1926,9 @@ def summarize(
 
             pass_count = total_rows - violations
             pass_rate = pass_count / total_rows if total_rows > 0 else 1.0
-            pass_threshold = rule.threshold if rule.threshold else 1.0
+            threshold = rule.threshold if rule.threshold else 1.0
 
-            status = "PASS" if pass_rate >= pass_threshold else "FAIL"
+            status = "PASS" if pass_rate >= threshold else "FAIL"
 
             summaries.append(
                 {
@@ -1940,8 +1940,8 @@ def summarize(
                     "field": field_str,
                     "rows": total_rows,
                     "violations": violations,
+                    "threshold": threshold,
                     "pass_rate": round(pass_rate, 4),
-                    "pass_threshold": pass_threshold,
                     "status": status,
                     "expected": rule.value,
                     "actual": None,
@@ -1992,8 +1992,8 @@ def summarize(
                 "field",
                 "rows",
                 "violations",
+                "threshold",
                 "pass_rate",
-                "pass_threshold",
                 "status",
                 "expected",
                 "actual",
