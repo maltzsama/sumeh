@@ -901,9 +901,11 @@ class _SchemaConfigDispatcher:
             "  get_schema_config(source='bigquery', ...)  # fallback\n"
         )
 
+
 # ============================================================================
 # SCHEMA DISPATCHERS
 # ============================================================================
+
 
 class _ExtractSchemaDispatcher:
     """
@@ -920,31 +922,37 @@ class _ExtractSchemaDispatcher:
     @property
     def pandas(self):
         from sumeh.engines import pandas_engine
+
         return pandas_engine.extract_schema
 
     @property
     def dask(self):
         from sumeh.engines import dask_engine
+
         return dask_engine.extract_schema
 
     @property
     def pyspark(self):
         from sumeh.engines import pyspark_engine
+
         return pyspark_engine.extract_schema
 
     @property
     def polars(self):
         from sumeh.engines import polars_engine
+
         return polars_engine.extract_schema
 
     @property
     def duckdb(self):
         from sumeh.engines import duckdb_engine
+
         return duckdb_engine.extract_schema
 
     @property
     def bigquery(self):
         from sumeh.engines import bigquery_engine
+
         return bigquery_engine.extract_schema
 
     def __call__(self, df, **kwargs):
@@ -986,31 +994,37 @@ class _ValidateSchemaDispatcher:
     @property
     def pandas(self):
         from sumeh.engines import pandas_engine
+
         return pandas_engine.validate_schema
 
     @property
     def dask(self):
         from sumeh.engines import dask_engine
+
         return dask_engine.validate_schema
 
     @property
     def pyspark(self):
         from sumeh.engines import pyspark_engine
+
         return pyspark_engine.validate_schema
 
     @property
     def polars(self):
         from sumeh.engines import polars_engine
+
         return polars_engine.validate_schema
 
     @property
     def duckdb(self):
         from sumeh.engines import duckdb_engine
+
         return duckdb_engine.validate_schema
 
     @property
     def bigquery(self):
         from sumeh.engines import bigquery_engine
+
         return bigquery_engine.validate_schema
 
     def __call__(self, df_or_conn, expected, **kwargs):
