@@ -555,7 +555,7 @@ sumeh/
 │   ├── rules/             # Rule definitions & registry
 │   │   ├── manifest.json  # 60+ validation rules
 │   │   ├── rule_model.py  # RuleDef class
-│   │   └── regristry.py   # Rule registry
+│   │   └── registry.py   # Rule registry
 │   ├── __init__.py        # Dispatchers (validate, summarize, etc.)
 │   ├── config.py          # Multi-source configuration
 │   ├── report.py          # Legacy cuallee integration

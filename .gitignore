@@ -410,3 +410,5 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 tags
+
+tmp/

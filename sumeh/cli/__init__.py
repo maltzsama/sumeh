@@ -353,7 +353,7 @@ def rules_list(
     ),
 ):
     """List all available quality rules."""
-    from sumeh.core.rules.regristry import RuleRegistry
+    from sumeh.core.rules.registry import RuleRegistry
 
     rules = RuleRegistry.list_rules()
 
@@ -392,7 +392,7 @@ def rules_info(
     rule_name: str = typer.Argument(..., help="Rule name"),
 ):
     """Show detailed information about a specific rule."""
-    from sumeh.core.rules.regristry import RuleRegistry
+    from sumeh.core.rules.registry import RuleRegistry
     from rich.panel import Panel
 
     rule_def = RuleRegistry.get_rule(rule_name)
@@ -420,7 +420,7 @@ def rules_search(
     keyword: str = typer.Argument(..., help="Search keyword"),
 ):
     """Search for rules by keyword."""
-    from sumeh.core.rules.regristry import RuleRegistry
+    from sumeh.core.rules.registry import RuleRegistry
 
     all_rules = RuleRegistry.list_rules()
     matches = []

@@ -7,7 +7,7 @@ from typing import Any, List, Union, Optional
 
 from dateutil import parser
 
-from .regristry import RuleRegistry
+from .registry import RuleRegistry
 
 
 @dataclass
@@ -67,15 +67,12 @@ class RuleDef:
 
     def _enrich_from_manifest(self):
         """Enrich rule with category and level from manifest."""
-        RuleRegistry._ensure_loaded()
-        for level_key, level_data in RuleRegistry._manifest["levels"].items():
-            for cat_key, cat_data in level_data["categories"].items():
-                if self.check_type in cat_data["rules"]:
-                    if self.level is None:
-                        self.level = level_key.replace("_level", "").upper()
-                    if self.category is None:
-                        self.category = cat_key
-                    return
+        rule_def = RuleRegistry.get_rule(self.check_type)
+        if rule_def:
+            if self.level is None:
+                self.level = rule_def.get("level", "ROW")
+            if self.category is None:
+                self.category = rule_def.get("category", "unknown")
 
     @classmethod
     def from_dict(cls, data: dict, engine: Optional[str] = None) -> "RuleDef":
