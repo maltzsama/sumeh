@@ -3,6 +3,7 @@ Polars validation engine - Bifurcation Pattern (Optimized).
 
 Uses Bulk Error Aggregation to avoid loop overhead and schema mismatches.
 """
+
 import polars as pl
 import time
 from typing import List, Dict, Any
@@ -12,12 +13,24 @@ from sumeh.core.rules.rule_model import RuleDef
 from sumeh.engines.polars.registry import get_analyzer, get_constraint
 from sumeh.engines.polars.dataframe import ValidatedPolarsDataFrame
 
+# Centralized Schema Definition to avoid drift
+ERROR_SCHEMA = {
+    "rule_id": pl.Utf8,
+    "check_type": pl.Utf8,
+    "field": pl.Utf8,
+    "category": pl.Utf8,
+    "expected": pl.Utf8,
+    "actual": pl.Utf8,
+    "message": pl.Utf8,
+    "timestamp": pl.Utf8,
+}
 
 def validate(df: pl.DataFrame, rules: List[RuleDef], baseline_provider=None) -> ValidationReport:
     start_time = time.time()
     
-    # 1. Add temporary row_id for join later
-    df = df.with_row_count("_row_id")
+    # 1. Add temporary row_id for join later if not exists
+    if "_row_id" not in df.columns:
+        df = df.with_row_index("_row_id")
     
     row_rules = [r for r in rules if r.is_applicable_for_level("ROW")]
     table_rules = [r for r in rules if r.is_applicable_for_level("TABLE")]
@@ -25,93 +38,81 @@ def validate(df: pl.DataFrame, rules: List[RuleDef], baseline_provider=None) -> 
     results = []
     
     # 2. Execute Validations
+    row_results = []
     if row_rules:
         row_results = _validate_row_level(df, row_rules)
         results.extend(row_results)
-        
-        # 3. Bulk Error Collection (The "Senior" Way)
-        # Instead of iterating and updating df N times, we collect all errors first.
-        all_errors: List[Dict[str, Any]] = []
-        
-        for result in row_results:
-            if result.status == ValidationStatus.FAIL and result.violating_row_ids:
-                # Create the error payload structure (normalized)
-                error_payload = {
-                    "rule_id": str(result.rule_id),
-                    "check_type": str(result.check_type),
-                    "field": str(result.field),
-                    "category": str(result.category),
-                    "expected": str(result.expected_value), # Stringify to ensure schema consistency
-                    "actual": str(result.actual_value),     # Stringify to ensure schema consistency
-                    "message": str(result.message),
-                    "timestamp": datetime.utcnow().isoformat(),
-                }
-                
-                # Expand to one record per violating row
-                for rid in result.violating_row_ids:
-                    # Flatten for DataFrame creation
-                    record = error_payload.copy()
-                    record["_row_id"] = rid
-                    all_errors.append(record)
-
-        # 4. Join Errors back to DataFrame
-        if all_errors:
-            # Create a separate DataFrame for errors
-            errors_schema = {
-                "_row_id": pl.UInt32, # Matches default row_count type
-                "rule_id": pl.Utf8,
-                "check_type": pl.Utf8,
-                "field": pl.Utf8,
-                "category": pl.Utf8,
-                "expected": pl.Utf8,
-                "actual": pl.Utf8,
-                "message": pl.Utf8,
-                "timestamp": pl.Utf8,
+    
+    # 3. Bulk Error Collection (The "Senior" Way)
+    all_errors: List[Dict[str, Any]] = []
+    
+    for result in row_results:
+        if result.status == ValidationStatus.FAIL and result.violating_row_ids:
+            # Create the error payload structure (normalized)
+            base_payload = {
+                "rule_id": str(result.rule_id),
+                "check_type": str(result.check_type),
+                "field": str(result.field),
+                "category": str(result.category),
+                "expected": str(result.expected_value),
+                "actual": str(result.actual_value),
+                "message": str(result.message),
+                "timestamp": datetime.utcnow().isoformat(),
             }
             
-            # 4a. Create Errors DF
-            errors_df = pl.from_dicts(all_errors, schema=errors_schema)
-            
-            # 4b. Group by row_id and collect into List[Struct]
-            # We structify all columns EXCEPT _row_id
-            struct_cols = [c for c in errors_df.columns if c != "_row_id"]
-            
-            errors_agg = errors_df.group_by("_row_id").agg(
-                pl.struct(struct_cols).alias("_dq_errors")
-            )
-            
-            # 4c. Join back to main DF
-            df = df.join(errors_agg, on="_row_id", how="left")
-            
-            # 4d. Fill nulls (rows with no errors) with empty lists
-            # Note: We need to respect the schema of the list
-            df = df.with_columns(
-                pl.col("_dq_errors").fill_null(pl.lit([], dtype=df.schema["_dq_errors"]))
-            )
-            
-        else:
-            # No errors found at all, create empty column with correct type
-            # We define the schema manually to match the structure above
-            error_struct_dtype = pl.Struct([
-                pl.Field("rule_id", pl.Utf8),
-                pl.Field("check_type", pl.Utf8),
-                pl.Field("field", pl.Utf8),
-                pl.Field("category", pl.Utf8),
-                pl.Field("expected", pl.Utf8),
-                pl.Field("actual", pl.Utf8),
-                pl.Field("message", pl.Utf8),
-                pl.Field("timestamp", pl.Utf8),
-            ])
-            df = df.with_columns(
-                pl.lit([], dtype=pl.List(error_struct_dtype)).alias("_dq_errors")
-            )
+            # Expand to one record per violating row
+            for rid in result.violating_row_ids:
+                record = base_payload.copy()
+                record["_row_id"] = rid
+                all_errors.append(record)
+
+    # 4. Join Errors back to DataFrame
+    if all_errors:
+        # Schema for creation includes _row_id
+        creation_schema = {"_row_id": pl.UInt32, **ERROR_SCHEMA}
+        
+        errors_df = pl.from_dicts(all_errors, schema=creation_schema)
+        
+        # 4b. Group by row_id and collect into List[Struct]
+        struct_cols = list(ERROR_SCHEMA.keys())
+        
+        errors_agg = errors_df.group_by("_row_id").agg(
+            pl.col(struct_cols).struct.rename_fields(struct_cols).alias("_dq_errors_struct")
+        ).select(
+            pl.col("_row_id"),
+            pl.col("_dq_errors_struct").alias("_dq_errors")
+        )
+        
+        errors_agg = errors_df.group_by("_row_id").agg(
+            pl.struct(struct_cols).alias("_dq_errors")
+        )
+        
+        # 4c. Join back to main DF
+        df = df.join(errors_agg, on="_row_id", how="left")
+        
+        # 4d. Fill nulls safely
+        dq_errors_dtype = errors_agg.schema["_dq_errors"]
+        df = df.with_columns(
+            pl.col("_dq_errors").fill_null(pl.lit([], dtype=dq_errors_dtype))
+        )
+        
+    else:
+        # No errors found at all, create empty column with correct type
+        # Construct Struct Dtype from ERROR_SCHEMA
+        fields = [pl.Field(k, v) for k, v in ERROR_SCHEMA.items()]
+        error_list_dtype = pl.List(pl.Struct(fields))
+        
+        df = df.with_columns(
+            pl.lit([], dtype=error_list_dtype).alias("_dq_errors")
+        )
 
     # Table validations
     if table_rules:
         results.extend(_validate_table_level(df, table_rules, baseline_provider))
     
     # Clean up
-    df = df.drop("_row_id")
+    if "_row_id" in df.columns:
+        df = df.drop("_row_id")
     
     execution_time_ms = (time.time() - start_time) * 1000
     
@@ -122,7 +123,6 @@ def validate(df: pl.DataFrame, rules: List[RuleDef], baseline_provider=None) -> 
         engine="polars",
         df_validated=ValidatedPolarsDataFrame(df),
     )
-
 
 def _validate_row_level(df: pl.DataFrame, rules: List[RuleDef]) -> List[ValidationResult]:
     results = []
