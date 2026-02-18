@@ -36,7 +36,7 @@ from sumeh.core.models import (
 # ============================================================================
 # Engines (namespace-first API)
 # ============================================================================
-from sumeh.engines import pandas, polars, duckdb, dask, bigquery
+from sumeh.engines import pandas, polars, duckdb, dask, bigquery, pyspark
 
 # ============================================================================
 # Config Sources (namespace-first API)
@@ -63,6 +63,7 @@ __all__ = [
     "duckdb",
     "dask",
     "bigquery",
+    "pyspark",
     
     # Config Sources (coming soon)
     # "csv", "s3", "mysql", "postgresql",
