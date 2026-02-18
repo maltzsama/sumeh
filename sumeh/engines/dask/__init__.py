@@ -16,6 +16,7 @@ Example:
     >>> ddf = dd.read_parquet("s3://bucket/big-data/*.parquet")
     >>> report = sumeh_dask.validate(ddf, rules)
 """
+
 from sumeh.engines.dask.engine import validate
 
 __all__ = ["validate"]

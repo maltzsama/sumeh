@@ -2,8 +2,10 @@
 BigQuery Engine.
 Connects to Google Cloud BigQuery and executes optimized validation queries.
 """
+
 import time
 from typing import List, Optional, Any, Union
+
 try:
     from google.cloud import bigquery
 except ImportError:
@@ -36,10 +38,12 @@ def validate(
         ValidationReport
     """
     if bigquery is None:
-        raise ImportError("google-cloud-bigquery not installed. Run: pip install google-cloud-bigquery")
+        raise ImportError(
+            "google-cloud-bigquery not installed. Run: pip install google-cloud-bigquery"
+        )
 
     start_time = time.time()
-    
+
     # 1. SETUP CLIENT
     if client is None:
         client = bigquery.Client(project=project_id, location=location)
@@ -47,14 +51,17 @@ def validate(
     # 2. COMPILE SQL (Dialect = BigQuery)
     try:
         sql_query, rule_ids = compile_rules_to_sql(
-            rules=rules, 
+            rules=rules,
             table_name=f"`{table_id}`",  # Enforce backticks for BQ safety
-            dialect="bigquery"
+            dialect="bigquery",
         )
     except Exception as e:
         return ValidationReport(
-            results=[], total_rows=0, engine="bigquery", 
-            execution_time_ms=0, error_message=f"Compilation Error: {str(e)}"
+            results=[],
+            total_rows=0,
+            engine="bigquery",
+            execution_time_ms=0,
+            error_message=f"Compilation Error: {str(e)}",
         )
 
     if not sql_query:
@@ -78,10 +85,10 @@ def validate(
     try:
         query_job = client.query(sql_query)
         rows = list(query_job.result())
-        
+
         if not rows:
             raise ValueError("Query returned no results")
-            
+
         metrics_row = rows[0]
 
     except Exception as e:
@@ -90,30 +97,26 @@ def validate(
             total_rows=total_rows,
             execution_time_ms=(time.time() - start_time) * 1000,
             engine="bigquery",
-            error_message=f"Execution Error: {str(e)}"
+            error_message=f"Execution Error: {str(e)}",
         )
 
     # 5. VALIDATE (Delegate to SQL Core)
     metrics_tuple = tuple(metrics_row.values())
-    
+
     results = validate_results(
-        metrics_row=metrics_tuple, 
-        rule_ids=rule_ids, 
-        rules=rules, 
-        total_rows=total_rows
+        metrics_row=metrics_tuple, rule_ids=rule_ids, rules=rules, total_rows=total_rows
     )
 
     return ValidationReport(
         results=results,
         total_rows=total_rows,
         execution_time_ms=(time.time() - start_time) * 1000,
-        engine="bigquery"
+        engine="bigquery",
     )
+
 
 def get_validation_sql(rules, table_name, global_filter=None):
     """Generate BigQuery SQL."""
     return compile_rules_to_sql(
-        rules, table_name, 
-        dialect="bigquery",
-        global_filter=global_filter
+        rules, table_name, dialect="bigquery", global_filter=global_filter
     )[0]

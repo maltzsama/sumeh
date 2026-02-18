@@ -3,7 +3,13 @@ Constraint comparators - COMPLETE IMPLEMENTATION.
 
 All constraints for validating metrics against rules.
 """
-from sumeh.core.models import MetricResult, ValidationResult, ValidationLevel, ValidationStatus
+
+from sumeh.core.models import (
+    MetricResult,
+    ValidationResult,
+    ValidationLevel,
+    ValidationStatus,
+)
 from sumeh.core.rules.rule_model import RuleDef
 
 
@@ -13,9 +19,9 @@ class CompletenessConstraint:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("null_count", 0)
-        
+
         return ValidationResult(
-            rule_id=getattr(rule, 'id', ''),
+            rule_id=getattr(rule, "id", ""),
             level=ValidationLevel.ROW,
             category=rule.category or "completeness",
             check_type=rule.check_type,
@@ -36,9 +42,9 @@ class MultiFieldCompletenessConstraint:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("incomplete_count", 0)
-        
+
         return ValidationResult(
-            rule_id=getattr(rule, 'id', ''),
+            rule_id=getattr(rule, "id", ""),
             level=ValidationLevel.ROW,
             category=rule.category or "completeness",
             check_type=rule.check_type,
@@ -59,9 +65,9 @@ class UniquenessConstraint:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("duplicate_count", 0)
-        
+
         return ValidationResult(
-            rule_id=getattr(rule, 'id', ''),
+            rule_id=getattr(rule, "id", ""),
             level=ValidationLevel.ROW,
             category=rule.category or "uniqueness",
             check_type=rule.check_type,
@@ -82,9 +88,9 @@ class GenericConstraint:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("fail_count", 0)
-        
+
         return ValidationResult(
-            rule_id=getattr(rule, 'id', ''),
+            rule_id=getattr(rule, "id", ""),
             level=ValidationLevel.ROW,
             category=rule.category or "validation",
             check_type=rule.check_type,
@@ -105,14 +111,14 @@ class AggregationConstraint:
         expected = rule.value
         actual = metric.value
         tolerance = rule.threshold or 0.0
-        
+
         if tolerance > 0:
             passed = abs(actual - expected) / expected <= tolerance
         else:
             passed = actual == expected
-        
+
         return ValidationResult(
-            rule_id=getattr(rule, 'id', ''),
+            rule_id=getattr(rule, "id", ""),
             level=ValidationLevel.TABLE,
             category=rule.category or "aggregation",
             check_type=rule.check_type,

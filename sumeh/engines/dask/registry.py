@@ -4,6 +4,7 @@ Dask Registry - COMPLETE IMPLEMENTATION.
 Maps check_type → (Analyzer, Constraint) for ALL supported rules in Dask engine.
 Ensures feature parity with Pandas engine.
 """
+
 from sumeh.engines.dask.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -19,7 +20,7 @@ from sumeh.engines.dask.analyzers import (
     DateBetweenAnalyzer,
     DateComparisonAnalyzer,
     AggregationAnalyzer,
-    LogicAnalyzer
+    LogicAnalyzer,
 )
 from sumeh.core.constraints.comparators import (
     CompletenessConstraint,
@@ -29,14 +30,12 @@ from sumeh.core.constraints.comparators import (
     AggregationConstraint,
 )
 
-
 VALIDATION_REGISTRY = {
     # ========================================================================
     # COMPLETENESS
     # ========================================================================
     "is_complete": (CompletenessAnalyzer, CompletenessConstraint),
     "are_complete": (MultiFieldCompletenessAnalyzer, MultiFieldCompletenessConstraint),
-    
     # ========================================================================
     # UNIQUENESS
     # ========================================================================
@@ -44,7 +43,6 @@ VALIDATION_REGISTRY = {
     "are_unique": (MultiFieldUniquenessAnalyzer, UniquenessConstraint),
     "is_primary_key": (UniquenessAnalyzer, UniquenessConstraint),
     "is_composite_key": (MultiFieldUniquenessAnalyzer, UniquenessConstraint),
-    
     # ========================================================================
     # COMPARISON (ROW LEVEL)
     # ========================================================================
@@ -59,7 +57,6 @@ VALIDATION_REGISTRY = {
     "is_negative": (ComparisonAnalyzer, GenericConstraint),
     "is_in_millions": (ComparisonAnalyzer, GenericConstraint),
     "is_in_billions": (ComparisonAnalyzer, GenericConstraint),
-    
     # ========================================================================
     # MEMBERSHIP
     # ========================================================================
@@ -67,14 +64,12 @@ VALIDATION_REGISTRY = {
     "not_contained_in": (MembershipAnalyzer, GenericConstraint),
     "is_in": (MembershipAnalyzer, GenericConstraint),
     "not_in": (MembershipAnalyzer, GenericConstraint),
-    
     # ========================================================================
     # PATTERN & LOGIC
     # ========================================================================
     "has_pattern": (PatternAnalyzer, GenericConstraint),
     "is_legit": (LegitAnalyzer, GenericConstraint),
     "logic_check": (LogicAnalyzer, GenericConstraint),
-    
     # ========================================================================
     # DATE CHECKS
     # ========================================================================
@@ -97,7 +92,6 @@ VALIDATION_REGISTRY = {
     "is_on_friday": (DateAnalyzer, GenericConstraint),
     "is_on_saturday": (DateAnalyzer, GenericConstraint),
     "is_on_sunday": (DateAnalyzer, GenericConstraint),
-    
     # ========================================================================
     # TABLE-LEVEL AGGREGATIONS
     # ========================================================================

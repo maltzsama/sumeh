@@ -10,10 +10,11 @@ Models:
 
 Analyzers:
   - CompletenessAnalyzer: Count nulls
-  
+
 Constraints:
   - CompletenessConstraint: Validate completeness threshold
 """
+
 from sumeh.core.models import (
     ValidationResult,
     ValidationReport,

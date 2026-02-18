@@ -3,6 +3,7 @@ Polars engine registry - COMPLETE IMPLEMENTATION.
 
 Maps check_type → (Analyzer, Constraint) for ALL supported rules in Polars.
 """
+
 from sumeh.engines.polars.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -27,18 +28,15 @@ from sumeh.core.constraints.comparators import (
     AggregationConstraint,
 )
 
-
 VALIDATION_REGISTRY = {
     # Completeness
     "is_complete": (CompletenessAnalyzer, CompletenessConstraint),
     "are_complete": (MultiFieldCompletenessAnalyzer, MultiFieldCompletenessConstraint),
-    
     # Uniqueness
     "is_unique": (UniquenessAnalyzer, UniquenessConstraint),
     "are_unique": (MultiFieldUniquenessAnalyzer, UniquenessConstraint),
     "is_primary_key": (UniquenessAnalyzer, UniquenessConstraint),
     "is_composite_key": (MultiFieldUniquenessAnalyzer, UniquenessConstraint),
-    
     # Comparison
     "is_equal": (ComparisonAnalyzer, GenericConstraint),
     "is_equal_than": (ColumnComparisonAnalyzer, GenericConstraint),
@@ -51,17 +49,14 @@ VALIDATION_REGISTRY = {
     "is_negative": (ComparisonAnalyzer, GenericConstraint),
     "is_in_millions": (ComparisonAnalyzer, GenericConstraint),
     "is_in_billions": (ComparisonAnalyzer, GenericConstraint),
-    
     # Membership
     "is_contained_in": (MembershipAnalyzer, GenericConstraint),
     "not_contained_in": (MembershipAnalyzer, GenericConstraint),
     "is_in": (MembershipAnalyzer, GenericConstraint),
     "not_in": (MembershipAnalyzer, GenericConstraint),
-    
     # Pattern
     "has_pattern": (PatternAnalyzer, GenericConstraint),
     "is_legit": (LegitAnalyzer, GenericConstraint),
-    
     # Date
     "is_today": (DateAnalyzer, GenericConstraint),
     "is_t_minus_1": (DateAnalyzer, GenericConstraint),
@@ -82,7 +77,6 @@ VALIDATION_REGISTRY = {
     "is_on_friday": (DateAnalyzer, GenericConstraint),
     "is_on_saturday": (DateAnalyzer, GenericConstraint),
     "is_on_sunday": (DateAnalyzer, GenericConstraint),
-    
     # Table-level aggregations
     "has_min": (AggregationAnalyzer, AggregationConstraint),
     "has_max": (AggregationAnalyzer, AggregationConstraint),
@@ -95,13 +89,17 @@ VALIDATION_REGISTRY = {
 
 def get_analyzer(check_type: str):
     if check_type not in VALIDATION_REGISTRY:
-        raise KeyError(f"'{check_type}' not implemented in polars. Available: {list(VALIDATION_REGISTRY.keys())}")
+        raise KeyError(
+            f"'{check_type}' not implemented in polars. Available: {list(VALIDATION_REGISTRY.keys())}"
+        )
     return VALIDATION_REGISTRY[check_type][0]
 
 
 def get_constraint(check_type: str):
     if check_type not in VALIDATION_REGISTRY:
-        raise KeyError(f"'{check_type}' not implemented. Available: {list(VALIDATION_REGISTRY.keys())}")
+        raise KeyError(
+            f"'{check_type}' not implemented. Available: {list(VALIDATION_REGISTRY.keys())}"
+        )
     return VALIDATION_REGISTRY[check_type][1]
 
 

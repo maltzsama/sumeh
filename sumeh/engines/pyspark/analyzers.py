@@ -4,6 +4,7 @@ PySpark analyzers using Column API (zero UDFs) - COMPLETE.
 Pure JVM operations for maximum performance.
 All 48+ validation rules implemented.
 """
+
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
@@ -11,46 +12,47 @@ from datetime import datetime, date
 from sumeh.core.models import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 
-
 # ============================================================================
 # COMPLETENESS ANALYZERS
 # ============================================================================
+
 
 class CompletenessAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Analyze completeness using PySpark Column API."""
         field = rule.field
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         # Compute metrics in single pass
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(F.col(field).isNull(), 1).otherwise(0)).alias("null_count")
+            F.sum(F.when(F.col(field).isNull(), 1).otherwise(0)).alias("null_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         null_count = result["null_count"]
         completeness_rate = (total - null_count) / total if total > 0 else 1.0
-        
+
         # Get ALL violating row IDs (no sampling in analyzer)
         # Sampling happens in report.summary()
         null_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(F.col(field).isNull())
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="completeness",
             field=field,
             value=completeness_rate,
             total_rows=total,
             affected_row_ids=null_row_ids,
-            metadata={"null_count": null_count, "total_count": total}
+            metadata={"null_count": null_count, "total_count": total},
         )
 
 
@@ -59,37 +61,42 @@ class MultiFieldCompletenessAnalyzer:
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Multi-field completeness using PySpark."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
-        
+
         for field in fields:
             if field not in df.columns:
                 raise KeyError(f"Field '{field}' not found")
-        
+
         # Row has incomplete data if ANY field is null
         any_null_condition = F.coalesce(*[F.col(f).isNull() for f in fields])
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(any_null_condition, 1).otherwise(0)).alias("incomplete_count")
+            F.sum(F.when(any_null_condition, 1).otherwise(0)).alias("incomplete_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         incomplete_count = result["incomplete_count"]
         completeness_rate = (total - incomplete_count) / total if total > 0 else 1.0
-        
+
         incomplete_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(any_null_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="multi_field_completeness",
             field=",".join(fields),
             value=completeness_rate,
             total_rows=total,
             affected_row_ids=incomplete_row_ids,
-            metadata={"incomplete_count": incomplete_count, "total_count": total, "fields": fields}
+            metadata={
+                "incomplete_count": incomplete_count,
+                "total_count": total,
+                "fields": fields,
+            },
         )
 
 
@@ -97,47 +104,50 @@ class MultiFieldCompletenessAnalyzer:
 # UNIQUENESS ANALYZERS
 # ============================================================================
 
+
 class UniquenessAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Uniqueness using window functions (no UDFs)."""
         field = rule.field
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         total = df.count()
-        
+
         # Find duplicates using aggregation
         duplicate_count = (
             df.groupBy(field)
             .count()
             .filter(F.col("count") > 1)
             .agg(F.sum("count").alias("dup_count"))
-            .collect()[0]["dup_count"] or 0
+            .collect()[0]["dup_count"]
+            or 0
         )
-        
+
         uniqueness_rate = (total - duplicate_count) / total if total > 0 else 1.0
-        
+
         # Get duplicate row IDs
         duplicate_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .join(
                 df.groupBy(field).count().filter(F.col("count") > 1).select(field),
                 field,
-                "inner"
+                "inner",
             )
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="uniqueness",
             field=field,
             value=uniqueness_rate,
             total_rows=total,
             affected_row_ids=duplicate_row_ids,
-            metadata={"duplicate_count": duplicate_count, "total_count": total}
+            metadata={"duplicate_count": duplicate_count, "total_count": total},
         )
 
 
@@ -146,48 +156,55 @@ class MultiFieldUniquenessAnalyzer:
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Multi-field uniqueness (composite key)."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
-        
+
         for field in fields:
             if field not in df.columns:
                 raise KeyError(f"Field '{field}' not found")
-        
+
         total = df.count()
-        
+
         # Find duplicate combinations
         duplicate_count = (
             df.groupBy(*fields)
             .count()
             .filter(F.col("count") > 1)
             .agg(F.sum("count").alias("dup_count"))
-            .collect()[0]["dup_count"] or 0
+            .collect()[0]["dup_count"]
+            or 0
         )
-        
+
         uniqueness_rate = (total - duplicate_count) / total if total > 0 else 1.0
-        
+
         duplicate_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .join(
                 df.groupBy(*fields).count().filter(F.col("count") > 1).select(*fields),
                 fields,
-                "inner"
+                "inner",
             )
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="multi_field_uniqueness",
             field=",".join(fields),
             value=uniqueness_rate,
             total_rows=total,
             affected_row_ids=duplicate_row_ids,
-            metadata={"duplicate_count": duplicate_count, "total_count": total, "fields": fields}
+            metadata={
+                "duplicate_count": duplicate_count,
+                "total_count": total,
+                "fields": fields,
+            },
         )
 
 
 # ============================================================================
 # COMPARISON ANALYZERS
 # ============================================================================
+
 
 class ComparisonAnalyzer:
     @staticmethod
@@ -196,10 +213,10 @@ class ComparisonAnalyzer:
         field = rule.field
         check_type = rule.check_type
         threshold = rule.value
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         # Build condition
         if check_type == "is_equal":
             fail_condition = F.col(field) != threshold
@@ -221,30 +238,35 @@ class ComparisonAnalyzer:
             fail_condition = F.col(field) < 1_000_000_000
         else:
             raise ValueError(f"Unknown comparison: {check_type}")
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="comparison",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "threshold": threshold}
+            metadata={
+                "fail_count": fail_count,
+                "total_count": total,
+                "threshold": threshold,
+            },
         )
 
 
@@ -254,38 +276,44 @@ class BetweenAnalyzer:
         """Between check using Column API."""
         field = rule.field
         bounds = rule.value
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
         if not isinstance(bounds, list) or len(bounds) != 2:
             raise ValueError("is_between requires value=[min, max]")
-        
+
         min_val, max_val = bounds
         fail_condition = (F.col(field) < min_val) | (F.col(field) > max_val)
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="between",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "min": min_val, "max": max_val}
+            metadata={
+                "fail_count": fail_count,
+                "total_count": total,
+                "min": min_val,
+                "max": max_val,
+            },
         )
 
 
@@ -295,41 +323,47 @@ class ColumnComparisonAnalyzer:
         """Column-to-column comparison."""
         field = rule.field
         other_field = rule.value
-        
+
         if field not in df.columns or other_field not in df.columns:
             raise KeyError(f"Fields not found")
-        
+
         fail_condition = F.col(field) != F.col(other_field)
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="column_comparison",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "compared_to": other_field}
+            metadata={
+                "fail_count": fail_count,
+                "total_count": total,
+                "compared_to": other_field,
+            },
         )
 
 
 # ============================================================================
 # MEMBERSHIP ANALYZERS
 # ============================================================================
+
 
 class MembershipAnalyzer:
     @staticmethod
@@ -338,40 +372,45 @@ class MembershipAnalyzer:
         field = rule.field
         allowed_values = rule.value
         check_type = rule.check_type
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
         if not isinstance(allowed_values, list):
             raise ValueError("Membership requires list of values")
-        
+
         if check_type in ["is_contained_in", "is_in"]:
             fail_condition = ~F.col(field).isin(allowed_values)
         else:  # not_contained_in, not_in
             fail_condition = F.col(field).isin(allowed_values)
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="membership",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "allowed_values": allowed_values}
+            metadata={
+                "fail_count": fail_count,
+                "total_count": total,
+                "allowed_values": allowed_values,
+            },
         )
 
 
@@ -379,44 +418,50 @@ class MembershipAnalyzer:
 # PATTERN ANALYZERS
 # ============================================================================
 
+
 class PatternAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Pattern matching using rlike()."""
         field = rule.field
         pattern = rule.value
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
         if not pattern:
             raise ValueError("Pattern required")
-        
+
         # PySpark regex: rlike()
         fail_condition = ~F.col(field).rlike(pattern)
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="pattern",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "pattern": pattern}
+            metadata={
+                "fail_count": fail_count,
+                "total_count": total,
+                "pattern": pattern,
+            },
         )
 
 
@@ -425,35 +470,36 @@ class LegitAnalyzer:
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Check for null or empty strings."""
         field = rule.field
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         fail_condition = F.col(field).isNull() | (F.trim(F.col(field)) == "")
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="legit",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total}
+            metadata={"fail_count": fail_count, "total_count": total},
         )
 
 
@@ -461,20 +507,21 @@ class LegitAnalyzer:
 # DATE ANALYZERS
 # ============================================================================
 
+
 class DateAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Date validations using PySpark date functions."""
         field = rule.field
         check_type = rule.check_type
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         # Convert to date if needed
         date_col = F.to_date(F.col(field))
         today = F.current_date()
-        
+
         # Build condition
         if check_type == "is_today":
             fail_condition = date_col != today
@@ -508,30 +555,31 @@ class DateAnalyzer:
             fail_condition = F.dayofweek(date_col) != 1
         else:
             raise ValueError(f"Unknown date check: {check_type}")
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="date",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total}
+            metadata={"fail_count": fail_count, "total_count": total},
         )
 
 
@@ -541,41 +589,47 @@ class DateBetweenAnalyzer:
         """Date between check."""
         field = rule.field
         bounds = rule.value
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
         if not isinstance(bounds, list) or len(bounds) != 2:
             raise ValueError("is_date_between requires [start, end]")
-        
+
         date_col = F.to_date(F.col(field))
         start = F.to_date(F.lit(bounds[0]))
         end = F.to_date(F.lit(bounds[1]))
-        
+
         fail_condition = (date_col < start) | (date_col > end)
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="date_between",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "start": bounds[0], "end": bounds[1]}
+            metadata={
+                "fail_count": fail_count,
+                "total_count": total,
+                "start": bounds[0],
+                "end": bounds[1],
+            },
         )
 
 
@@ -586,41 +640,42 @@ class DateComparisonAnalyzer:
         field = rule.field
         check_type = rule.check_type
         target = rule.value
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         date_col = F.to_date(F.col(field))
         target_date = F.to_date(F.lit(target))
-        
+
         if check_type == "is_date_after":
             fail_condition = date_col <= target_date
         else:  # is_date_before
             fail_condition = date_col >= target_date
-        
+
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
-            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count")
+            F.sum(F.when(fail_condition, 1).otherwise(0)).alias("fail_count"),
         ).collect()[0]
-        
+
         total = result["total"]
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
-        
+
         fail_row_ids = (
             df.withColumn("_row_num", F.monotonically_increasing_id())
             .filter(fail_condition)
             .select("_row_num")
-            .rdd.flatMap(lambda x: x).collect()
+            .rdd.flatMap(lambda x: x)
+            .collect()
         )
-        
+
         return MetricResult(
             metric_type="date_comparison",
             field=field,
             value=pass_rate,
             total_rows=total,
             affected_row_ids=fail_row_ids,
-            metadata={"fail_count": fail_count, "total_count": total, "target": target}
+            metadata={"fail_count": fail_count, "total_count": total, "target": target},
         )
 
 
@@ -628,16 +683,17 @@ class DateComparisonAnalyzer:
 # TABLE-LEVEL AGGREGATION ANALYZERS
 # ============================================================================
 
+
 class AggregationAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
         """Table-level aggregations."""
         field = rule.field
         check_type = rule.check_type
-        
+
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
-        
+
         if check_type == "has_min":
             actual = df.agg(F.min(field).alias("value")).collect()[0]["value"]
         elif check_type == "has_max":
@@ -652,12 +708,15 @@ class AggregationAnalyzer:
             actual = df.agg(F.countDistinct(field).alias("value")).collect()[0]["value"]
         else:
             raise ValueError(f"Unknown aggregation: {check_type}")
-        
+
         return MetricResult(
             metric_type="aggregation",
             field=field,
             value=float(actual) if actual is not None else 0.0,
             total_rows=df.count(),
             affected_row_ids=[],
-            metadata={"metric": check_type, "value": float(actual) if actual is not None else 0.0}
+            metadata={
+                "metric": check_type,
+                "value": float(actual) if actual is not None else 0.0,
+            },
         )

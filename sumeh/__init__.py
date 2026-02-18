@@ -9,10 +9,10 @@ v2.0 - Breaking Changes:
 
 API:
     from sumeh import pandas, csv
-    
+
     rules = csv.get_rules_config("rules.csv")
     report = pandas.validate(df, rules)
-    
+
     print(f"Pass rate: {report.pass_rate:.2%}")
     for result in report.failed:
         print(f"  - {result.check_type} on {result.field}: {result.message}")
@@ -49,14 +49,12 @@ __all__ = [
     "__version__",
     "__author__",
     "__email__",
-    
     # Core Models
     "ValidationResult",
     "ValidationReport",
     "MetricResult",
     "ValidationStatus",
     "ValidationLevel",
-    
     # Engines
     "pandas",
     "polars",
@@ -64,7 +62,6 @@ __all__ = [
     "dask",
     "bigquery",
     "pyspark",
-    
     # Config Sources (coming soon)
     # "csv", "s3", "mysql", "postgresql",
 ]

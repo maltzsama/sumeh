@@ -2,6 +2,7 @@
 DuckDB Engine - Strict Mode.
 No file reading magic. User must provide loaded object or table name.
 """
+
 import duckdb
 import time
 from typing import List, Union, Any, Optional
@@ -17,7 +18,7 @@ def validate(
     rules: List[RuleDef],
     connection: Optional[duckdb.DuckDBPyConnection] = None,
     baseline_provider=None,
-    table_name: str = "dataset"
+    table_name: str = "dataset",
 ) -> ValidationReport:
     """
     Validates data using DuckDB.
@@ -45,30 +46,42 @@ def validate(
                 should_close = True
                 con.register(table_name, df.arrow())
 
-            total_rows = df.count("*").fetchone()[0] if hasattr(df, 'count') \
+            total_rows = (
+                df.count("*").fetchone()[0]
+                if hasattr(df, "count")
                 else con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+            )
 
         elif isinstance(df, str):
             if not connection:
-                raise ValueError("If 'df' is a table name (str), you MUST provide the 'connection'.")
+                raise ValueError(
+                    "If 'df' is a table name (str), you MUST provide the 'connection'."
+                )
 
             con = connection
             table_name = df
 
             try:
-                total_rows = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+                total_rows = con.execute(
+                    f"SELECT COUNT(*) FROM {table_name}"
+                ).fetchone()[0]
             except Exception:
                 return ValidationReport(
-                    results=[], total_rows=0, engine="duckdb",
-                    error_message=f"Table '{table_name}' not found in provided connection."
+                    results=[],
+                    total_rows=0,
+                    engine="duckdb",
+                    error_message=f"Table '{table_name}' not found in provided connection.",
                 )
 
         else:  # In-memory DataFrame
             con = connection or duckdb.connect(":memory:")
             should_close = connection is None
             con.register(table_name, df)
-            total_rows = len(df) if hasattr(df, '__len__') \
+            total_rows = (
+                len(df)
+                if hasattr(df, "__len__")
                 else con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+            )
 
         # Compile and execute validation
         sql_query, rule_ids = compile_rules_to_sql(rules, table_name, dialect="duckdb")
@@ -85,7 +98,7 @@ def validate(
             results=results,
             total_rows=total_rows,
             execution_time_ms=(time.time() - start_time) * 1000,
-            engine="duckdb"
+            engine="duckdb",
         )
 
     except Exception as e:
@@ -94,7 +107,7 @@ def validate(
             total_rows=0,
             execution_time_ms=(time.time() - start_time) * 1000,
             engine="duckdb",
-            error_message=f"DuckDB Engine Error: {str(e)}"
+            error_message=f"DuckDB Engine Error: {str(e)}",
         )
     finally:
         if should_close and con:
@@ -103,10 +116,9 @@ def validate(
             except:
                 pass
 
+
 def get_validation_sql(rules, table_name, global_filter=None):
     """Generate DuckDB SQL."""
     return compile_rules_to_sql(
-        rules, table_name, 
-        dialect="duckdb",
-        global_filter=global_filter
+        rules, table_name, dialect="duckdb", global_filter=global_filter
     )[0]

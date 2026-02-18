@@ -5,6 +5,7 @@ Maps check_types to:
 1. Analyzer (Generates the SQL AST)
 2. Constraint (Validates the result against the rule)
 """
+
 from sumeh.engines.sql_core.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -34,12 +35,10 @@ VALIDATION_REGISTRY = {
     # Completeness
     "is_complete": (CompletenessAnalyzer, CompletenessConstraint),
     "are_complete": (MultiFieldCompletenessAnalyzer, MultiFieldCompletenessConstraint),
-    
     # Uniqueness
     "is_unique": (UniquenessAnalyzer, UniquenessConstraint),
-    "are_unique": (MultiFieldUniquenessAnalyzer, UniquenessConstraint), 
+    "are_unique": (MultiFieldUniquenessAnalyzer, UniquenessConstraint),
     "is_primary_key": (UniquenessAnalyzer, UniquenessConstraint),
-    
     # Row-level comparisons
     "is_equal": (ComparisonAnalyzer, GenericConstraint),
     "is_greater_than": (ComparisonAnalyzer, GenericConstraint),
@@ -50,20 +49,16 @@ VALIDATION_REGISTRY = {
     "is_negative": (ComparisonAnalyzer, GenericConstraint),
     "is_in_millions": (ComparisonAnalyzer, GenericConstraint),
     "is_in_billions": (ComparisonAnalyzer, GenericConstraint),
-    
     "is_between": (BetweenAnalyzer, GenericConstraint),
     "is_equal_to_column": (ColumnComparisonAnalyzer, GenericConstraint),
-    
     # Membership
     "is_contained_in": (MembershipAnalyzer, GenericConstraint),
     "not_contained_in": (MembershipAnalyzer, GenericConstraint),
     "is_in": (MembershipAnalyzer, GenericConstraint),
     "not_in": (MembershipAnalyzer, GenericConstraint),
-    
     # Pattern
     "has_pattern": (PatternAnalyzer, GenericConstraint),
     "is_legit": (LegitAnalyzer, GenericConstraint),
-    
     # Dates
     "is_today": (DateAnalyzer, GenericConstraint),
     "is_yesterday": (DateAnalyzer, GenericConstraint),
@@ -74,11 +69,9 @@ VALIDATION_REGISTRY = {
     "is_future_date": (DateAnalyzer, GenericConstraint),
     "is_on_weekday": (DateAnalyzer, GenericConstraint),
     "is_on_weekend": (DateAnalyzer, GenericConstraint),
-    
     "is_date_between": (DateBetweenAnalyzer, GenericConstraint),
     "is_date_after": (DateComparisonAnalyzer, GenericConstraint),
     "is_date_before": (DateComparisonAnalyzer, GenericConstraint),
-    
     # Table-level aggregations
     "has_min": (AggregationAnalyzer, AggregationConstraint),
     "has_max": (AggregationAnalyzer, AggregationConstraint),
