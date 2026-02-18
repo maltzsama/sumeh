@@ -45,8 +45,6 @@ def validate(
         client = bigquery.Client(project=project_id, location=location)
 
     # 2. COMPILE SQL (Dialect = BigQuery)
-    # O SQLGlot vai tratar crases, funções de data (CURRENT_DATE vs CURRENT_DATE())
-    # e sintaxe específica do BQ automaticamente.
     try:
         sql_query, rule_ids = compile_rules_to_sql(
             rules=rules, 
@@ -65,8 +63,6 @@ def validate(
         )
 
     # 3. GET TOTAL ROWS (Fast Metadata Check)
-    # No BQ, COUNT(*) pode custar dinheiro se não for metadados.
-    # Tentamos pegar da tabela primeiro.
     try:
         table_ref = client.get_table(table_id)
         total_rows = table_ref.num_rows
@@ -86,7 +82,6 @@ def validate(
         if not rows:
             raise ValueError("Query returned no results")
             
-        # O resultado do BQ vem como um Row object que se comporta como tupla/dict
         metrics_row = rows[0]
 
     except Exception as e:
@@ -99,7 +94,6 @@ def validate(
         )
 
     # 5. VALIDATE (Delegate to SQL Core)
-    # Precisamos converter o Row do BQ para tupla simples para o validator
     metrics_tuple = tuple(metrics_row.values())
     
     results = validate_results(
