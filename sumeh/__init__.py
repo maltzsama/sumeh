@@ -36,7 +36,7 @@ from sumeh.core.models import (
 # ============================================================================
 # Engines (namespace-first API)
 # ============================================================================
-from sumeh.engines import pandas
+from sumeh.engines import pandas, polars
 
 # ============================================================================
 # Config Sources (namespace-first API)
@@ -59,6 +59,7 @@ __all__ = [
     
     # Engines
     "pandas",
+    "polars",
     
     # Config Sources (coming soon)
     # "csv", "s3", "mysql", "postgresql",
