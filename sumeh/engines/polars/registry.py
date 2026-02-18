@@ -1,8 +1,7 @@
 """
-Polars engine registry.
+Polars engine registry - COMPLETE IMPLEMENTATION.
 
-Maps check_type → (Analyzer, Constraint) for Polars implementations.
-Uses same constraints as pandas (they're generic).
+Maps check_type → (Analyzer, Constraint) for ALL supported rules in Polars.
 """
 from sumeh.engines.polars.analyzers import (
     CompletenessAnalyzer,
@@ -11,8 +10,14 @@ from sumeh.engines.polars.analyzers import (
     MultiFieldUniquenessAnalyzer,
     ComparisonAnalyzer,
     BetweenAnalyzer,
+    ColumnComparisonAnalyzer,
     MembershipAnalyzer,
     PatternAnalyzer,
+    LegitAnalyzer,
+    DateAnalyzer,
+    DateBetweenAnalyzer,
+    DateComparisonAnalyzer,
+    AggregationAnalyzer,
 )
 from sumeh.core.constraints.comparators import (
     CompletenessConstraint,
@@ -36,6 +41,7 @@ VALIDATION_REGISTRY = {
     
     # Comparison
     "is_equal": (ComparisonAnalyzer, GenericConstraint),
+    "is_equal_than": (ColumnComparisonAnalyzer, GenericConstraint),
     "is_between": (BetweenAnalyzer, GenericConstraint),
     "is_greater_than": (ComparisonAnalyzer, GenericConstraint),
     "is_less_than": (ComparisonAnalyzer, GenericConstraint),
@@ -54,8 +60,36 @@ VALIDATION_REGISTRY = {
     
     # Pattern
     "has_pattern": (PatternAnalyzer, GenericConstraint),
+    "is_legit": (LegitAnalyzer, GenericConstraint),
     
-    # TODO: Add date and aggregation analyzers
+    # Date
+    "is_today": (DateAnalyzer, GenericConstraint),
+    "is_t_minus_1": (DateAnalyzer, GenericConstraint),
+    "is_t_minus_2": (DateAnalyzer, GenericConstraint),
+    "is_t_minus_3": (DateAnalyzer, GenericConstraint),
+    "is_yesterday": (DateAnalyzer, GenericConstraint),
+    "is_past_date": (DateAnalyzer, GenericConstraint),
+    "is_future_date": (DateAnalyzer, GenericConstraint),
+    "is_date_between": (DateBetweenAnalyzer, GenericConstraint),
+    "is_date_after": (DateComparisonAnalyzer, GenericConstraint),
+    "is_date_before": (DateComparisonAnalyzer, GenericConstraint),
+    "is_on_weekday": (DateAnalyzer, GenericConstraint),
+    "is_on_weekend": (DateAnalyzer, GenericConstraint),
+    "is_on_monday": (DateAnalyzer, GenericConstraint),
+    "is_on_tuesday": (DateAnalyzer, GenericConstraint),
+    "is_on_wednesday": (DateAnalyzer, GenericConstraint),
+    "is_on_thursday": (DateAnalyzer, GenericConstraint),
+    "is_on_friday": (DateAnalyzer, GenericConstraint),
+    "is_on_saturday": (DateAnalyzer, GenericConstraint),
+    "is_on_sunday": (DateAnalyzer, GenericConstraint),
+    
+    # Table-level aggregations
+    "has_min": (AggregationAnalyzer, AggregationConstraint),
+    "has_max": (AggregationAnalyzer, AggregationConstraint),
+    "has_sum": (AggregationAnalyzer, AggregationConstraint),
+    "has_mean": (AggregationAnalyzer, AggregationConstraint),
+    "has_std": (AggregationAnalyzer, AggregationConstraint),
+    "has_cardinality": (AggregationAnalyzer, AggregationConstraint),
 }
 
 

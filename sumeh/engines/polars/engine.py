@@ -125,10 +125,8 @@ def validate(df: pl.DataFrame, rules: List[RuleDef], baseline_provider=None) -> 
 
 
 def _validate_row_level(df: pl.DataFrame, rules: List[RuleDef]) -> List[ValidationResult]:
-    # (Mantém igual ao anterior)
     results = []
     for rule in rules:
-        # ... (lógica de try/except e skip igualzinha) ...
         try:
             analyzer_class = get_analyzer(rule.check_type)
             metric = analyzer_class.analyze(df, rule)
