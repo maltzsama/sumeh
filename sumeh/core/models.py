@@ -134,6 +134,8 @@ class ValidationReport:
     total_rows: int
     execution_time_ms: float
     engine: str
+    error_message: Optional[str] = None
+    
     timestamp: datetime = dataclass_field(default_factory=datetime.utcnow)
     df_validated: Any = None
     
