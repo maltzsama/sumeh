@@ -14,6 +14,6 @@ Example:
     ... )
 """
 
-from sumeh.engines.bigquery.engine import validate
+from sumeh.engines.bigquery.engine import validate, get_validation_sql
 
-__all__ = ["validate"]
+__all__ = ["validate", "get_validation_sql"]

@@ -22,6 +22,6 @@ Example:
     >>>     print(f"  - {result.check_type} on {result.field}: {result.message}")
 """
 
-from sumeh.engines.duckdb.engine import validate
+from sumeh.engines.duckdb.engine import validate, get_validation_sql
 
-__all__ = ["validate"]
+__all__ = ["validate", "get_validation_sql"]
