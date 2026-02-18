@@ -109,3 +109,11 @@ def validate(
         execution_time_ms=(time.time() - start_time) * 1000,
         engine="bigquery"
     )
+
+def get_validation_sql(rules, table_name, global_filter=None):
+    """Generate BigQuery SQL."""
+    return compile_rules_to_sql(
+        rules, table_name, 
+        dialect="bigquery",
+        global_filter=global_filter
+    )[0]

@@ -102,3 +102,11 @@ def validate(
                 con.close()
             except:
                 pass
+
+def get_validation_sql(rules, table_name, global_filter=None):
+    """Generate DuckDB SQL."""
+    return compile_rules_to_sql(
+        rules, table_name, 
+        dialect="duckdb",
+        global_filter=global_filter
+    )[0]
