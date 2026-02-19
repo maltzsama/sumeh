@@ -332,13 +332,13 @@ class ValidationReport:
         return self.results[index]
 
 
-
 @dataclass
 class SinkResult:
     """
     Structured response for metadata export operations.
     Allows the orchestrator to monitor health and performance.
     """
+
     success: bool
     sink_name: str
     duration_ms: float
