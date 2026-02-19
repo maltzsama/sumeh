@@ -14,11 +14,11 @@ Like PyFlink, we support row-level validations only.
 from sumeh.engines.ray_data.engine import validate
 
 CAPABILITIES = {
-    'schema_validation': True,
-    'profiling': True,
-    'aggregation_analyzers': True,
-    'bifurcation': True,
-    'streaming': True,  # Supports both batch and streaming
+    "schema_validation": True,
+    "profiling": True,
+    "aggregation_analyzers": True,
+    "bifurcation": True,
+    "streaming": True,  # Supports both batch and streaming
 }
 
-__all__ = ['validate', 'CAPABILITIES']
+__all__ = ["validate", "CAPABILITIES"]

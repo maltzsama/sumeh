@@ -57,7 +57,7 @@ class RuleDef:
         # Initialize metadata if None
         if self.metadata is None:
             self.metadata = {}
-        
+
         # Validate rule type exists
         rule_def = RuleRegistry.get_rule(self.check_type)
         if rule_def is None:

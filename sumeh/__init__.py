@@ -10,16 +10,16 @@ v2.0 - Complete Rewrite:
 
 Quick Start:
     from sumeh import pandas
-    
+
     rules = [...]
     report = pandas.validate(df, rules)
-    
+
     # View report
     print(f"Pass rate: {report.pass_rate:.2%}")
-    
+
     # Get validated DataFrame (with _dq_errors column)
     validated_df = report.df
-    
+
     # Or split good/bad
     good_df, bad_df = report.split()
 
@@ -29,11 +29,11 @@ Engines:
         - polars: Rust-powered performance
         - pyspark: Distributed Spark processing
         - dask: Out-of-core parallel computing
-    
+
     Streaming & ML:
         - ray_data: ML/AI pipelines with GPU support
         - pyflink: Stream processing with Apache Flink
-    
+
     SQL Engines:
         - duckdb: Embedded analytics
         - bigquery: Google Cloud
@@ -73,12 +73,22 @@ from sumeh.core.models import (
 # ALL engines are optional - only import if dependencies are installed
 _all_engines = [
     # Batch DataFrames
-    'pandas', 'polars', 'pyspark', 'dask',
+    "pandas",
+    "polars",
+    "pyspark",
+    "dask",
     # Streaming & ML
-    'ray_data', 'pyflink',
+    "ray_data",
+    "pyflink",
     # SQL Engines
-    'duckdb', 'bigquery', 'snowflake', 'redshift',
-    'athena', 'trino', 'doris', 'sql_core'
+    "duckdb",
+    "bigquery",
+    "snowflake",
+    "redshift",
+    "athena",
+    "trino",
+    "doris",
+    "sql_core",
 ]
 
 _available_engines = []
@@ -93,6 +103,7 @@ for _name in _all_engines:
 # Warn if no engines available
 if not _available_engines:
     import warnings
+
     warnings.warn(
         "No validation engines available! "
         "Install at least one engine:\n"

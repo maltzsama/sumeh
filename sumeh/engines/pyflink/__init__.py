@@ -22,11 +22,11 @@ from sumeh.engines.pyflink.engine import (
 )
 
 CAPABILITIES = {
-    'schema_validation': False,
-    'profiling': False,     
-    'aggregation_analyzers': False,
-    'bifurcation': False, 
-    'streaming': True,
+    "schema_validation": False,
+    "profiling": False,
+    "aggregation_analyzers": False,
+    "bifurcation": False,
+    "streaming": True,
 }
 
 __all__ = ["register_udfs", "validate", "CAPABILITIES"]

@@ -45,11 +45,11 @@ Note - Snowpark Connect for Spark:
 from sumeh.engines.snowflake.engine import validate, get_validation_sql
 
 CAPABILITIES = {
-    'schema_validation': True,
-    'profiling': True,
-    'aggregation_analyzers': True,
-    'bifurcation': True,
-    'streaming': False,
+    "schema_validation": False,
+    "profiling": True,
+    "aggregation_analyzers": True,
+    "bifurcation": True,
+    "streaming": False,
 }
 
-__all__ = ['validate', 'get_validation_sql', 'CAPABILITIES']
+__all__ = ["validate", "get_validation_sql", "CAPABILITIES"]
