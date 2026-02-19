@@ -57,7 +57,8 @@ class RuleDef:
         # Initialize metadata if None
         if self.metadata is None:
             self.metadata = {}
-
+        
+        # Validate rule type exists
         rule_def = RuleRegistry.get_rule(self.check_type)
         if rule_def is None:
             available = RuleRegistry.list_rules()
@@ -66,16 +67,7 @@ class RuleDef:
                 f"Available rules: {', '.join(available[:10])}... ({len(available)} total)"
             )
 
-        if self.engine and not RuleRegistry.is_rule_supported(
-            self.check_type, self.engine
-        ):
-            supported = rule_def.get("engines", [])
-            warnings.warn(
-                f"Rule '{self.check_type}' not supported by engine '{self.engine}'. "
-                f"Supported: {', '.join(supported)}. Rule will be skipped during validation."
-            )
-            self.execute = False
-
+        # Auto-enrich category and level from manifest
         if self.category is None or self.level is None:
             self._enrich_from_manifest()
 
