@@ -2,6 +2,7 @@
 Ray Data Registry - EXPANDED.
 Maps check_types to Ray Data Analyzers and Constraints.
 """
+
 from sumeh.engines.ray_data.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -26,7 +27,6 @@ VALIDATION_REGISTRY = {
     # Completeness
     "is_complete": (CompletenessAnalyzer, CompletenessConstraint),
     "are_complete": (MultiFieldCompletenessAnalyzer, MultiFieldCompletenessConstraint),
-    
     # Comparison
     "is_equal": (ComparisonAnalyzer, GenericConstraint),
     "is_greater_than": (ComparisonAnalyzer, GenericConstraint),
@@ -38,17 +38,14 @@ VALIDATION_REGISTRY = {
     "is_in_millions": (ComparisonAnalyzer, GenericConstraint),
     "is_in_billions": (ComparisonAnalyzer, GenericConstraint),
     "is_between": (BetweenAnalyzer, GenericConstraint),
-    
     # Membership
     "is_in": (MembershipAnalyzer, GenericConstraint),
     "is_contained_in": (MembershipAnalyzer, GenericConstraint),
     "not_in": (MembershipAnalyzer, GenericConstraint),
     "not_contained_in": (MembershipAnalyzer, GenericConstraint),
-    
     # Pattern
     "has_pattern": (PatternAnalyzer, GenericConstraint),
     "is_legit": (LegitAnalyzer, GenericConstraint),
-    
     # Date - Basic
     "is_today": (DateAnalyzer, GenericConstraint),
     "is_yesterday": (DateAnalyzer, GenericConstraint),
@@ -57,7 +54,6 @@ VALIDATION_REGISTRY = {
     "is_t_minus_3": (DateAnalyzer, GenericConstraint),
     "is_past_date": (DateAnalyzer, GenericConstraint),
     "is_future_date": (DateAnalyzer, GenericConstraint),
-    
     # Date - Weekday
     "is_on_weekday": (DateAnalyzer, GenericConstraint),
     "is_on_weekend": (DateAnalyzer, GenericConstraint),
@@ -68,12 +64,10 @@ VALIDATION_REGISTRY = {
     "is_on_friday": (DateAnalyzer, GenericConstraint),
     "is_on_saturday": (DateAnalyzer, GenericConstraint),
     "is_on_sunday": (DateAnalyzer, GenericConstraint),
-    
     # Date - Range/Comparison
     "is_date_between": (DateBetweenAnalyzer, GenericConstraint),
     "is_date_after": (DateComparisonAnalyzer, GenericConstraint),
     "is_date_before": (DateComparisonAnalyzer, GenericConstraint),
-    
     # Aggregations
     "has_min": (AggregationAnalyzer, AggregationConstraint),
     "has_max": (AggregationAnalyzer, AggregationConstraint),

@@ -11,7 +11,7 @@ Two modes:
 Example - Execute:
     >>> from trino.dbapi import connect
     >>> from sumeh import trino as sumeh_trino
-    >>> 
+    >>>
     >>> conn = connect(
     ...     host='trino.example.com',
     ...     port=443,
@@ -19,7 +19,7 @@ Example - Execute:
     ...     catalog='hive',
     ...     schema='default'
     ... )
-    >>> 
+    >>>
     >>> report = sumeh_trino.validate("hive.default.users", rules, conn)
     >>> print(f"Pass rate: {report.pass_rate:.2%}")
     >>> report.explain()
@@ -33,6 +33,7 @@ Example - Generate SQL:
     >>> print(sql)
     >>> # Copy-paste into Trino CLI
 """
+
 from sumeh.engines.trino.engine import validate, get_validation_sql
 
 __all__ = ["validate", "get_validation_sql"]

@@ -7,7 +7,6 @@ Maps check_type to UDF names for ALL row-level validations.
 VALIDATION_REGISTRY = {
     # Completeness
     "is_complete": "sumeh_check_complete",
-    
     # Comparison
     "is_equal": "sumeh_check_equal",
     "is_equal_than": "sumeh_check_equal_column",
@@ -20,17 +19,14 @@ VALIDATION_REGISTRY = {
     "is_in_millions": "sumeh_check_in_millions",
     "is_in_billions": "sumeh_check_in_billions",
     "is_between": "sumeh_check_between",
-    
     # Membership
     "is_in": "sumeh_check_in_list",
     "is_contained_in": "sumeh_check_in_list",
     "not_in": "sumeh_check_not_in_list",
     "not_contained_in": "sumeh_check_not_in_list",
-    
     # Pattern
     "has_pattern": "sumeh_check_pattern",
     "is_legit": "sumeh_check_legit",
-    
     # Date
     "is_today": "sumeh_check_date_today",
     "is_yesterday": "sumeh_check_date_yesterday",

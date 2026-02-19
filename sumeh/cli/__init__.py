@@ -12,6 +12,7 @@ Usage:
     sumeh sql rules.csv --dialect bigquery
     sumeh ddl all --dialect postgres
 """
+
 import typer
 
 from sumeh.cli.commands import validate, sql, ddl

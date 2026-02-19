@@ -36,9 +36,22 @@ from sumeh.core.models import (
 # ============================================================================
 # Engines (namespace-first API)
 # ============================================================================
-from sumeh.engines import pandas, polars, duckdb, dask, bigquery, pyspark, ray_data, pyflink, sql_core, athena, redshift, snowflake, trino, doris
-
-
+from sumeh.engines import (
+    pandas,
+    polars,
+    duckdb,
+    dask,
+    bigquery,
+    pyspark,
+    ray_data,
+    pyflink,
+    sql_core,
+    athena,
+    redshift,
+    snowflake,
+    trino,
+    doris,
+)
 
 # ============================================================================
 # Config Sources (namespace-first API)

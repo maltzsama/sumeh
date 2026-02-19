@@ -180,24 +180,24 @@ class ValidationReport:
     def df(self):
         """
         Get validated DataFrame with _dq_errors column.
-        
+
         Shortcut for get_validated_df().
         Returns the DataFrame with all original columns plus _dq_errors.
-        
+
         Returns:
             DataFrame with _dq_errors column (engine-specific type)
             None if engine doesn't support DataFrame output (e.g. SQL engines)
-        
+
         Example:
             >>> report = validate(df, rules)
             >>> validated_df = report.df
-            >>> 
+            >>>
             >>> # DataFrame has _dq_errors column:
             >>> # | id | name  | age | _dq_errors                    |
             >>> # |----|-------|-----|-------------------------------|
             >>> # | 1  | John  | 25  | []                            |
             >>> # | 2  | Jane  | -5  | [{"rule": "is_positive"...}]  |
-            >>> 
+            >>>
             >>> # Filter to see only errors
             >>> errors = validated_df.filter("size(_dq_errors) > 0")
         """
@@ -206,20 +206,20 @@ class ValidationReport:
     def get_validated_df(self):
         """
         Get the validated DataFrame with _dq_errors column.
-        
+
         Returns DataFrame with all original columns plus _dq_errors column.
         Use .split() if you want to separate good/bad rows instead.
-        
+
         Returns:
             DataFrame with _dq_errors column (engine-specific type)
             None if engine doesn't support DataFrame output (e.g. SQL engines)
-        
+
         Example:
             >>> # Option 1: Get DataFrame with errors (no split)
             >>> report = validate(df, rules)
             >>> validated_df = report.get_validated_df()
             >>> validated_df.write.parquet("output_with_errors/")
-            >>> 
+            >>>
             >>> # Option 2: Split good/bad
             >>> good_df, bad_df = report.split()
             >>> good_df.write.parquet("clean/")
@@ -227,11 +227,11 @@ class ValidationReport:
         """
         if self.df_validated is None:
             return None
-        
+
         # Delegate to engine-specific wrapper's to_native()
-        if hasattr(self.df_validated, 'to_native'):
+        if hasattr(self.df_validated, "to_native"):
             return self.df_validated.to_native()
-        
+
         # Fallback: return wrapper directly
         return self.df_validated
 

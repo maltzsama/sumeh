@@ -3,6 +3,7 @@ SQL DDL generator using SQLGlot for cross-dialect support.
 
 Generates CREATE TABLE statements for Sumeh config tables.
 """
+
 from typing import List
 import sqlglot
 
@@ -48,22 +49,36 @@ class SQLGenerator:
     }
 
     SUPPORTED_DIALECTS = [
-        "athena", "bigquery", "clickhouse", "databricks", "duckdb",
-        "hive", "mysql", "oracle", "postgres", "presto", "redshift",
-        "snowflake", "spark", "sqlite", "teradata", "trino", "tsql",
+        "athena",
+        "bigquery",
+        "clickhouse",
+        "databricks",
+        "duckdb",
+        "hive",
+        "mysql",
+        "oracle",
+        "postgres",
+        "presto",
+        "redshift",
+        "snowflake",
+        "spark",
+        "sqlite",
+        "teradata",
+        "trino",
+        "tsql",
     ]
 
     @classmethod
     def generate(cls, table: str, dialect: str, schema: str = None, **kwargs) -> str:
         """
         Generate DDL for a specific table and dialect.
-        
+
         Args:
             table: 'rules', 'schema_registry', or 'all'
             dialect: SQL dialect name
             schema: Optional schema/dataset name
             **kwargs: Dialect-specific options
-            
+
         Returns:
             DDL statement(s)
         """
@@ -87,8 +102,13 @@ class SQLGenerator:
         return "\n\n".join(results)
 
     @classmethod
-    def _generate_table_ddl(cls, table_name: str, schema_name: str = None,
-                           dialect: str = "postgres", **kwargs) -> str:
+    def _generate_table_ddl(
+        cls,
+        table_name: str,
+        schema_name: str = None,
+        dialect: str = "postgres",
+        **kwargs,
+    ) -> str:
         """Generate DDL for a single table."""
         columns = cls.TABLE_SCHEMAS[table_name]
         column_defs = [f"{col_name} {col_def}" for col_name, col_def in columns.items()]
@@ -107,9 +127,9 @@ class SQLGenerator:
             return base_ddl
 
     @classmethod
-    def _apply_dialect_customizations(cls, ddl: str, dialect: str, 
-                                     table_name: str, schema_name: str = None,
-                                     **kwargs) -> str:
+    def _apply_dialect_customizations(
+        cls, ddl: str, dialect: str, table_name: str, schema_name: str = None, **kwargs
+    ) -> str:
         """Apply dialect-specific customizations."""
         options = []
 

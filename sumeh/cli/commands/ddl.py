@@ -1,4 +1,5 @@
 """DDL command - Generate DDL for config tables."""
+
 import typer
 from typing import Optional
 from pathlib import Path
@@ -17,17 +18,17 @@ def ddl(
 ):
     """
     Generate DDL for config tables.
-    
+
     Examples:
         sumeh ddl rules --dialect bigquery
         sumeh ddl all -d postgres -s dq_framework -o tables.sql
     """
     try:
         from sumeh.generators import SQLGenerator
-        
+
         console.print(f"🔨 Generating DDL for [cyan]{table}[/cyan] ({dialect})...")
         ddl_sql = SQLGenerator.generate(table, dialect, schema)
-        
+
         if output:
             output.write_text(ddl_sql)
             console.print(f"💾 Saved: [cyan]{output}[/cyan]")
@@ -35,7 +36,7 @@ def ddl(
             rprint("\n[bold]Generated DDL:[/bold]\n")
             syntax = Syntax(ddl_sql, "sql", theme="monokai")
             console.print(syntax)
-    
+
     except Exception as e:
         console.print(f"[red]❌ Error: {e}[/red]")
         raise typer.Exit(code=1)

@@ -47,39 +47,39 @@ Alternatives:
 Example - Training Data Validation:
     >>> import ray
     >>> from sumeh import ray_data as sumeh_ray
-    >>> 
+    >>>
     >>> # Load training data
     >>> ds = ray.data.read_parquet("s3://bucket/training_data/")
-    >>> 
+    >>>
     >>> # Validate BEFORE training
     >>> validated = sumeh_ray.validate(ds, rules)
     >>> good_ds, bad_ds = validated.split()
-    >>> 
+    >>>
     >>> # Train only on clean data
     >>> from ray.train import TorchTrainer
     >>> trainer = TorchTrainer(...)
     >>> trainer.fit(good_ds)
-    >>> 
+    >>>
     >>> # Analyze rejected data
     >>> bad_ds.write_parquet("s3://bucket/quarantine/")
 
 Example - Real-time Inference Validation:
     >>> import ray.serve
-    >>> 
+    >>>
     >>> @ray.serve.deployment
     >>> class Predictor:
     >>>     def predict(self, batch):
     >>>         # Validate input
     >>>         validated = sumeh_ray.validate(batch, rules)
     >>>         clean, bad = validated.split()
-    >>>         
+    >>>
     >>>         # Only predict on valid data
     >>>         return model.predict(clean)
 
 Example - GPU-Accelerated Validation:
     >>> # Validate with GPU (for heavy regex/compute)
     >>> validated = sumeh_ray.validate(
-    >>>     ds, 
+    >>>     ds,
     >>>     rules,
     >>>     num_gpus=1  # GPU per batch
     >>> )
@@ -89,7 +89,7 @@ Example - Feature Store Validation:
     >>> features = ray.data.read_parquet("computed_features/")
     >>> validated = sumeh_ray.validate(features, rules)
     >>> clean, _ = validated.split()
-    >>> 
+    >>>
     >>> # Only store valid features
     >>> clean.write_parquet("feature_store/")
 
@@ -110,6 +110,7 @@ Garbage In → Garbage Out:
 🚀 FIRST Data Quality framework built for Ray Data and ML pipelines!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
+
 from sumeh.engines.ray_data.engine import validate
 
 __all__ = ["validate"]

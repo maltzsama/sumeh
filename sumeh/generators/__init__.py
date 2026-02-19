@@ -252,6 +252,8 @@ class SQLGenerator:
         """
         parsed = sqlglot.parse_one(sql, read=from_dialect)
         return parsed.sql(dialect=to_dialect, pretty=True)
+
+
 """
 SQL generators and utilities.
 

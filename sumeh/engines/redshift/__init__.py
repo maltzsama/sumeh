@@ -11,7 +11,7 @@ Two modes:
 Example - Execute:
     >>> import psycopg2
     >>> from sumeh import redshift as sumeh_redshift
-    >>> 
+    >>>
     >>> conn = psycopg2.connect(
     ...     host='my-cluster.region.redshift.amazonaws.com',
     ...     port=5439,
@@ -19,7 +19,7 @@ Example - Execute:
     ...     password='password',
     ...     database='analytics'
     ... )
-    >>> 
+    >>>
     >>> report = sumeh_redshift.validate("public.users", rules, conn)
     >>> print(f"Pass rate: {report.pass_rate:.2%}")
 
@@ -31,6 +31,7 @@ Example - Generate SQL:
     >>> print(sql)
     >>> # Execute in Redshift Query Editor
 """
+
 from sumeh.engines.redshift.engine import validate, get_validation_sql
 
 __all__ = ["validate", "get_validation_sql"]

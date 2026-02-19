@@ -7,6 +7,7 @@ regardless of the underlying engine (pandas, pyspark, polars, etc).
 
 from typing import Protocol, Tuple, Any, Optional, runtime_checkable
 
+
 @runtime_checkable
 class IValidatedDataFrame(Protocol):
     """
@@ -47,22 +48,22 @@ class IValidatedDataFrame(Protocol):
 class IStreamValidator(Protocol):
     """
     Protocol for streaming validators (PyFlink UDFs).
-    
+
     Stream validators work row-by-row on unbounded streams.
     They are fundamentally different from batch analyzers.
-    
+
     Key Differences from IAnalyzer:
       - Works on SINGLE value, not DataFrame
       - Returns error string or None, not MetricResult
       - Stateless (no aggregations, no uniqueness)
       - No "total_rows" concept (stream is unbounded)
-    
+
     Implementation Requirements:
       1. Must have a validate_value() static method
       2. Must return Optional[str] (error message or None)
       3. Must be stateless (pure function of inputs)
       4. Must be fast (runs per-event in stream)
-    
+
     Example Implementation:
         >>> class CompletenessValidator:
         >>>     @staticmethod
@@ -70,7 +71,7 @@ class IStreamValidator(Protocol):
         >>>         if value is None:
         >>>             return "null_value"
         >>>         return None
-        >>> 
+        >>>
         >>> class PatternValidator:
         >>>     @staticmethod
         >>>     def validate_value(value, pattern: str) -> Optional[str]:
@@ -78,26 +79,26 @@ class IStreamValidator(Protocol):
         >>>             return f"pattern_mismatch:{pattern}"
         >>>         return None
     """
-    
+
     @staticmethod
     def validate_value(value: Any, *args, **kwargs) -> Optional[str]:
         """
         Validate a single value from stream.
-        
+
         Args:
             value: Single value to validate (from one row/event)
             *args: Validator-specific parameters (e.g., threshold, pattern)
             **kwargs: Additional validator parameters
-        
+
         Returns:
             Error message if validation fails, None if passes
-        
+
         Notes:
             - Must be stateless (no cross-row dependencies)
             - Must be fast (called per-event)
             - Cannot access other rows or aggregate
             - Should handle None gracefully
-        
+
         Example:
             >>> validate_value(None)  # → "null_value"
             >>> validate_value("test@example.com")  # → None
@@ -109,9 +110,9 @@ class IStreamValidator(Protocol):
 def stream_validator(func):
     """
     Decorator to mark a function as a stream validator.
-    
+
     Validates that function follows IStreamValidator protocol.
-    
+
     Example:
         >>> @stream_validator
         >>> def check_positive(value):
@@ -120,7 +121,7 @@ def stream_validator(func):
     # Check if function follows protocol (basic check)
     if not callable(func):
         raise TypeError(f"{func} is not callable")
-    
+
     # Add metadata
     func.__stream_validator__ = True
     return func
@@ -129,21 +130,22 @@ def stream_validator(func):
 def udf_validator(result_type):
     """
     Decorator to create PyFlink UDF from stream validator.
-    
+
     Combines @stream_validator with PyFlink's @udf decorator.
-    
+
     Example:
         >>> from pyflink.table import DataTypes
-        >>> 
+        >>>
         >>> @udf_validator(DataTypes.STRING())
         >>> def check_complete(value):
         >>>     return "null_value" if value is None else None
     """
+
     def decorator(func):
         from pyflink.table.udf import udf
-        
+
         func.__stream_validator__ = True
-        
+
         return udf(result_type=result_type)(func)
-    
+
     return decorator

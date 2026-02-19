@@ -11,7 +11,7 @@ Two modes:
 Example - Execute (Pure SQL):
     >>> import snowflake.connector
     >>> from sumeh import snowflake as sumeh_snowflake
-    >>> 
+    >>>
     >>> conn = snowflake.connector.connect(
     ...     user='admin',
     ...     password='password',
@@ -20,7 +20,7 @@ Example - Execute (Pure SQL):
     ...     database='analytics',
     ...     schema='public'
     ... )
-    >>> 
+    >>>
     >>> report = sumeh_snowflake.validate("analytics.public.users", rules, conn)
     >>> print(f"Pass rate: {report.pass_rate:.2%}")
     >>> report.explain()
@@ -36,11 +36,12 @@ Example - Generate SQL (Open SQL):
 Note - Snowpark Connect for Spark:
     If you want to use Snowpark Connect for Apache Spark,
     just use the PySpark engine with snowpark_connect session:
-    
+
     >>> from sumeh import pyspark as sumeh_pyspark
     >>> spark = snowpark_connect.get_session()
     >>> report = sumeh_pyspark.validate(spark.table("users"), rules)
 """
+
 from sumeh.engines.snowflake.engine import validate, get_validation_sql
 
 __all__ = ["validate", "get_validation_sql"]

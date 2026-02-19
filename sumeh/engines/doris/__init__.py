@@ -11,14 +11,14 @@ Two modes:
 Example - Execute:
     >>> import pymysql
     >>> from sumeh import doris as sumeh_doris
-    >>> 
+    >>>
     >>> conn = pymysql.connect(
     ...     host='doris-fe.example.com',
     ...     port=9030,
     ...     user='root',
     ...     database='analytics'
     ... )
-    >>> 
+    >>>
     >>> report = sumeh_doris.validate("analytics.users", rules, conn)
     >>> print(f"Pass rate: {report.pass_rate:.2%}")
 
@@ -30,6 +30,7 @@ Example - Generate SQL:
     >>> print(sql)
     >>> # Execute manually in Doris MySQL client
 """
+
 from sumeh.engines.doris.engine import validate, get_validation_sql
 
 __all__ = ["validate", "get_validation_sql"]

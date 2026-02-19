@@ -3,6 +3,7 @@ SQL transpiler using SQLGlot.
 
 Converts SQL between different dialects.
 """
+
 import sqlglot
 
 

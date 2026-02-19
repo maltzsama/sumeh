@@ -3,6 +3,7 @@ Rule definition model with metadata preservation.
 
 Combines original RuleDef features with metadata preservation.
 """
+
 import ast
 import re
 import warnings
@@ -56,7 +57,7 @@ class RuleDef:
         # Initialize metadata if None
         if self.metadata is None:
             self.metadata = {}
-        
+
         rule_def = RuleRegistry.get_rule(self.check_type)
         if rule_def is None:
             available = RuleRegistry.list_rules()
@@ -101,8 +102,14 @@ class RuleDef:
         """
         # Known Sumeh fields
         known_fields = {
-            'field', 'check_type', 'value', 'threshold',
-            'level', 'category', 'execute', 'updated_at'
+            "field",
+            "check_type",
+            "value",
+            "threshold",
+            "level",
+            "category",
+            "execute",
+            "updated_at",
         }
 
         # Parse field (handles multiple formats)
@@ -289,14 +296,18 @@ class RuleDef:
             Dictionary with all fields + metadata
         """
         result = {
-            'field': self.field,
-            'check_type': self.check_type,
-            'value': self.value,
-            'threshold': self.threshold,
-            'level': self.level,
-            'category': self.category,
-            'execute': self.execute,
-            'updated_at': self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else self.updated_at,
+            "field": self.field,
+            "check_type": self.check_type,
+            "value": self.value,
+            "threshold": self.threshold,
+            "level": self.level,
+            "category": self.category,
+            "execute": self.execute,
+            "updated_at": (
+                self.updated_at.isoformat()
+                if isinstance(self.updated_at, datetime)
+                else self.updated_at
+            ),
         }
 
         # Flatten metadata

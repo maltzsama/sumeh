@@ -4,16 +4,17 @@ PyFlink UDFs for data quality validation - COMPLETE.
 All validation UDFs defined here (implements IStreamValidator protocol).
 Each UDF is THREAD-mode compatible (PyFlink 1.15+).
 """
+
 from pyflink.table import DataTypes
 from pyflink.table.udf import udf
 from sumeh.engines.pyflink.protocols import stream_validator
 import re
 from datetime import datetime, date, timedelta
 
-
 # ============================================================================
 # COMPLETENESS VALIDATORS
 # ============================================================================
+
 
 @udf(result_type=DataTypes.STRING())
 @stream_validator
@@ -27,6 +28,7 @@ def sumeh_check_complete(value):
 # ============================================================================
 # COMPARISON VALIDATORS
 # ============================================================================
+
 
 @udf(result_type=DataTypes.STRING())
 @stream_validator
@@ -44,7 +46,7 @@ def sumeh_check_equal(value, expected):
 def sumeh_check_equal_column(value1, value2):
     """
     Check if value1 == value2 (column-to-column comparison).
-    
+
     Used for is_equal_than validation.
     """
     if value1 is None or value2 is None:
@@ -157,6 +159,7 @@ def sumeh_check_between(value, min_val, max_val):
 # MEMBERSHIP VALIDATORS
 # ============================================================================
 
+
 @udf(result_type=DataTypes.STRING())
 @stream_validator
 def sumeh_check_in_list(value, allowed_values):
@@ -186,6 +189,7 @@ def sumeh_check_not_in_list(value, forbidden_values):
 # PATTERN VALIDATORS
 # ============================================================================
 
+
 @udf(result_type=DataTypes.STRING())
 @stream_validator
 def sumeh_check_pattern(value, pattern):
@@ -212,6 +216,7 @@ def sumeh_check_legit(value):
 # DATE VALIDATORS
 # ============================================================================
 
+
 @udf(result_type=DataTypes.STRING())
 @stream_validator
 def sumeh_check_date_today(value):
@@ -219,7 +224,7 @@ def sumeh_check_date_today(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date != date.today():
             return "not_today"
     except:
@@ -234,7 +239,7 @@ def sumeh_check_date_yesterday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         yesterday = date.today() - timedelta(days=1)
         if val_date != yesterday:
             return "not_yesterday"
@@ -250,7 +255,7 @@ def sumeh_check_date_t_minus_2(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         target = date.today() - timedelta(days=2)
         if val_date != target:
             return "not_t_minus_2"
@@ -266,7 +271,7 @@ def sumeh_check_date_t_minus_3(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         target = date.today() - timedelta(days=3)
         if val_date != target:
             return "not_t_minus_3"
@@ -282,7 +287,7 @@ def sumeh_check_date_past(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date >= date.today():
             return "not_past_date"
     except:
@@ -297,7 +302,7 @@ def sumeh_check_date_future(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date <= date.today():
             return "not_future_date"
     except:
@@ -312,7 +317,7 @@ def sumeh_check_date_weekday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() >= 5:  # 5=Sat, 6=Sun
             return "not_weekday"
     except:
@@ -327,7 +332,7 @@ def sumeh_check_date_weekend(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() < 5:  # 0-4 = Mon-Fri
             return "not_weekend"
     except:
@@ -342,7 +347,7 @@ def sumeh_check_date_monday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 0:
             return "not_monday"
     except:
@@ -357,7 +362,7 @@ def sumeh_check_date_tuesday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 1:
             return "not_tuesday"
     except:
@@ -372,7 +377,7 @@ def sumeh_check_date_wednesday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 2:
             return "not_wednesday"
     except:
@@ -387,7 +392,7 @@ def sumeh_check_date_thursday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 3:
             return "not_thursday"
     except:
@@ -402,7 +407,7 @@ def sumeh_check_date_friday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 4:
             return "not_friday"
     except:
@@ -417,7 +422,7 @@ def sumeh_check_date_saturday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 5:
             return "not_saturday"
     except:
@@ -432,7 +437,7 @@ def sumeh_check_date_sunday(value):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         if val_date.weekday() != 6:
             return "not_sunday"
     except:
@@ -447,7 +452,7 @@ def sumeh_check_date_between(value, start_str, end_str):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         start = datetime.strptime(start_str, "%Y-%m-%d").date()
         end = datetime.strptime(end_str, "%Y-%m-%d").date()
         if val_date < start or val_date > end:
@@ -464,7 +469,7 @@ def sumeh_check_date_after(value, target_str):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         target = datetime.strptime(target_str, "%Y-%m-%d").date()
         if val_date <= target:
             return f"not_after:{target_str}"
@@ -480,7 +485,7 @@ def sumeh_check_date_before(value, target_str):
     if value is None:
         return None
     try:
-        val_date = value.date() if hasattr(value, 'date') else value
+        val_date = value.date() if hasattr(value, "date") else value
         target = datetime.strptime(target_str, "%Y-%m-%d").date()
         if val_date >= target:
             return f"not_before:{target_str}"
@@ -496,7 +501,6 @@ def sumeh_check_date_before(value, target_str):
 UDF_REGISTRY = {
     # Completeness
     "sumeh_check_complete": sumeh_check_complete,
-    
     # Comparison
     "sumeh_check_equal": sumeh_check_equal,
     "sumeh_check_equal_column": sumeh_check_equal_column,
@@ -509,15 +513,12 @@ UDF_REGISTRY = {
     "sumeh_check_in_millions": sumeh_check_in_millions,
     "sumeh_check_in_billions": sumeh_check_in_billions,
     "sumeh_check_between": sumeh_check_between,
-    
     # Membership
     "sumeh_check_in_list": sumeh_check_in_list,
     "sumeh_check_not_in_list": sumeh_check_not_in_list,
-    
     # Pattern
     "sumeh_check_pattern": sumeh_check_pattern,
     "sumeh_check_legit": sumeh_check_legit,
-    
     # Date
     "sumeh_check_date_today": sumeh_check_date_today,
     "sumeh_check_date_yesterday": sumeh_check_date_yesterday,
@@ -548,7 +549,7 @@ def get_all_udfs():
 def validate_all_implement_protocol():
     """Verify all UDFs implement IStreamValidator protocol."""
     from sumeh.engines.pyflink.protocols import IStreamValidator
-    
+
     for name, udf_func in UDF_REGISTRY.items():
-        if not hasattr(udf_func, '__stream_validator__'):
+        if not hasattr(udf_func, "__stream_validator__"):
             raise TypeError(f"{name} missing @stream_validator decorator")

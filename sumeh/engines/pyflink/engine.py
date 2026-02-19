@@ -39,8 +39,6 @@ def register_udfs(table_env):
         table_env.create_temporary_function(udf_name, udf_func)
 
 
-
-
 def validate(table_env, rules: List[RuleDef], table_name: str):
     """
     Validate PyFlink Table with automatic UDF registration.
@@ -71,7 +69,6 @@ def validate(table_env, rules: List[RuleDef], table_name: str):
 
     # Generate SQL
     sql = generate_validation_sql(rules, table_name)
-
 
     # Execute query and wrap
     table = table_env.sql_query(sql)
