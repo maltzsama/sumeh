@@ -330,3 +330,21 @@ class ValidationReport:
     def __getitem__(self, index):
         """Get validation result by index."""
         return self.results[index]
+
+
+
+@dataclass
+class SinkResult:
+    """
+    Structured response for metadata export operations.
+    Allows the orchestrator to monitor health and performance.
+    """
+    success: bool
+    sink_name: str
+    duration_ms: float
+    records_sent: int
+    timestamp: datetime
+    error: Optional[str] = None
+
+    def __bool__(self) -> bool:
+        return self.success
