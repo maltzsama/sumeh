@@ -19,4 +19,12 @@ Example:
 
 from sumeh.engines.dask.engine import validate
 
-__all__ = ["validate"]
+CAPABILITIES = {
+    'schema_validation': True,
+    'profiling': True,
+    'aggregation_analyzers': True,
+    'bifurcation': True,
+    'streaming': False,
+}
+
+__all__ = ['validate', 'CAPABILITIES']

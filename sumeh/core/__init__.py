@@ -23,10 +23,23 @@ from sumeh.core.models import (
     ValidationLevel,
 )
 
+from sumeh.core.utils import (
+    detect_engine,
+    has_capability,
+    get_capabilities,
+    require_capability,
+    list_engines_with_capability,
+)
+
 __all__ = [
     "ValidationResult",
     "ValidationReport",
     "MetricResult",
     "ValidationStatus",
     "ValidationLevel",
+    'detect_engine',
+    'has_capability',
+    'get_capabilities',
+    'require_capability',
+    'list_engines_with_capability',
 ]
