@@ -252,3 +252,17 @@ class SQLGenerator:
         """
         parsed = sqlglot.parse_one(sql, read=from_dialect)
         return parsed.sql(dialect=to_dialect, pretty=True)
+"""
+SQL generators and utilities.
+
+Provides:
+    - SQLGenerator: DDL generation for config tables
+    - transpile: SQL dialect conversion
+"""
+from sumeh.generators.ddl import SQLGenerator
+from sumeh.generators.transpiler import transpile
+
+__all__ = [
+    "SQLGenerator",
+    "transpile",
+]
