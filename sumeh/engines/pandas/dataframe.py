@@ -4,8 +4,9 @@ Pandas DataFrame wrapper with DQ capabilities.
 Wraps pd.DataFrame to add split_by_errors() and other DQ methods.
 """
 
-import pandas as pd
 from typing import Tuple
+
+import pandas as pd
 
 
 class ValidatedPandasDataFrame:

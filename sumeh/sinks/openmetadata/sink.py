@@ -4,14 +4,15 @@ Exports validation results and statistical profiles to OpenMetadata catalog.
 """
 
 import logging
-from typing import Any, Dict, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from sumeh.core.sink.protocol import SinkProtocol
 from sumeh.core.sink.model import SinkResult
+from sumeh.core.sink.protocol import SinkProtocol
 
 logger = logging.getLogger(__name__)
 

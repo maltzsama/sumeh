@@ -8,10 +8,11 @@ Strategy:
 """
 
 import dask.dataframe as dd
-import dask.array as da
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from sumeh.core.rules.rule_model import RuleDef
+
 
 # ============================================================================
 # COMPLETENESS

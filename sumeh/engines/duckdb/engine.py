@@ -3,9 +3,10 @@ DuckDB Engine - Strict Mode.
 No file reading magic. User must provide loaded object or table name.
 """
 
-import duckdb
 import time
 from typing import List, Union, Any, Optional
+
+import duckdb
 
 from sumeh.core.models import ValidationReport
 from sumeh.core.rules.rule_model import RuleDef

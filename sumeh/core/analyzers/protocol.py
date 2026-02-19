@@ -18,6 +18,7 @@ Philosophy:
 """
 
 from typing import Protocol, Any, runtime_checkable
+
 from sumeh.core.models import MetricResult
 
 

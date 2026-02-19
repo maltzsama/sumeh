@@ -16,6 +16,7 @@ from sumeh.engines.ray_data.analyzers import (
     DateComparisonAnalyzer,
     AggregationAnalyzer,
 )
+
 from sumeh.core.constraints.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,

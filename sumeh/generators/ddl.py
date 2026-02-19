@@ -5,6 +5,7 @@ Generates CREATE TABLE statements for Sumeh config tables.
 """
 
 from typing import List
+
 import sqlglot
 
 

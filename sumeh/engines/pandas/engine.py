@@ -5,11 +5,13 @@ Returns ValidationReport with ValidatedPandasDataFrame wrapper.
 Optimized to avoid row-by-row iteration using bulk aggregation.
 """
 
-import pandas as pd
-import numpy as np
 import time
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import List, Dict, Any
+
+import numpy as np
+import pandas as pd
+
 from sumeh.core.models import (
     ValidationReport,
     ValidationResult,
@@ -17,8 +19,8 @@ from sumeh.core.models import (
     ValidationStatus,
 )
 from sumeh.core.rules.rule_model import RuleDef
-from sumeh.engines.pandas.registry import get_analyzer, get_constraint
 from sumeh.engines.pandas.dataframe import ValidatedPandasDataFrame
+from sumeh.engines.pandas.registry import get_analyzer, get_constraint
 
 
 def validate(

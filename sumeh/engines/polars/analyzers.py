@@ -4,10 +4,13 @@ Polars-specific analyzers - COMPLETE IMPLEMENTATION.
 All row-level + table-level analyzers for Polars engine.
 """
 
-import polars as pl
 from datetime import datetime
+
+import polars as pl
+
 from sumeh.core.models import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
+
 
 # ============================================================================
 # COMPLETENESS ANALYZERS

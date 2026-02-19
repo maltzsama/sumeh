@@ -4,6 +4,13 @@ Polars engine registry - COMPLETE IMPLEMENTATION.
 Maps check_type → (Analyzer, Constraint) for ALL supported rules in Polars.
 """
 
+from sumeh.core.constraints.comparators import (
+    CompletenessConstraint,
+    MultiFieldCompletenessConstraint,
+    UniquenessConstraint,
+    GenericConstraint,
+    AggregationConstraint,
+)
 from sumeh.engines.polars.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -19,13 +26,6 @@ from sumeh.engines.polars.analyzers import (
     DateBetweenAnalyzer,
     DateComparisonAnalyzer,
     AggregationAnalyzer,
-)
-from sumeh.core.constraints.comparators import (
-    CompletenessConstraint,
-    MultiFieldCompletenessConstraint,
-    UniquenessConstraint,
-    GenericConstraint,
-    AggregationConstraint,
 )
 
 VALIDATION_REGISTRY = {

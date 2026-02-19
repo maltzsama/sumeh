@@ -6,6 +6,13 @@ Maps check_types to:
 2. Constraint (Validates the result against the rule)
 """
 
+from sumeh.core.constraints.comparators import (
+    CompletenessConstraint,
+    MultiFieldCompletenessConstraint,
+    UniquenessConstraint,
+    GenericConstraint,
+    AggregationConstraint,
+)
 from sumeh.engines.sql_core.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -21,14 +28,6 @@ from sumeh.engines.sql_core.analyzers import (
     DateBetweenAnalyzer,
     DateComparisonAnalyzer,
     AggregationAnalyzer,
-)
-
-from sumeh.core.constraints.comparators import (
-    CompletenessConstraint,
-    MultiFieldCompletenessConstraint,
-    UniquenessConstraint,
-    GenericConstraint,
-    AggregationConstraint,
 )
 
 VALIDATION_REGISTRY = {

@@ -5,11 +5,13 @@ All validation UDFs defined here (implements IStreamValidator protocol).
 Each UDF is THREAD-mode compatible (PyFlink 1.15+).
 """
 
+import re
+from datetime import datetime, date, timedelta
+
 from pyflink.table import DataTypes
 from pyflink.table.udf import udf
 from sumeh.engines.pyflink.protocols import stream_validator
-import re
-from datetime import datetime, date, timedelta
+
 
 # ============================================================================
 # COMPLETENESS VALIDATORS

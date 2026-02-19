@@ -4,6 +4,7 @@ Contract for exporting validation and profiling results to external catalogs.
 """
 
 from typing import Protocol, Any, Dict, runtime_checkable
+
 from sumeh.core.sink.model import SinkResult
 
 

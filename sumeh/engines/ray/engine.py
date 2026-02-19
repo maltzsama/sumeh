@@ -5,6 +5,9 @@ Orchestrates validation using Ray's distributed processing.
 
 import time
 from typing import List
+
+from sumeh.engines.ray_data.registry import get_analyzer, get_constraint
+
 from sumeh.core.models import (
     ValidationReport,
     MetricResult,
@@ -13,7 +16,6 @@ from sumeh.core.models import (
     ValidationStatus,
 )
 from sumeh.core.rules.rule_model import RuleDef
-from sumeh.engines.ray_data.registry import get_analyzer, get_constraint
 
 
 def validate(ds, rules: List[RuleDef], baseline_provider=None) -> ValidationReport:

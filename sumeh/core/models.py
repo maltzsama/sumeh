@@ -5,12 +5,12 @@ All validation results flow through these models.
 No DataFrame string concatenation. No dq_status column bullshit.
 """
 
+import uuid
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from datetime import datetime
-from typing import Any, List, Optional
 from enum import Enum
-import uuid
+from typing import Any, List, Optional
 
 
 class ValidationLevel(Enum):

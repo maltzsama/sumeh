@@ -4,10 +4,12 @@ Polars validation engine - Bifurcation Pattern (Optimized).
 Uses Bulk Error Aggregation to avoid loop overhead and schema mismatches.
 """
 
-import polars as pl
 import time
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import List, Dict, Any
+
+import polars as pl
+
 from sumeh.core.models import (
     ValidationReport,
     ValidationResult,
@@ -15,8 +17,8 @@ from sumeh.core.models import (
     ValidationStatus,
 )
 from sumeh.core.rules.rule_model import RuleDef
-from sumeh.engines.polars.registry import get_analyzer, get_constraint
 from sumeh.engines.polars.dataframe import ValidatedPolarsDataFrame
+from sumeh.engines.polars.registry import get_analyzer, get_constraint
 
 # Centralized Schema Definition to avoid drift
 ERROR_SCHEMA = {

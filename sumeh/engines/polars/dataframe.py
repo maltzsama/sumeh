@@ -4,8 +4,9 @@ Polars DataFrame wrapper with DQ capabilities.
 Wraps pl.DataFrame to add split_by_errors() and other DQ methods.
 """
 
-import polars as pl
 from typing import Tuple
+
+import polars as pl
 
 
 class ValidatedPolarsDataFrame:

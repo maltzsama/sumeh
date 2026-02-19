@@ -10,9 +10,9 @@ Strategy:
 """
 
 import pandas as pd
-import re
-from datetime import date
+
 from sumeh.core.rules.rule_model import RuleDef
+
 
 # ============================================================================
 # COMPLETENESS

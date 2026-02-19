@@ -7,6 +7,7 @@ Load validation rules from CSV files.
 import csv
 from pathlib import Path
 from typing import List, Union
+
 from sumeh.core.rules.rule_model import RuleDef
 
 

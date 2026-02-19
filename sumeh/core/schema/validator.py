@@ -3,8 +3,8 @@ Sumeh Schema Gatekeeper.
 O(1) Structural validation before O(N) Data Quality processing.
 """
 
-import re
 import json
+import re
 from typing import Any, Dict, List, Union
 
 from sumeh.core.schema.models import SchemaDef, ColumnDef, SchemaReport

@@ -15,11 +15,11 @@ Usage:
     >>> print(result.status)  # PASS or FAIL
 """
 
-from sumeh.core.constraints.protocol import IConstraint
 from sumeh.core.constraints.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,
 )
+from sumeh.core.constraints.protocol import IConstraint
 
 __all__ = [
     "IConstraint",

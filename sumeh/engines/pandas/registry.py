@@ -4,6 +4,13 @@ Pandas engine registry - COMPLETE IMPLEMENTATION.
 Maps check_type → (Analyzer, Constraint) for ALL supported rules.
 """
 
+from sumeh.core.constraints.comparators import (
+    CompletenessConstraint,
+    MultiFieldCompletenessConstraint,
+    UniquenessConstraint,
+    GenericConstraint,
+    AggregationConstraint,
+)
 from sumeh.engines.pandas.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -19,13 +26,6 @@ from sumeh.engines.pandas.analyzers import (
     DateBetweenAnalyzer,
     DateComparisonAnalyzer,
     AggregationAnalyzer,
-)
-from sumeh.core.constraints.comparators import (
-    CompletenessConstraint,
-    MultiFieldCompletenessConstraint,
-    UniquenessConstraint,
-    GenericConstraint,
-    AggregationConstraint,
 )
 
 VALIDATION_REGISTRY = {

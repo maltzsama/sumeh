@@ -17,6 +17,7 @@ Philosophy:
 """
 
 from typing import Protocol, runtime_checkable
+
 from sumeh.core.models import MetricResult, ValidationResult
 from sumeh.core.rules.rule_model import RuleDef
 

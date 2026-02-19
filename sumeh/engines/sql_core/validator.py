@@ -5,6 +5,7 @@ Converts SQL result rows (tuples) into Sumeh ValidationResults.
 """
 
 from typing import List, Tuple, Any, Dict
+
 from sumeh.core.models import ValidationResult, MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.engines.sql_core.registry import get_constraint

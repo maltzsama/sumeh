@@ -1,10 +1,11 @@
 """SQL command - Generate SQL validation query."""
 
-import typer
-from typing import Optional
 from pathlib import Path
-from rich.console import Console
+from typing import Optional
+
+import typer
 from rich import print as rprint
+from rich.console import Console
 from rich.syntax import Syntax
 
 console = Console()

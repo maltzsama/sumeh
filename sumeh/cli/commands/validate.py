@@ -1,9 +1,10 @@
 """Validate command - Validate data against rules."""
 
-import typer
-from typing import Optional
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
+from typing import Optional
+
+import typer
 from rich.console import Console
 
 from sumeh.cli.utils import print_summary, print_table

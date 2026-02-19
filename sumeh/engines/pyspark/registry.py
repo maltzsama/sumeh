@@ -2,6 +2,13 @@
 PySpark engine registry - COMPLETE (48+ rules).
 """
 
+from sumeh.core.constraints.comparators import (
+    CompletenessConstraint,
+    MultiFieldCompletenessConstraint,
+    UniquenessConstraint,
+    GenericConstraint,
+    AggregationConstraint,
+)
 from sumeh.engines.pyspark.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -17,13 +24,6 @@ from sumeh.engines.pyspark.analyzers import (
     DateBetweenAnalyzer,
     DateComparisonAnalyzer,
     AggregationAnalyzer,
-)
-from sumeh.core.constraints.comparators import (
-    CompletenessConstraint,
-    MultiFieldCompletenessConstraint,
-    UniquenessConstraint,
-    GenericConstraint,
-    AggregationConstraint,
 )
 
 VALIDATION_REGISTRY = {

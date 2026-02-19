@@ -4,9 +4,10 @@ PySpark DataFrame wrapper with DQ capabilities.
 Wraps pyspark.sql.DataFrame to add split_by_errors() and other DQ methods.
 """
 
+from typing import Tuple
+
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
-from typing import Tuple
 
 
 class ValidatedSparkDataFrame:

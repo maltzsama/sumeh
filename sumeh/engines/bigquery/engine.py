@@ -4,7 +4,7 @@ Connects to Google Cloud BigQuery and executes optimized validation queries.
 """
 
 import time
-from typing import List, Optional, Any, Union
+from typing import List, Optional, Any
 
 try:
     from google.cloud import bigquery

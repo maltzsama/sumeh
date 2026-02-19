@@ -4,9 +4,11 @@ Compiles rules into a single SELECT statement using SQLGlot AST.
 Supports Global Filters and Per-Rule Filters (SQL FILTER / CASE WHEN).
 """
 
+from typing import List, Tuple, Optional
+
 import sqlglot
 import sqlglot.expressions as exp
-from typing import List, Tuple, Optional
+
 from sumeh.engines.sql_core.registry import get_analyzer
 
 

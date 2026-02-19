@@ -4,7 +4,7 @@ Schema validators for rules configuration.
 Validates that DataFrames/dicts have correct structure before conversion.
 """
 
-from typing import Set, Any
+from typing import Any
 
 
 def validate_rules_schema(df: Any) -> None:

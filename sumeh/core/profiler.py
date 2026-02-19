@@ -9,8 +9,8 @@ to compute statistics without separate aggregation queries.
 import time
 from typing import Any, Dict, Optional
 
-from sumeh.core.schema.validator import extract_schema
 from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.schema.validator import extract_schema
 
 
 class DataProfiler:
