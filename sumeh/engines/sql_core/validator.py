@@ -6,7 +6,7 @@ Converts SQL result rows (tuples) into Sumeh ValidationResults.
 
 from typing import List, Tuple, Any, Dict
 
-from sumeh.core.models import ValidationResult, MetricResult
+from sumeh.core.models.validation import ValidationResult, MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.engines.sql_core.registry import get_constraint
 
@@ -15,7 +15,7 @@ def validate_results(
     metrics_row: Tuple[Any, ...],
     rule_ids: List[str],
     rules: List[RuleDef],
-    total_rows: int = 0,  # <--- NEW: Contexto necessário para metadados
+    total_rows: int = 0,
 ) -> List[ValidationResult]:
     """
     Maps the raw metrics row from SQL execution back to Rule Constraints.

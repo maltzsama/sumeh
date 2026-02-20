@@ -5,7 +5,7 @@ Maps check_type → (Analyzer, Constraint) for ALL supported rules in Dask engin
 Ensures feature parity with Pandas engine.
 """
 
-from sumeh.core.constraints.comparators import (
+from sumeh.core.logic.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,
     UniquenessConstraint,

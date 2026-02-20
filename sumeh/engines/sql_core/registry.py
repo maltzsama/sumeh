@@ -6,7 +6,7 @@ Maps check_types to:
 2. Constraint (Validates the result against the rule)
 """
 
-from sumeh.core.constraints.comparators import (
+from sumeh.core.logic.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,
     UniquenessConstraint,

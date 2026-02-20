@@ -4,7 +4,7 @@ Pandas engine registry - COMPLETE IMPLEMENTATION.
 Maps check_type → (Analyzer, Constraint) for ALL supported rules.
 """
 
-from sumeh.core.constraints.comparators import (
+from sumeh.core.logic.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,
     UniquenessConstraint,

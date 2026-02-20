@@ -11,8 +11,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from sumeh.core.sink.model import SinkResult
-from sumeh.core.sink.protocol import SinkProtocol
+from sumeh.core.services.sink.model import SinkResult
+from sumeh.core.base.protocols import SinkProtocol
 
 logger = logging.getLogger(__name__)
 

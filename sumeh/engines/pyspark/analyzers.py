@@ -9,7 +9,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-from sumeh.core.models import MetricResult
+from sumeh.core.models.metrics import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 
 

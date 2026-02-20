@@ -1,15 +1,10 @@
-"""
-Protocols for engine-agnostic interfaces.
+from typing import runtime_checkable, Protocol, Tuple, Any, Optional, Dict
 
-These protocols define what validated DataFrames must implement,
-regardless of the underlying engine (pandas, pyspark, polars, etc).
-"""
-
-from typing import Protocol, Tuple, Any, Optional, runtime_checkable
+from sumeh.core.services.sink.model import SinkResult
 
 
 @runtime_checkable
-class IValidatedDataFrame(Protocol):
+class IDataFrameValidator(Protocol):
     """
     Protocol for validated DataFrames across all engines.
 
@@ -65,19 +60,19 @@ class IStreamValidator(Protocol):
       4. Must be fast (runs per-event in stream)
 
     Example Implementation:
-        >>> class CompletenessValidator:
-        >>>     @staticmethod
-        >>>     def validate_value(value) -> Optional[str]:
-        >>>         if value is None:
-        >>>             return "null_value"
-        >>>         return None
-        >>>
-        >>> class PatternValidator:
-        >>>     @staticmethod
-        >>>     def validate_value(value, pattern: str) -> Optional[str]:
-        >>>         if not re.match(pattern, str(value)):
-        >>>             return f"pattern_mismatch:{pattern}"
-        >>>         return None
+        # >>> class CompletenessValidator:
+        # >>>     @staticmethod
+        # >>>     def validate_value(value) -> Optional[str]:
+        # >>>         if value is None:
+        # >>>             return "null_value"
+        # >>>         return None
+        # >>>
+        # >>> class PatternValidator:
+        # >>>     @staticmethod
+        # >>>     def validate_value(value, pattern: str) -> Optional[str]:
+        # >>>         if not re.match(pattern, str(value)):
+        # >>>             return f"pattern_mismatch:{pattern}"
+        # >>>         return None
     """
 
     @staticmethod
@@ -100,9 +95,9 @@ class IStreamValidator(Protocol):
             - Should handle None gracefully
 
         Example:
-            >>> validate_value(None)  # → "null_value"
-            >>> validate_value("test@example.com")  # → None
-            >>> validate_value(42, threshold=100)  # → "not_greater_than:100"
+            # >>> validate_value(None)  # → "null_value"
+            # >>> validate_value("test@example.com")  # → None
+            # >>> validate_value(42, threshold=100)  # → "not_greater_than:100"
         """
         ...
 
@@ -114,9 +109,9 @@ def stream_validator(func):
     Validates that function follows IStreamValidator protocol.
 
     Example:
-        >>> @stream_validator
-        >>> def check_positive(value):
-        >>>     return "not_positive" if value <= 0 else None
+        # >>> @stream_validator
+        # >>> def check_positive(value):
+        # >>>     return "not_positive" if value <= 0 else None
     """
     # Check if function follows protocol (basic check)
     if not callable(func):
@@ -134,11 +129,11 @@ def udf_validator(result_type):
     Combines @stream_validator with PyFlink's @udf decorator.
 
     Example:
-        >>> from pyflink.table import DataTypes
-        >>>
-        >>> @udf_validator(DataTypes.STRING())
-        >>> def check_complete(value):
-        >>>     return "null_value" if value is None else None
+        # >>> from pyflink.table import DataTypes
+        # >>>
+        # >>> @udf_validator(DataTypes.STRING())
+        # >>> def check_complete(value):
+        # >>>     return "null_value" if value is None else None
     """
 
     def decorator(func):
@@ -149,3 +144,61 @@ def udf_validator(result_type):
         return udf(result_type=result_type)(func)
 
     return decorator
+
+
+@runtime_checkable
+class SinkProtocol(Protocol):
+    """
+    Base protocol for all Sumeh sinks.
+
+    Implementations export Sumeh results to:
+    - OpenMetadata (Data Quality + Profiler)
+    - DataHub (Assertions + Dataset Stats)
+    - Great Expectations (Validation Results)
+    - Custom catalogs (S3, databases, etc)
+    """
+
+    @property
+    def name(self) -> str:
+        """
+        Sink identifier.
+
+        Examples: 'openmetadata', 'datahub', 's3', 'postgres'
+        """
+        ...
+
+    def send_validation(self, report: Any, **kwargs) -> SinkResult:
+        """
+        Export validation report to external catalog.
+
+        Args:
+            report: ValidationReport from engine.validate()
+            **kwargs: Sink-specific params (table_fqn, connection_id, etc)
+
+        Returns:
+            SinkResult with operation status
+
+        Maps to:
+            - OpenMetadata: POST /dataQuality/testCases
+            - DataHub: POST /assertions
+            - GX: validation_result.json
+        """
+        ...
+
+    def send_profile(self, profile: Dict[str, Any], **kwargs) -> SinkResult:
+        """
+        Export statistical profile to external catalog.
+
+        Args:
+            profile: Profile dict from DataProfiler.profile()
+            **kwargs: Sink-specific params
+
+        Returns:
+            SinkResult with operation status
+
+        Maps to:
+            - OpenMetadata: POST /tableProfile + /columnProfile
+            - DataHub: POST /datasets/{urn}/profile
+            - S3: profile.json upload
+        """
+        ...

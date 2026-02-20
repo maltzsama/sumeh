@@ -59,13 +59,16 @@ __version__ = "2.0.0"
 # ============================================================================
 # Core Models
 # ============================================================================
-from sumeh.core.models import (
+from sumeh.core.models.validation import (
     ValidationResult,
     ValidationReport,
-    MetricResult,
     ValidationStatus,
     ValidationLevel,
 )
+
+from sumeh.core.models.metrics import MetricResult
+
+from sumeh.generators import SQLGenerator
 
 # ============================================================================
 # Engines (namespace-first API with lazy loading)
@@ -112,10 +115,9 @@ if not _available_engines:
         "  pip install sumeh[all]      # For all engines"
     )
 
-# ============================================================================
+
 # Utilities
-# ============================================================================
-from sumeh.generators import SQLGenerator
+
 
 # Build __all__ dynamically based on what was successfully imported
 __all__ = [

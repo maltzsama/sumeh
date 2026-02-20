@@ -15,13 +15,14 @@ Constraints:
   - CompletenessConstraint: Validate completeness threshold
 """
 
-from sumeh.core.models import (
+from sumeh.core.models.validation import (
     ValidationResult,
     ValidationReport,
-    MetricResult,
     ValidationStatus,
     ValidationLevel,
 )
+
+from sumeh.core.models.metrics import MetricResult
 
 from sumeh.core.utils import (
     detect_engine,

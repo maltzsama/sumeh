@@ -10,9 +10,9 @@ from typing import List
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
-from pyspark.sql.types import ArrayType, StructType, StructField, StringType, DoubleType
+from pyspark.sql.types import ArrayType, StructType, StructField, StringType
 
-from sumeh.core.models import (
+from sumeh.core.models.validation import (
     ValidationReport,
     ValidationResult,
     ValidationLevel,
@@ -42,7 +42,9 @@ def validate(
     # Initialize _dq_errors column (array of structs)
     # Use monotonically_increasing_id for row tracking
     df = df.withColumn("_row_id", F.monotonically_increasing_id())
-    df = df.withColumn("_dq_errors", F.array())  # Empty array
+
+    error_schema = __get_error_schema()
+    df = df.withColumn("_dq_errors", F.array().cast(ArrayType(error_schema)))
 
     row_rules = [r for r in rules if r.is_applicable_for_level("ROW")]
     table_rules = [r for r in rules if r.is_applicable_for_level("TABLE")]
@@ -216,3 +218,15 @@ def _validate_table_level(
             )
 
     return results
+
+
+def __get_error_schema():
+    return StructType(
+        [
+            StructField("check_type", StringType(), True),
+            StructField("field", StringType(), True),
+            StructField("message", StringType(), True),
+            StructField("expected", StringType(), True),
+            StructField("actual", StringType(), True),
+        ]
+    )

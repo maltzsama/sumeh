@@ -12,7 +12,7 @@ Two modes:
 import time
 from typing import List, Optional, Any
 
-from sumeh.core.models import ValidationReport
+from sumeh.core.models.validation import ValidationReport
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results

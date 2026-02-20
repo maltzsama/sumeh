@@ -2,7 +2,7 @@
 PySpark engine registry - COMPLETE (48+ rules).
 """
 
-from sumeh.core.constraints.comparators import (
+from sumeh.core.logic.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,
     UniquenessConstraint,

@@ -11,7 +11,8 @@ import dask
 import dask.dataframe as dd
 import numpy as np
 
-from sumeh.core.models import ValidationReport, MetricResult
+from sumeh.core.models.validation import ValidationReport
+from sumeh.core.models.metrics import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 from sumeh.engines.dask.registry import get_analyzer, get_constraint
 

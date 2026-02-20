@@ -10,7 +10,7 @@ from typing import List, Dict, Any
 
 import polars as pl
 
-from sumeh.core.models import (
+from sumeh.core.models.validation import (
     ValidationReport,
     ValidationResult,
     ValidationLevel,

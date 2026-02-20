@@ -17,7 +17,7 @@ from sumeh.engines.ray_data.analyzers import (
     AggregationAnalyzer,
 )
 
-from sumeh.core.constraints.comparators import (
+from sumeh.core.logic.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,
     GenericConstraint,

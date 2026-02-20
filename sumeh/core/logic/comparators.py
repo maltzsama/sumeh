@@ -4,12 +4,14 @@ Constraint comparators - COMPLETE IMPLEMENTATION.
 All constraints for validating metrics against rules.
 """
 
-from sumeh.core.models import (
-    MetricResult,
+from sumeh.core.models.validation import (
     ValidationResult,
     ValidationLevel,
     ValidationStatus,
 )
+
+from sumeh.core.models.metrics import MetricResult
+
 from sumeh.core.rules.rule_model import RuleDef
 
 

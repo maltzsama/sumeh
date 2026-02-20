@@ -7,7 +7,7 @@ import json
 import re
 from typing import Any, Dict, List, Union
 
-from sumeh.core.schema.models import SchemaDef, ColumnDef, SchemaReport
+from sumeh.core.services.schema.models import SchemaDef, ColumnDef, SchemaReport
 from sumeh.core.utils import require_capability
 
 # ============================================================================

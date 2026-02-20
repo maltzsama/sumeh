@@ -12,7 +12,7 @@ from typing import List, Dict, Any
 import numpy as np
 import pandas as pd
 
-from sumeh.core.models import (
+from sumeh.core.models.validation import (
     ValidationReport,
     ValidationResult,
     ValidationLevel,

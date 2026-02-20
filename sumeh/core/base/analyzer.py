@@ -1,25 +1,4 @@
-"""
-Analyzer Protocol - computes metrics without opinions.
-
-An Analyzer:
-  - Takes data + field
-  - Computes a metric
-  - Returns MetricResult
-  - NEVER knows about thresholds or rules
-  - Is PURE (same input = same output)
-
-Philosophy:
-  Analyzers are the "measurement" layer.
-  They answer "what is" not "is this good".
-
-  Example:
-    - Analyzer: "This column has 50 null values out of 1000 rows"
-    - Constraint: "50 nulls is BAD because threshold is 0.99"
-"""
-
-from typing import Protocol, Any, runtime_checkable
-
-from sumeh.core.models import MetricResult
+from typing import runtime_checkable, Protocol, Any
 
 
 @runtime_checkable

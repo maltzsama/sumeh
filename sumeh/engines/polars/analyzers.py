@@ -8,7 +8,7 @@ from datetime import datetime
 
 import polars as pl
 
-from sumeh.core.models import MetricResult
+from sumeh.core.models.metrics import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 
 # ============================================================================
