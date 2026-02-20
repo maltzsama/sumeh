@@ -13,11 +13,7 @@ from sumeh.core.models import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 
 
-# ============================================================================
 # COMPLETENESS ANALYZERS
-# ============================================================================
-
-
 class CompletenessAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
@@ -37,22 +33,12 @@ class CompletenessAnalyzer:
         null_count = result["null_count"]
         completeness_rate = (total - null_count) / total if total > 0 else 1.0
 
-        # Get ALL violating row IDs (no sampling in analyzer)
-        # Sampling happens in report.summary()
-        null_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(F.col(field).isNull())
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="completeness",
             field=field,
             value=completeness_rate,
             total_rows=total,
-            affected_row_ids=null_row_ids,
+            affected_row_ids=[],
             metadata={"null_count": null_count, "total_count": total},
         )
 
@@ -79,20 +65,12 @@ class MultiFieldCompletenessAnalyzer:
         incomplete_count = result["incomplete_count"]
         completeness_rate = (total - incomplete_count) / total if total > 0 else 1.0
 
-        incomplete_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(any_null_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="multi_field_completeness",
             field=",".join(fields),
             value=completeness_rate,
             total_rows=total,
-            affected_row_ids=incomplete_row_ids,
+            affected_row_ids=[],
             metadata={
                 "incomplete_count": incomplete_count,
                 "total_count": total,
@@ -101,11 +79,7 @@ class MultiFieldCompletenessAnalyzer:
         )
 
 
-# ============================================================================
 # UNIQUENESS ANALYZERS
-# ============================================================================
-
-
 class UniquenessAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
@@ -129,25 +103,12 @@ class UniquenessAnalyzer:
 
         uniqueness_rate = (total - duplicate_count) / total if total > 0 else 1.0
 
-        # Get duplicate row IDs
-        duplicate_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .join(
-                df.groupBy(field).count().filter(F.col("count") > 1).select(field),
-                field,
-                "inner",
-            )
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="uniqueness",
             field=field,
             value=uniqueness_rate,
             total_rows=total,
-            affected_row_ids=duplicate_row_ids,
+            affected_row_ids=[],
             metadata={"duplicate_count": duplicate_count, "total_count": total},
         )
 
@@ -176,24 +137,12 @@ class MultiFieldUniquenessAnalyzer:
 
         uniqueness_rate = (total - duplicate_count) / total if total > 0 else 1.0
 
-        duplicate_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .join(
-                df.groupBy(*fields).count().filter(F.col("count") > 1).select(*fields),
-                fields,
-                "inner",
-            )
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="multi_field_uniqueness",
             field=",".join(fields),
             value=uniqueness_rate,
             total_rows=total,
-            affected_row_ids=duplicate_row_ids,
+            affected_row_ids=[],
             metadata={
                 "duplicate_count": duplicate_count,
                 "total_count": total,
@@ -202,11 +151,7 @@ class MultiFieldUniquenessAnalyzer:
         )
 
 
-# ============================================================================
 # COMPARISON ANALYZERS
-# ============================================================================
-
-
 class ComparisonAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
@@ -249,20 +194,12 @@ class ComparisonAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="comparison",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={
                 "fail_count": fail_count,
                 "total_count": total,
@@ -295,20 +232,12 @@ class BetweenAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="between",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={
                 "fail_count": fail_count,
                 "total_count": total,
@@ -339,20 +268,12 @@ class ColumnComparisonAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="column_comparison",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={
                 "fail_count": fail_count,
                 "total_count": total,
@@ -361,11 +282,7 @@ class ColumnComparisonAnalyzer:
         )
 
 
-# ============================================================================
 # MEMBERSHIP ANALYZERS
-# ============================================================================
-
-
 class MembershipAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
@@ -393,20 +310,12 @@ class MembershipAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="membership",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={
                 "fail_count": fail_count,
                 "total_count": total,
@@ -415,11 +324,7 @@ class MembershipAnalyzer:
         )
 
 
-# ============================================================================
 # PATTERN ANALYZERS
-# ============================================================================
-
-
 class PatternAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
@@ -444,20 +349,12 @@ class PatternAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="pattern",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={
                 "fail_count": fail_count,
                 "total_count": total,
@@ -486,29 +383,17 @@ class LegitAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="legit",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={"fail_count": fail_count, "total_count": total},
         )
 
 
-# ============================================================================
 # DATE ANALYZERS
-# ============================================================================
-
-
 class DateAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
@@ -566,20 +451,12 @@ class DateAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="date",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={"fail_count": fail_count, "total_count": total},
         )
 
@@ -611,20 +488,12 @@ class DateBetweenAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="date_between",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={
                 "fail_count": fail_count,
                 "total_count": total,
@@ -662,29 +531,17 @@ class DateComparisonAnalyzer:
         fail_count = result["fail_count"]
         pass_rate = (total - fail_count) / total if total > 0 else 1.0
 
-        fail_row_ids = (
-            df.withColumn("_row_num", F.monotonically_increasing_id())
-            .filter(fail_condition)
-            .select("_row_num")
-            .rdd.flatMap(lambda x: x)
-            .collect()
-        )
-
         return MetricResult(
             metric_type="date_comparison",
             field=field,
             value=pass_rate,
             total_rows=total,
-            affected_row_ids=fail_row_ids,
+            affected_row_ids=[],
             metadata={"fail_count": fail_count, "total_count": total, "target": target},
         )
 
 
-# ============================================================================
 # TABLE-LEVEL AGGREGATION ANALYZERS
-# ============================================================================
-
-
 class AggregationAnalyzer:
     @staticmethod
     def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:

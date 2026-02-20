@@ -9,7 +9,6 @@ import sqlglot.expressions as exp
 
 from sumeh.core.rules.rule_model import RuleDef
 
-
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================

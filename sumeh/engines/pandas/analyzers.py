@@ -10,7 +10,6 @@ import pandas as pd
 from sumeh.core.models import MetricResult
 from sumeh.core.rules.rule_model import RuleDef
 
-
 # ============================================================================
 # COMPLETENESS ANALYZERS
 # ============================================================================
