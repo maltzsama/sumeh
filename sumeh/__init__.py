@@ -71,37 +71,104 @@ from sumeh.core.models.metrics import MetricResult
 from sumeh.generators import SQLGenerator
 
 # ============================================================================
-# Engines (namespace-first API with lazy loading)
+# Engines (explicit imports with fallback)
 # ============================================================================
-# ALL engines are optional - only import if dependencies are installed
-_all_engines = [
-    # Batch DataFrames
-    "pandas",
-    "polars",
-    "pyspark",
-    "dask",
-    # Streaming & ML
-    "ray_data",
-    "pyflink",
-    # SQL Engines
-    "duckdb",
-    "bigquery",
-    "snowflake",
-    "redshift",
-    "athena",
-    "trino",
-    "doris",
-    "sql_core",
-]
+# Batch DataFrames
+try:
+    from sumeh.engines import pandas
+except ImportError:
+    pandas = None
 
-_available_engines = []
-for _name in _all_engines:
-    try:
-        exec(f"from sumeh.engines import {_name}")
-        _available_engines.append(_name)
-    except (ImportError, AttributeError):
-        # Engine not available (missing dependency or not implemented)
-        exec(f"{_name} = None")
+try:
+    from sumeh.engines import polars
+except ImportError:
+    polars = None
+
+try:
+    from sumeh.engines import pyspark
+except ImportError:
+    pyspark = None
+
+try:
+    from sumeh.engines import dask
+except ImportError:
+    dask = None
+
+# Streaming & ML
+try:
+    from sumeh.engines import ray_data
+except ImportError:
+    ray_data = None
+
+try:
+    from sumeh.engines import pyflink
+except ImportError:
+    pyflink = None
+
+# SQL Engines
+try:
+    from sumeh.engines import duckdb
+except ImportError:
+    duckdb = None
+
+try:
+    from sumeh.engines import bigquery
+except ImportError:
+    bigquery = None
+
+try:
+    from sumeh.engines import snowflake
+except ImportError:
+    snowflake = None
+
+try:
+    from sumeh.engines import redshift
+except ImportError:
+    redshift = None
+
+try:
+    from sumeh.engines import athena
+except ImportError:
+    athena = None
+
+try:
+    from sumeh.engines import trino
+except ImportError:
+    trino = None
+
+try:
+    from sumeh.engines import doris
+except ImportError:
+    doris = None
+
+try:
+    from sumeh.engines import sql_core
+except ImportError:
+    sql_core = None
+
+# List of available engines (for warning)
+_available_engines = [
+    name
+    for name, engine in locals().items()
+    if engine is not None
+    and name
+    in [
+        "pandas",
+        "polars",
+        "pyspark",
+        "dask",
+        "ray_data",
+        "pyflink",
+        "duckdb",
+        "bigquery",
+        "snowflake",
+        "redshift",
+        "athena",
+        "trino",
+        "doris",
+        "sql_core",
+    ]
+]
 
 # Warn if no engines available
 if not _available_engines:
@@ -115,11 +182,9 @@ if not _available_engines:
         "  pip install sumeh[all]      # For all engines"
     )
 
-
-# Utilities
-
-
-# Build __all__ dynamically based on what was successfully imported
+# ============================================================================
+# Public API
+# ============================================================================
 __all__ = [
     # Meta
     "__version__",
@@ -133,7 +198,19 @@ __all__ = [
     "ValidationLevel",
     # Utilities
     "SQLGenerator",
+    # Engines (explicit list for auto-complete)
+    "pandas",
+    "polars",
+    "pyspark",
+    "dask",
+    "ray_data",
+    "pyflink",
+    "duckdb",
+    "bigquery",
+    "snowflake",
+    "redshift",
+    "athena",
+    "trino",
+    "doris",
+    "sql_core",
 ]
-
-# Add engines that were successfully imported
-__all__.extend(_available_engines)
