@@ -47,7 +47,6 @@ def validate(
         row_results = _validate_row_level(df, row_rules)
         results.extend(row_results)
 
-        # --- BULK AGGREGATION PATTERN (The "Senior" Way) ---
         all_errors: List[Dict[str, Any]] = []
 
         for result in row_results:
@@ -82,8 +81,10 @@ def validate(
             # Fill NaN (rows with no errors) with empty lists
             mask = df["_dq_errors"].isna()
             if mask.any():
-                # Creating the list comprehension once is cheaper than per-row
-                df.loc[mask, "_dq_errors"] = [[] for _ in range(mask.sum())]
+                # ✅ FIX: Use Series with explicit index to avoid shape mismatch
+                df.loc[mask, "_dq_errors"] = pd.Series(
+                    [[] for _ in range(mask.sum())], index=df.index[mask]
+                )
         else:
             # No errors found at all
             df["_dq_errors"] = [[] for _ in range(len(df))]
@@ -173,8 +174,6 @@ def _validate_table_level(
 
 
 # --- Helper Methods to keep main logic clean ---
-
-
 def _create_skipped_result(rule: RuleDef, level: str, reason: str) -> ValidationResult:
     return ValidationResult(
         rule_id=getattr(rule, "id", ""),
