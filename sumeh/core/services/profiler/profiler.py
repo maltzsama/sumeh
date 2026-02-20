@@ -2,8 +2,8 @@
 Sumeh Auto-Profiler.
 Automatically generates statistical profiles of datasets in a single pass.
 
-Leverages existing AggregationAnalyzers (has_min, has_max, has_mean, etc)
-to compute statistics without separate aggregation queries.
+This service leverages existing AggregationAnalyzers to compute statistics
+without requiring separate or redundant data scans.
 """
 
 import time
@@ -15,14 +15,9 @@ from sumeh.core.services.schema.validator import extract_schema
 
 class DataProfiler:
     """
-    Scans a dataset and automatically extracts statistical profiles
-    without requiring manual rule definitions.
+    Scans a dataset and extracts statistical profiles in a single pass.
 
-    Key features:
-    - Single-pass execution (all metrics computed in one scan)
-    - Cross-engine support (Pandas, PySpark, Polars, Dask)
-    - Reuses existing validation infrastructure
-    - Clean JSON output
+    Supports: Pandas, PySpark, Polars, Dask, and Ray.
     """
 
     @staticmethod
@@ -30,40 +25,29 @@ class DataProfiler:
         df_target: Any, engine_module: Any, sample_size: Optional[float] = None
     ) -> Dict[str, Any]:
         """
-        Generate complete statistical profile of DataFrame.
+        Generate a complete statistical profile of a DataFrame.
 
         Args:
-            df_target: DataFrame (Pandas, PySpark, Polars, Dask)
-            engine_module: Engine module for execution (e.g., sumeh.engines.pyspark)
-            sample_size: Optional fraction (0.0-1.0) to sample before profiling
-
-        Returns:
-            JSON-friendly dict with statistics for each column
-
-        Example:
-            >>> from sumeh.profiler import DataProfiler
-            >>> from sumeh.engines import pyspark
-            >>> profile = DataProfiler.profile(spark_df, pyspark)
-            >>> print(profile['column_profiles']['age']['mean'])
-            34.5
+            df_target: DataFrame object (Pandas, PySpark, Polars, Dask, Ray)
+            engine_module: The specific engine module (e.g., sumeh.engines.pyspark)
+            sample_size: Optional fraction (0.0-1.0) for sampling before profiling
         """
         start_time = time.time()
 
-        # Sample if requested
+        # 1. Apply sampling if requested
         if sample_size and 0 < sample_size < 1.0:
             df_target = DataProfiler._sample_df(df_target, sample_size)
 
-        # 1. Extract schema (O(1) - no data scan)
-        # Returns: {'age': {'type': 'integer', 'nullable': True}}
+        # 2. Extract schema (O(1) operation)
         schema_info = extract_schema(df_target, as_json=False)
 
-        # 2. Auto-Rule Generation (dynamic rule creation)
+        # 3. Dynamic Rule Generation for Profiling
         profiling_rules = []
 
         for col_name, col_meta in schema_info.items():
             col_type = col_meta.get("type", "unknown")
 
-            # Universal metrics (all columns)
+            # Basic metrics for all columns
             profiling_rules.extend(
                 [
                     RuleDef(field=col_name, check_type="is_complete"),
@@ -71,7 +55,7 @@ class DataProfiler:
                 ]
             )
 
-            # Numeric metrics
+            # Statistical metrics for numeric columns only
             if col_type in ["integer", "float"]:
                 profiling_rules.extend(
                     [
@@ -83,11 +67,10 @@ class DataProfiler:
                     ]
                 )
 
-        # 3. Execute (O(N) - Single Pass)
-        # Sumeh batches all rules into a single .agg() call
+        # 4. Execution (O(N) - Single scan via Engine)
         report = engine_module.validate(df_target, profiling_rules)
 
-        # 4. Format output as clean analytical JSON
+        # 5. Format results into structured JSON
         return DataProfiler._format_output(
             report, schema_info, start_time, sampled=bool(sample_size)
         )
@@ -99,21 +82,9 @@ class DataProfiler:
         start_time: float,
         sampled: bool = False,
     ) -> Dict[str, Any]:
-        """
-        Transform ValidationReport into structured Profiler Report.
-
-        Args:
-            report: ValidationReport from engine
-            schema_info: Extracted schema metadata
-            start_time: Profile start timestamp
-            sampled: Whether data was sampled
-
-        Returns:
-            Structured profile report
-        """
+        """Format ValidationReport into an analytical JSON structure."""
         column_profiles = {}
 
-        # Map check_type to friendly names
         metric_map = {
             "is_complete": "completeness",
             "has_cardinality": "distinct_count",
@@ -127,32 +98,40 @@ class DataProfiler:
         for res in report.results:
             col = res.field
             metric = res.check_type
+            val = res.actual_value  # Might be None if engine fails
 
-            # Initialize column if not present
             if col not in column_profiles:
                 column_profiles[col] = {
                     "type": schema_info.get(col, {}).get("type", "unknown"),
                     "nullable": schema_info.get(col, {}).get("nullable", True),
-                    "row_count": report.total_rows,
+                    "row_count": report.total_rows or 0,
                 }
 
-            # Add metric with friendly name
             friendly_key = metric_map.get(metric, metric)
-            column_profiles[col][friendly_key] = res.actual_value
+            column_profiles[col][friendly_key] = val
 
-            # Derive null_count from completeness
-            if metric == "is_complete" and report.total_rows > 0:
-                completeness_rate = float(res.actual_value)
-                null_count = int(report.total_rows * (1 - completeness_rate))
-                column_profiles[col]["null_count"] = null_count
+            # Safe null_count calculation
+            if metric == "is_complete" and (report.total_rows or 0) > 0:
+                try:
+                    # Handle potential None from Spark/Ray
+                    rate = float(val) if val is not None else 0.0
+                    column_profiles[col]["null_count"] = int(
+                        report.total_rows * (1 - rate)
+                    )
+                except (TypeError, ValueError):
+                    column_profiles[col]["null_count"] = report.total_rows
 
-        # Calculate derived metrics
+        # Calculate derived metrics (e.g., Uniqueness)
         for col, stats in column_profiles.items():
-            # Uniqueness ratio
             if "distinct_count" in stats and "row_count" in stats:
-                distinct = stats["distinct_count"]
-                total = stats["row_count"]
-                stats["uniqueness"] = round(distinct / total, 4) if total > 0 else 0.0
+                # Defensive check: Ensure no division by zero or NoneType operations
+                distinct = stats.get("distinct_count") or 0
+                total = stats.get("row_count") or 0
+
+                if total > 0:
+                    stats["uniqueness"] = round(float(distinct) / total, 4)
+                else:
+                    stats["uniqueness"] = 0.0
 
         execution_time_ms = round((time.time() - start_time) * 1000, 2)
 
@@ -168,26 +147,27 @@ class DataProfiler:
 
     @staticmethod
     def _sample_df(df: Any, fraction: float) -> Any:
-        """
-        Sample DataFrame (engine-agnostic).
+        """Sample DataFrame across different engines (Pandas, Spark, Polars, Ray, DuckDB)."""
 
-        Args:
-            df: DataFrame to sample
-            fraction: Sample fraction (0.0-1.0)
+        # Ray Data support
+        if hasattr(df, "random_sample"):
+            return df.random_sample(fraction)
 
-        Returns:
-            Sampled DataFrame
-        """
-        # PySpark
+        # DuckDB Relation support
+        if "duckdb" in str(type(df)).lower() and hasattr(df, "sample"):
+            return df.sample(fraction)
+
+        # PySpark support
         if hasattr(df, "sample") and hasattr(df, "rdd"):
             return df.sample(fraction=fraction, seed=42)
 
-        # Pandas / Polars / Dask
-        elif hasattr(df, "sample"):
+        # Pandas / Polars / Dask support
+        if hasattr(df, "sample"):
             try:
+                # Pandas and Dask use 'frac'
                 return df.sample(frac=fraction, random_state=42)
             except TypeError:
-                # Polars uses different API
+                # Polars uses 'fraction'
                 return df.sample(fraction=fraction, seed=42)
 
         return df

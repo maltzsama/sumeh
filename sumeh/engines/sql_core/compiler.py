@@ -55,7 +55,7 @@ def compile_rules_to_sql(
 
     if not projections:
         return "", []
-    
+
     clean_table = table_name.strip("`'\"")
     query_ast = exp.select(*projections).from_(clean_table)
 
