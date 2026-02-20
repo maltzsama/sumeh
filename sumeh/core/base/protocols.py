@@ -1,5 +1,9 @@
-from typing import runtime_checkable, Protocol, Tuple, Any, Optional, Dict
+from typing import Protocol, runtime_checkable
+from typing import Tuple, Any, Optional, Dict
 
+from sumeh.core.models.metrics import MetricResult
+from sumeh.core.models.validation import ValidationResult
+from sumeh.core.rules.rule_model import RuleDef
 from sumeh.core.services.sink.model import SinkResult
 
 
@@ -101,7 +105,6 @@ class IStreamValidator(Protocol):
         """
         ...
 
-
 def stream_validator(func):
     """
     Decorator to mark a function as a stream validator.
@@ -120,7 +123,6 @@ def stream_validator(func):
     # Add metadata
     func.__stream_validator__ = True
     return func
-
 
 def udf_validator(result_type):
     """
@@ -200,5 +202,55 @@ class SinkProtocol(Protocol):
             - OpenMetadata: POST /tableProfile + /columnProfile
             - DataHub: POST /datasets/{urn}/profile
             - S3: profile.json upload
+        """
+        ...
+
+
+@runtime_checkable
+class IConstraint(Protocol):
+    """
+    Protocol for all constraints.
+
+    Constraints validate metrics against rules.
+    They make PASS/FAIL decisions.
+
+    Implementation Requirements:
+      1. Must have a check() static method
+      2. Must accept MetricResult + RuleDef
+      3. Must return ValidationResult
+      4. Must set status to PASS, FAIL, or ERROR
+
+    Example Implementation:
+        # >>> class MyConstraint:
+        # >>>     @staticmethod
+        # >>>     def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+        # >>>         threshold = rule.threshold or 1.0
+        # >>>         passed = metric.value >= threshold
+        # >>>
+        # >>>         return ValidationResult(
+        # >>>             check_type=rule.check_type,
+        # >>>             field=rule.field,
+        # >>>             status=ValidationStatus.PASS if passed else ValidationStatus.FAIL,
+        # >>>             expected_value=threshold,
+        # >>>             actual_value=metric.value,
+        # >>>         )
+    """
+
+    @staticmethod
+    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+        """
+        Validate metric against rule.
+
+        Args:
+            metric: Computed metric from an Analyzer
+            rule: Validation rule with expectations (threshold, value, etc)
+
+        Returns:
+            ValidationResult with PASS/FAIL decision
+
+        Note:
+            - Set status to ERROR if metric is invalid or check fails to execute
+            - Always populate expected_value and actual_value for traceability
+            - Include helpful message for failures
         """
         ...

@@ -4,8 +4,6 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Any, List
 
-import sumeh
-
 
 class ValidationLevel(Enum):
     """Validation level: ROW or TABLE."""
