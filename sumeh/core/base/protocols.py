@@ -105,6 +105,7 @@ class IStreamValidator(Protocol):
         """
         ...
 
+
 def stream_validator(func):
     """
     Decorator to mark a function as a stream validator.
@@ -123,6 +124,7 @@ def stream_validator(func):
     # Add metadata
     func.__stream_validator__ = True
     return func
+
 
 def udf_validator(result_type):
     """

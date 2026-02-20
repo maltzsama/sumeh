@@ -37,6 +37,7 @@ def validate(
     df: pl.DataFrame, rules: List[RuleDef], baseline_provider=None
 ) -> ValidationReport:
     start_time = time.time()
+    timestamp = datetime.utcnow().isoformat()
 
     # 1. Add temporary row_id for join later if not exists
     if "_row_id" not in df.columns:
@@ -67,7 +68,7 @@ def validate(
                 "expected": str(result.expected_value),
                 "actual": str(result.actual_value),
                 "message": str(result.message),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": timestamp,
             }
 
             # Expand to one record per violating row
@@ -85,16 +86,6 @@ def validate(
 
         # 4b. Group by row_id and collect into List[Struct]
         struct_cols = list(ERROR_SCHEMA.keys())
-
-        errors_agg = (
-            errors_df.group_by("_row_id")
-            .agg(
-                pl.col(struct_cols)
-                .struct.rename_fields(struct_cols)
-                .alias("_dq_errors_struct")
-            )
-            .select(pl.col("_row_id"), pl.col("_dq_errors_struct").alias("_dq_errors"))
-        )
 
         errors_agg = errors_df.group_by("_row_id").agg(
             pl.struct(struct_cols).alias("_dq_errors")
