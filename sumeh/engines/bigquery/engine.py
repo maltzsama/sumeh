@@ -17,6 +17,20 @@ from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
 
 
+def _format_table_id(table_id: str) -> str:
+    """
+    Ensure table_id is properly formatted with backticks for BigQuery.
+
+    Examples:
+        "project.dataset.table" -> "`project.dataset.table`"
+        "`project.dataset.table`" -> "`project.dataset.table`" (unchanged)
+    """
+    table_id = table_id.strip()
+    if not table_id.startswith("`"):
+        return f"`{table_id}`"
+    return table_id
+
+
 def validate(
     table_id: str,
     rules: List[RuleDef],
@@ -117,6 +131,7 @@ def validate(
 
 def get_validation_sql(rules, table_name, global_filter=None):
     """Generate BigQuery SQL."""
+    formatted_table = _format_table_id(table_name)
     return compile_rules_to_sql(
-        rules, table_name, dialect="bigquery", global_filter=global_filter
+        rules, formatted_table, dialect="bigquery", global_filter=global_filter
     )[0]

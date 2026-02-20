@@ -55,8 +55,9 @@ def compile_rules_to_sql(
 
     if not projections:
         return "", []
-
-    query_ast = exp.select(*projections).from_(table_name)
+    
+    clean_table = table_name.strip("`'\"")
+    query_ast = exp.select(*projections).from_(clean_table)
 
     if global_filter:
         where_ast = sqlglot.parse_one(global_filter)
