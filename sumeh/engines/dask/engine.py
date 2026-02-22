@@ -13,7 +13,7 @@ import numpy as np
 
 from sumeh.core.models.validation import ValidationReport
 from sumeh.core.models.metrics import MetricResult
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.dask.registry import get_analyzer, get_constraint
 
 # Configure logger
@@ -21,7 +21,7 @@ logger = logging.getLogger("sumeh.dask")
 
 
 def validate(
-    df: dd.DataFrame, rules: List[RuleDef], baseline_provider=None
+    df: dd.DataFrame, rules: List[RuleDefinition], baseline_provider=None
 ) -> ValidationReport:
     start_time = time.time()
 

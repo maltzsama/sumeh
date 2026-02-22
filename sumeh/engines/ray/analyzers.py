@@ -11,7 +11,7 @@ Strategy:
 
 import pandas as pd
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 # ============================================================================
 # COMPLETENESS
@@ -20,7 +20,7 @@ from sumeh.core.rules.rule_model import RuleDef
 
 class CompletenessAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count null values across dataset."""
         field = rule.field
 
@@ -42,7 +42,7 @@ class CompletenessAnalyzer:
 
 class ComparisonAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count comparison failures."""
         field = rule.field
         check_type = rule.check_type
@@ -83,7 +83,7 @@ class ComparisonAnalyzer:
 
 class BetweenAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count values outside bounds."""
         field = rule.field
         min_val, max_val = rule.value
@@ -107,7 +107,7 @@ class BetweenAnalyzer:
 
 class MembershipAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count membership failures."""
         field = rule.field
         allowed = rule.value
@@ -137,7 +137,7 @@ class MembershipAnalyzer:
 
 class PatternAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count pattern match failures."""
         field = rule.field
         pattern = rule.value
@@ -156,7 +156,7 @@ class PatternAnalyzer:
 
 class LegitAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count null or empty string failures."""
         field = rule.field
 
@@ -181,7 +181,7 @@ class LegitAnalyzer:
 
 class DateAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count date validation failures."""
         field = rule.field
         check_type = rule.check_type
@@ -235,7 +235,7 @@ class DateAnalyzer:
 
 class DateBetweenAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count dates outside range."""
         field = rule.field
         start, end = rule.value
@@ -256,7 +256,7 @@ class DateBetweenAnalyzer:
 
 class DateComparisonAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count date comparison failures."""
         field = rule.field
         check_type = rule.check_type
@@ -287,7 +287,7 @@ class DateComparisonAnalyzer:
 
 class MultiFieldCompletenessAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Count rows where ANY field is null."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
 
@@ -310,7 +310,7 @@ class MultiFieldCompletenessAnalyzer:
 
 class AggregationAnalyzer:
     @staticmethod
-    def analyze(ds, rule: RuleDef):
+    def analyze(ds, rule: RuleDefinition):
         """Compute table-level aggregations."""
         field = rule.field
         check_type = rule.check_type

@@ -13,13 +13,13 @@ import time
 from typing import List, Optional, Any
 
 from sumeh.core.models.validation import ValidationReport
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
 
 
 def get_validation_sql(
-    rules: List[RuleDef], table_name: str, global_filter: Optional[str] = None
+    rules: List[RuleDefinition], table_name: str, global_filter: Optional[str] = None
 ) -> str:
     """
     Generate Doris validation SQL without executing (Open SQL mode).
@@ -52,7 +52,7 @@ def get_validation_sql(
 
 
 def validate(
-    table_name: str, rules: List[RuleDef], connection: Any, baseline_provider=None
+    table_name: str, rules: List[RuleDefinition], connection: Any, baseline_provider=None
 ) -> ValidationReport:
     """
     Validates data using Apache Doris.

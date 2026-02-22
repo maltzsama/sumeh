@@ -6,10 +6,10 @@ Generates Flink SQL with UDF calls based on validation rules.
 
 from typing import List
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 
-def generate_validation_sql(rules: List[RuleDef], table_name: str) -> str:
+def generate_validation_sql(rules: List[RuleDefinition], table_name: str) -> str:
     """
     Generate Flink SQL with validation UDFs.
 
@@ -52,7 +52,7 @@ FROM {table_name}"""
     return sql
 
 
-def _build_check_sql(rule: RuleDef) -> str:
+def _build_check_sql(rule: RuleDefinition) -> str:
     """
     Build SQL fragment for a single rule.
 

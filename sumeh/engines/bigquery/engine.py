@@ -12,7 +12,7 @@ except ImportError:
     bigquery = None
 
 from sumeh.core.models.validation import ValidationReport
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
 
@@ -33,7 +33,7 @@ def _format_table_id(table_id: str) -> str:
 
 def validate(
     table_id: str,
-    rules: List[RuleDef],
+    rules: List[RuleDefinition],
     client: Optional[Any] = None,
     project_id: Optional[str] = None,
     location: Optional[str] = None,

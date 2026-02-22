@@ -8,14 +8,14 @@ from typing import List, Tuple, Any, Dict
 
 from sumeh.core.models.validation import ValidationResult
 from sumeh.core.models.metrics import MetricResult
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.sql_core.registry import get_constraint
 
 
 def validate_results(
     metrics_row: Tuple[Any, ...],
     rule_ids: List[str],
-    rules: List[RuleDef],
+    rules: List[RuleDefinition],
     total_rows: int = 0,
 ) -> List[ValidationResult]:
     """
@@ -25,7 +25,7 @@ def validate_results(
     results = []
 
     # Create a lookup map for rules
-    rule_map: Dict[str, RuleDef] = {
+    rule_map: Dict[str, RuleDefinition] = {
         getattr(r, "id", None) or f"{r.check_type}:{r.field}": r for r in rules
     }
 

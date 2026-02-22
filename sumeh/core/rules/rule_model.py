@@ -16,7 +16,7 @@ from .registry import RuleRegistry
 
 
 @dataclass
-class RuleDef:
+class RuleDefinition:
     """
     Data quality rule with validation and metadata preservation.
 
@@ -80,7 +80,7 @@ class RuleDef:
                 self.category = rule_def.get("category", "unknown")
 
     @classmethod
-    def from_dict(cls, data: dict, engine: Optional[str] = None) -> "RuleDef":
+    def from_dict(cls, data: dict, engine: Optional[str] = None) -> "RuleDefinition":
         """
         Creates RuleDef from dictionary with metadata preservation.
 
@@ -203,7 +203,7 @@ class RuleDef:
             return value_input
 
         if isinstance(value_input, list):
-            return RuleDef._parse_value_list(value_input)
+            return RuleDefinition._parse_value_list(value_input)
 
         if isinstance(value_input, str):
             value_str = value_input.strip()
@@ -213,12 +213,12 @@ class RuleDef:
                 try:
                     result = ast.literal_eval(value_str)
                     if isinstance(result, list):
-                        return RuleDef._parse_value_list(result)
+                        return RuleDefinition._parse_value_list(result)
                 except (ValueError, SyntaxError):
                     inner = value_str[1:-1].strip()
                     if inner:
                         items = [item.strip(" \"'") for item in inner.split(",")]
-                        return RuleDef._parse_value_list(items)
+                        return RuleDefinition._parse_value_list(items)
 
             # Try date parsing
             try:

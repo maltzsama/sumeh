@@ -16,7 +16,7 @@ from sumeh.core.models.validation import (
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.polars.dataframe import ValidatedPolarsDataFrame
 from sumeh.engines.polars.registry import get_analyzer, get_constraint
 
@@ -34,7 +34,7 @@ ERROR_SCHEMA = {
 
 
 def validate(
-    df: pl.DataFrame, rules: List[RuleDef], baseline_provider=None
+    df: pl.DataFrame, rules: List[RuleDefinition], baseline_provider=None
 ) -> ValidationReport:
     start_time = time.time()
     timestamp = datetime.utcnow().isoformat()
@@ -128,7 +128,7 @@ def validate(
 
 
 def _validate_row_level(
-    df: pl.DataFrame, rules: List[RuleDef]
+    df: pl.DataFrame, rules: List[RuleDefinition]
 ) -> List[ValidationResult]:
     results = []
     for rule in rules:
@@ -154,7 +154,7 @@ def _validate_row_level(
 
 
 def _validate_table_level(
-    df: pl.DataFrame, rules: List[RuleDef], baseline_provider
+    df: pl.DataFrame, rules: List[RuleDefinition], baseline_provider
 ) -> List[ValidationResult]:
     """Execute table-level validations."""
     results = []

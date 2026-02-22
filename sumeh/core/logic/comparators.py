@@ -12,12 +12,12 @@ from sumeh.core.models.validation import (
 
 from sumeh.core.models.metrics import MetricResult
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 
 class CompletenessConstraint:
     @staticmethod
-    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+    def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("null_count", 0)
@@ -40,7 +40,7 @@ class CompletenessConstraint:
 
 class MultiFieldCompletenessConstraint:
     @staticmethod
-    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+    def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("incomplete_count", 0)
@@ -63,7 +63,7 @@ class MultiFieldCompletenessConstraint:
 
 class UniquenessConstraint:
     @staticmethod
-    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+    def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("duplicate_count", 0)
@@ -86,7 +86,7 @@ class UniquenessConstraint:
 
 class GenericConstraint:
     @staticmethod
-    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+    def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
         passed = metric.value >= threshold
         fail_count = metric.metadata.get("fail_count", 0)
@@ -109,7 +109,7 @@ class GenericConstraint:
 
 class AggregationConstraint:
     @staticmethod
-    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+    def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         expected = rule.value
         actual = metric.value
         tolerance = rule.threshold or 0.0

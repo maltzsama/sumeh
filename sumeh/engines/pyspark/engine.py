@@ -18,13 +18,13 @@ from sumeh.core.models.validation import (
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.pyspark.dataframe import ValidatedSparkDataFrame
 from sumeh.engines.pyspark.registry import get_analyzer, get_constraint
 
 
 def validate(
-    df: DataFrame, rules: List[RuleDef], baseline_provider=None
+    df: DataFrame, rules: List[RuleDefinition], baseline_provider=None
 ) -> ValidationReport:
     """
     Validate PySpark DataFrame using Bifurcation Pattern.
@@ -102,7 +102,7 @@ def validate(
     )
 
 
-def _validate_row_level(df: DataFrame, rules: List[RuleDef]) -> List[ValidationResult]:
+def _validate_row_level(df: DataFrame, rules: List[RuleDefinition]) -> List[ValidationResult]:
     """Execute row-level validations using Column API."""
     results = []
 
@@ -161,7 +161,7 @@ def _validate_row_level(df: DataFrame, rules: List[RuleDef]) -> List[ValidationR
 
 
 def _validate_table_level(
-    df: DataFrame, rules: List[RuleDef], baseline_provider
+    df: DataFrame, rules: List[RuleDefinition], baseline_provider
 ) -> List[ValidationResult]:
     """Execute table-level validations."""
     results = []

@@ -18,13 +18,13 @@ from sumeh.core.models.validation import (
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.pandas.dataframe import ValidatedPandasDataFrame
 from sumeh.engines.pandas.registry import get_analyzer, get_constraint
 
 
 def validate(
-    df: pd.DataFrame, rules: List[RuleDef], baseline_provider=None
+    df: pd.DataFrame, rules: List[RuleDefinition], baseline_provider=None
 ) -> ValidationReport:
     """
     Validate pandas DataFrame using Bifurcation Pattern (Optimized).
@@ -112,7 +112,7 @@ def validate(
 
 
 def _validate_row_level(
-    df: pd.DataFrame, rules: List[RuleDef]
+    df: pd.DataFrame, rules: List[RuleDefinition]
 ) -> List[ValidationResult]:
     """Execute row-level validations."""
     results = []
@@ -143,7 +143,7 @@ def _validate_row_level(
 
 
 def _validate_table_level(
-    df: pd.DataFrame, rules: List[RuleDef], baseline_provider
+    df: pd.DataFrame, rules: List[RuleDefinition], baseline_provider
 ) -> List[ValidationResult]:
     """Execute table-level validations."""
     results = []
@@ -174,7 +174,7 @@ def _validate_table_level(
 
 
 # --- Helper Methods to keep main logic clean ---
-def _create_skipped_result(rule: RuleDef, level: str, reason: str) -> ValidationResult:
+def _create_skipped_result(rule: RuleDefinition, level: str, reason: str) -> ValidationResult:
     return ValidationResult(
         rule_id=getattr(rule, "id", ""),
         level=ValidationLevel[level],
@@ -186,7 +186,7 @@ def _create_skipped_result(rule: RuleDef, level: str, reason: str) -> Validation
     )
 
 
-def _create_error_result(rule: RuleDef, level: str, message: str) -> ValidationResult:
+def _create_error_result(rule: RuleDefinition, level: str, message: str) -> ValidationResult:
     return ValidationResult(
         rule_id=getattr(rule, "id", ""),
         level=ValidationLevel[level],

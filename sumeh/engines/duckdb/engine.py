@@ -9,14 +9,14 @@ from typing import List, Union, Any, Optional
 import duckdb
 
 from sumeh.core.models.validation import ValidationReport
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
 
 
 def validate(
     df: Union[Any, str, duckdb.DuckDBPyRelation],
-    rules: List[RuleDef],
+    rules: List[RuleDefinition],
     connection: Optional[duckdb.DuckDBPyConnection] = None,
     baseline_provider=None,
     table_name: str = "dataset",

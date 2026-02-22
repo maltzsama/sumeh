@@ -16,10 +16,10 @@ from sumeh.core.models.validation import (
 )
 from sumeh.core.models.metrics import MetricResult
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 
-def validate(ds, rules: List[RuleDef], baseline_provider=None) -> ValidationReport:
+def validate(ds, rules: List[RuleDefinition], baseline_provider=None) -> ValidationReport:
     """
     Validate Ray Dataset with row-level validation rules.
 

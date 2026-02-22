@@ -10,13 +10,13 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 from sumeh.core.models.metrics import MetricResult
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 
 # COMPLETENESS ANALYZERS
 class CompletenessAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Analyze completeness using PySpark Column API."""
         field = rule.field
 
@@ -45,7 +45,7 @@ class CompletenessAnalyzer:
 
 class MultiFieldCompletenessAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Multi-field completeness using PySpark."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
 
@@ -82,7 +82,7 @@ class MultiFieldCompletenessAnalyzer:
 # UNIQUENESS ANALYZERS
 class UniquenessAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Uniqueness using window functions (no UDFs)."""
         field = rule.field
 
@@ -115,7 +115,7 @@ class UniquenessAnalyzer:
 
 class MultiFieldUniquenessAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Multi-field uniqueness (composite key)."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
 
@@ -154,7 +154,7 @@ class MultiFieldUniquenessAnalyzer:
 # COMPARISON ANALYZERS
 class ComparisonAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Comparison checks using Column API."""
         field = rule.field
         check_type = rule.check_type
@@ -210,7 +210,7 @@ class ComparisonAnalyzer:
 
 class BetweenAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Between check using Column API."""
         field = rule.field
         bounds = rule.value
@@ -249,7 +249,7 @@ class BetweenAnalyzer:
 
 class ColumnComparisonAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Column-to-column comparison."""
         field = rule.field
         other_field = rule.value
@@ -285,7 +285,7 @@ class ColumnComparisonAnalyzer:
 # MEMBERSHIP ANALYZERS
 class MembershipAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Membership check using isin()."""
         field = rule.field
         allowed_values = rule.value
@@ -327,7 +327,7 @@ class MembershipAnalyzer:
 # PATTERN ANALYZERS
 class PatternAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Pattern matching using rlike()."""
         field = rule.field
         pattern = rule.value
@@ -365,7 +365,7 @@ class PatternAnalyzer:
 
 class LegitAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Check for null or empty strings."""
         field = rule.field
 
@@ -396,7 +396,7 @@ class LegitAnalyzer:
 # DATE ANALYZERS
 class DateAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Date validations using PySpark date functions."""
         field = rule.field
         check_type = rule.check_type
@@ -463,7 +463,7 @@ class DateAnalyzer:
 
 class DateBetweenAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Date between check."""
         field = rule.field
         bounds = rule.value
@@ -505,7 +505,7 @@ class DateBetweenAnalyzer:
 
 class DateComparisonAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Date comparison (before/after)."""
         field = rule.field
         check_type = rule.check_type
@@ -544,7 +544,7 @@ class DateComparisonAnalyzer:
 # TABLE-LEVEL AGGREGATION ANALYZERS
 class AggregationAnalyzer:
     @staticmethod
-    def analyze(df: DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: DataFrame, rule: RuleDefinition) -> MetricResult:
         """Table-level aggregations."""
         field = rule.field
         check_type = rule.check_type

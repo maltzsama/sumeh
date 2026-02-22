@@ -6,7 +6,7 @@ Coordinates UDF registration, SQL generation, and validation execution.
 
 from typing import List
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.pyflink.dataframe import ValidatedFlinkTable
 from sumeh.engines.pyflink.sql_generator import generate_validation_sql
 from sumeh.engines.pyflink.udfs import get_all_udfs
@@ -40,7 +40,7 @@ def register_udfs(table_env):
         table_env.create_temporary_function(udf_name, udf_func)
 
 
-def validate(table_env, rules: List[RuleDef], table_name: str):
+def validate(table_env, rules: List[RuleDefinition], table_name: str):
     """
     Validate PyFlink Table with automatic UDF registration.
 

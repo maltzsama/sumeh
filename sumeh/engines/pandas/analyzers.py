@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from sumeh.core.models.metrics import MetricResult
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 # ============================================================================
 # COMPLETENESS ANALYZERS
@@ -17,7 +17,7 @@ from sumeh.core.rules.rule_model import RuleDef
 
 class CompletenessAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
@@ -40,7 +40,7 @@ class CompletenessAnalyzer:
 
 class MultiFieldCompletenessAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
         for field in fields:
             if field not in df.columns:
@@ -73,7 +73,7 @@ class MultiFieldCompletenessAnalyzer:
 
 class UniquenessAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         if field not in df.columns:
             raise KeyError(f"Field '{field}' not found")
@@ -96,7 +96,7 @@ class UniquenessAnalyzer:
 
 class MultiFieldUniquenessAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
         for field in fields:
             if field not in df.columns:
@@ -129,7 +129,7 @@ class MultiFieldUniquenessAnalyzer:
 
 class ComparisonAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         check_type = rule.check_type
         threshold = rule.value
@@ -181,7 +181,7 @@ class ComparisonAnalyzer:
 
 class BetweenAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         bounds = rule.value
 
@@ -214,7 +214,7 @@ class BetweenAnalyzer:
 
 class ColumnComparisonAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         other_field = rule.value
 
@@ -248,7 +248,7 @@ class ColumnComparisonAnalyzer:
 
 class MembershipAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         allowed_values = rule.value
         check_type = rule.check_type
@@ -290,7 +290,7 @@ class MembershipAnalyzer:
 
 class PatternAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         pattern = rule.value
 
@@ -321,7 +321,7 @@ class PatternAnalyzer:
 
 class LegitAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
 
         if field not in df.columns:
@@ -350,7 +350,7 @@ class LegitAnalyzer:
 
 class DateAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         check_type = rule.check_type
 
@@ -412,7 +412,7 @@ class DateAnalyzer:
 
 class DateBetweenAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         bounds = rule.value
 
@@ -448,7 +448,7 @@ class DateBetweenAnalyzer:
 
 class DateComparisonAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         check_type = rule.check_type
         target_date = pd.to_datetime(rule.value)
@@ -489,7 +489,7 @@ class DateComparisonAnalyzer:
 
 class AggregationAnalyzer:
     @staticmethod
-    def analyze(df: pd.DataFrame, rule: RuleDef) -> MetricResult:
+    def analyze(df: pd.DataFrame, rule: RuleDefinition) -> MetricResult:
         field = rule.field
         check_type = rule.check_type
 

@@ -9,7 +9,7 @@ without requiring separate or redundant data scans.
 import time
 from typing import Any, Dict, Optional
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.core.services.schema.validator import extract_schema
 
 
@@ -50,8 +50,8 @@ class DataProfiler:
             # Basic metrics for all columns
             profiling_rules.extend(
                 [
-                    RuleDef(field=col_name, check_type="is_complete"),
-                    RuleDef(field=col_name, check_type="has_cardinality"),
+                    RuleDefinition(field=col_name, check_type="is_complete"),
+                    RuleDefinition(field=col_name, check_type="has_cardinality"),
                 ]
             )
 
@@ -59,11 +59,11 @@ class DataProfiler:
             if col_type in ["integer", "float"]:
                 profiling_rules.extend(
                     [
-                        RuleDef(field=col_name, check_type="has_min"),
-                        RuleDef(field=col_name, check_type="has_max"),
-                        RuleDef(field=col_name, check_type="has_mean"),
-                        RuleDef(field=col_name, check_type="has_std"),
-                        RuleDef(field=col_name, check_type="has_sum"),
+                        RuleDefinition(field=col_name, check_type="has_min"),
+                        RuleDefinition(field=col_name, check_type="has_max"),
+                        RuleDefinition(field=col_name, check_type="has_mean"),
+                        RuleDefinition(field=col_name, check_type="has_std"),
+                        RuleDefinition(field=col_name, check_type="has_sum"),
                     ]
                 )
 

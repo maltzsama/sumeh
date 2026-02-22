@@ -7,7 +7,7 @@ Achieves parity with Pandas engine features (Dates, Patterns, Multi-field).
 
 import sqlglot.expressions as exp
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -44,7 +44,7 @@ def _count_all() -> exp.Expression:
 
 class CompletenessAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         # Metric: COUNT(field) / COUNT(*)
         # Note: SQL COUNT(col) automatically ignores NULLs
         col = _to_col(rule.field)
@@ -58,7 +58,7 @@ class CompletenessAnalyzer:
 
 class MultiFieldCompletenessAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         # Metric: Pass Rate where ALL fields are NOT NULL
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
 
@@ -82,7 +82,7 @@ class MultiFieldCompletenessAnalyzer:
 
 class UniquenessAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         # Metric: COUNT(DISTINCT field) / COUNT(*)
         col = _to_col(rule.field)
 
@@ -96,7 +96,7 @@ class UniquenessAnalyzer:
 
 class MultiFieldUniquenessAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         # Metric: COUNT(DISTINCT col1, col2) / COUNT(*)
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
         cols = [_to_col(f) for f in fields]
@@ -118,7 +118,7 @@ class MultiFieldUniquenessAnalyzer:
 
 class ComparisonAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         val = exp.convert(rule.value)
         check_type = rule.check_type
@@ -151,7 +151,7 @@ class ComparisonAnalyzer:
 
 class BetweenAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         min_val = exp.convert(rule.value[0])
         max_val = exp.convert(rule.value[1])
@@ -163,7 +163,7 @@ class BetweenAnalyzer:
 
 class ColumnComparisonAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col1 = _to_col(rule.field)
         col2 = _to_col(rule.value)  # value is the other column name
 
@@ -178,7 +178,7 @@ class ColumnComparisonAnalyzer:
 
 class MembershipAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         values = [exp.convert(v) for v in rule.value]
 
@@ -199,7 +199,7 @@ class MembershipAnalyzer:
 
 class PatternAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         pattern = exp.Literal.string(rule.value)
 
@@ -213,7 +213,7 @@ class PatternAnalyzer:
 
 class LegitAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         # Check if NOT NULL and NOT Empty String
         col = _to_col(rule.field)
 
@@ -233,7 +233,7 @@ class LegitAnalyzer:
 
 class DateAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         check_type = rule.check_type
 
@@ -291,7 +291,7 @@ class DateAnalyzer:
 
 class DateBetweenAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         # Assuming values are strings 'YYYY-MM-DD'
         start = exp.Cast(
@@ -307,7 +307,7 @@ class DateBetweenAnalyzer:
 
 class DateComparisonAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         target = exp.Cast(
             this=exp.Literal.string(rule.value), to=exp.DataType.build("date")
@@ -328,7 +328,7 @@ class DateComparisonAnalyzer:
 
 class AggregationAnalyzer:
     @staticmethod
-    def analyze(rule: RuleDef) -> exp.Expression:
+    def analyze(rule: RuleDefinition) -> exp.Expression:
         col = _to_col(rule.field)
         check_type = rule.check_type
 

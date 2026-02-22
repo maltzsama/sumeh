@@ -8,10 +8,10 @@ import csv
 from pathlib import Path
 from typing import List, Union
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 
-def load_rules_csv(filepath: Union[str, Path]) -> List[RuleDef]:
+def load_rules_csv(filepath: Union[str, Path]) -> List[RuleDefinition]:
     """
     Load validation rules from CSV file.
 
@@ -64,7 +64,7 @@ def load_rules_csv(filepath: Union[str, Path]) -> List[RuleDef]:
                 threshold = 1.0
 
             # Create RuleDef
-            rule = RuleDef(
+            rule = RuleDefinition(
                 field=row["field"],
                 check_type=row["check_type"],
                 value=value,
@@ -78,7 +78,7 @@ def load_rules_csv(filepath: Union[str, Path]) -> List[RuleDef]:
     return rules
 
 
-def save_rules_csv(rules: List[RuleDef], filepath: Union[str, Path]):
+def save_rules_csv(rules: List[RuleDefinition], filepath: Union[str, Path]):
     """
     Save validation rules to CSV file.
 

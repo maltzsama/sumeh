@@ -3,8 +3,7 @@ from typing import Tuple, Any, Optional, Dict
 
 from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import ValidationResult
-from sumeh.core.rules.rule_model import RuleDef
-from sumeh.core.services.sink.model import SinkResult
+from sumeh.core.rules.rule_model import RuleDefinition
 
 
 @runtime_checkable
@@ -180,7 +179,7 @@ class IConstraint(Protocol):
     """
 
     @staticmethod
-    def check(metric: MetricResult, rule: RuleDef) -> ValidationResult:
+    def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         """
         Validate metric against rule.
 

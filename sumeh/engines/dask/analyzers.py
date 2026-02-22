@@ -11,7 +11,7 @@ import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 
-from sumeh.core.rules.rule_model import RuleDef
+from sumeh.core.rules.rule_model import RuleDefinition
 
 # ============================================================================
 # COMPLETENESS
@@ -20,14 +20,14 @@ from sumeh.core.rules.rule_model import RuleDef
 
 class CompletenessAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         """Returns count of null values."""
         return df[rule.field].isnull().sum()
 
 
 class MultiFieldCompletenessAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         """Returns count of rows where ANY field is null."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
         # Axis=1 in Dask can be slow, but it's necessary here.
@@ -41,7 +41,7 @@ class MultiFieldCompletenessAnalyzer:
 
 class UniquenessAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         """
         Returns count of duplicates.
         Note: Exact uniqueness in Dask triggers a shuffle!
@@ -55,7 +55,7 @@ class UniquenessAnalyzer:
 
 class MultiFieldUniquenessAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         """Concatenates fields to check composite uniqueness."""
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
 
@@ -86,7 +86,7 @@ class MultiFieldUniquenessAnalyzer:
 
 class ComparisonAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = df[rule.field]
         val = rule.value
         check = rule.check_type
@@ -119,7 +119,7 @@ class ComparisonAnalyzer:
 
 class BetweenAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = df[rule.field]
         min_val, max_val = rule.value[0], rule.value[1]
 
@@ -130,7 +130,7 @@ class BetweenAnalyzer:
 
 class ColumnComparisonAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col1 = df[rule.field]
         col2 = df[rule.value]  # rule.value holds the other column name
 
@@ -145,7 +145,7 @@ class ColumnComparisonAnalyzer:
 
 class MembershipAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = df[rule.field]
         values = rule.value
         check = rule.check_type
@@ -166,7 +166,7 @@ class MembershipAnalyzer:
 
 class PatternAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = df[rule.field].astype(str)
         # na=False implies that NaN does NOT match the pattern, hence it is a failure
         match_mask = col.str.match(rule.value, na=False)
@@ -175,7 +175,7 @@ class PatternAnalyzer:
 
 class LegitAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         """Checks for Nulls OR Empty Strings (whitespace trimmed)."""
         col = df[rule.field]
 
@@ -197,7 +197,7 @@ class LegitAnalyzer:
 
 class DateAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         # Convert to datetime (lazy)
         col = dd.to_datetime(df[rule.field], errors="coerce")
 
@@ -242,7 +242,7 @@ class DateAnalyzer:
 
 class DateBetweenAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = dd.to_datetime(df[rule.field], errors="coerce")
         start = pd.Timestamp(rule.value[0])
         end = pd.Timestamp(rule.value[1])
@@ -254,7 +254,7 @@ class DateBetweenAnalyzer:
 
 class DateComparisonAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = dd.to_datetime(df[rule.field], errors="coerce")
         target = pd.Timestamp(rule.value)
         check = rule.check_type
@@ -276,7 +276,7 @@ class DateComparisonAnalyzer:
 
 class AggregationAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         col = df[rule.field]
         check = rule.check_type
 
@@ -303,7 +303,7 @@ class AggregationAnalyzer:
 
 class LogicAnalyzer:
     @staticmethod
-    def analyze(df: dd.DataFrame, rule: RuleDef):
+    def analyze(df: dd.DataFrame, rule: RuleDefinition):
         """
         Executes a custom Python expression string (e.g., "age > 18 and income > 0")
         Uses df.eval() if available or falls back to map_partitions.
