@@ -1,21 +1,19 @@
-[tool.poetry]
-name                  = "sumeh"
-version               = "2.0.0"
-description           = "Unified Data Quality Validation Framework"
-readme                = "README.md"
-homepage              = "https://github.com/maltzsama/sumeh"
-repository            = "https://github.com/maltzsama/sumeh"
-license               = "Apache-2.0"
-keywords              = ["data-quality", "validation", "dq", "etl", "cli"]
-authors               = [
-  "Demetrius Albuquerque <demetrius.albuquerque@yahoo.com.br>",
-  "Otavio Lara <otavio.lara@example.com>"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sumeh"
+version = "2.0.0"
+description = "Unified Data Quality Validation Framework"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+  { name = "Demetrius Albuquerque", email = "demetrius.albuquerque@yahoo.com.br" },
+  { name = "Otavio Lara", email = "otavio.lara@example.com" }
 ]
-
-packages = [ {include = "sumeh"} ]
-
-
-classifiers = [   
+keywords = ["data-quality", "validation", "dq", "etl", "cli"]
+classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
@@ -30,77 +28,54 @@ classifiers = [
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Utilities",
 ]
-
-[tool.poetry.urls]
-"Bug Tracker"   = "https://github.com/maltzsama/sumeh/issues"
-"Documentation" = "https://maltzsama.github.io/sumeh"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-python-dateutil = ">=2.8.0"
-sqlglot = "^27.0.0"
-typer = "^0.19.0"
-rich = "^14.2.0"
-pandas = { version = "^2.2.0", optional = false }
-dask = { version = "^2025.10.0", extras = ["complete"], optional = true }
-pyspark = { version = "^3.5.0", optional = true }
-polars = { version = "^1.34.0", optional = true }
-duckdb = { version = "^1.4.0", optional = true }
-apache-flink = { version = "^1.20.0", optional = true }
-ray = { version = "^2.30.0", extras = ["data"], optional = true }
-pyathena = { version = "^3.30.0",   optional = true }
-google-cloud-bigquery = { version = "^3.40.1", optional = true }
-snowflake-connector-python = { version = "^4.3.0", optional = true }
-redshift-connector = { version = "^2.1.12", optional = true }
-trino = { version = "^0.337.0", optional = true }
-pydoris = { version = "^1.1.0", optional = true }
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-pytest-cov = "^4.1.0"
-ruff = "^0.1.0"
-mypy = "^1.0.0"
-coverage = "^7.0.0"
-python-semantic-release = "^10.4.0"
-
-[tool.poetry.extras]
-
-dev = [
-    "coverage",
-    "mypy",
-    "pytest",
-    "ruff"
+requires-python = ">=3.10"
+dependencies = [
+    "python-dateutil>=2.8.0",
+    "sqlglot>=27.0.0,<28",
+    "typer>=0.19.0,<1",
+    "rich>=14.2.0,<15",
+    "pandas>=2.2.0,<3",
 ]
 
-doris     = ["pydoris"]
-pyspark   = ["pyspark"]
-dask      = ["dask"]
-pyflink   = ["apache-flink"]
-ray       = ["ray"]
-polars    = ["polars"]
-duckdb    = ["duckdb"]
-athena    = ["pyathena"]
-bigquery  = ["google-cloud-bigquery"]
-snowflake = ["snowflake-connector-python"]
-redshift  = ["redshift-connector"]
-trino     = ["trino"]
+[project.optional-dependencies]
+dask      = ["dask[complete]>=2025.10.0,<2026"]
+pyspark   = ["pyspark>=3.5.0,<4"]
+polars    = ["polars>=1.34.0,<2"]
+duckdb    = ["duckdb>=1.4.0,<2"]
+pyflink   = ["apache-flink>=2.0.0,<3"]
+ray       = ["ray[data]>=2.30.0,<3"]
+athena    = ["pyathena>=3.30.0,<4"]
+bigquery  = ["google-cloud-bigquery>=3.40.1,<4"]
+snowflake = ["snowflake-connector-python>=4.3.0,<5"]
+redshift  = ["redshift-connector>=2.1.12,<3"]
+trino     = ["trino>=0.337.0,<1"]
+doris     = ["pydoris>=1.1.0,<2"]
+dev       = ["pytest>=8", "pytest-cov>=4.1", "ruff>=0.1", "mypy>=1", "coverage>=7", "python-semantic-release>=10.4"]
 
+[project.urls]
+Homepage      = "https://github.com/maltzsama/sumeh"
+Repository    = "https://github.com/maltzsama/sumeh"
+Documentation = "https://maltzsama.github.io/sumeh"
+"Bug Tracker" = "https://github.com/maltzsama/sumeh/issues"
 
-
-[tool.poetry.scripts]
+[project.scripts]
 sumeh = "sumeh.cli:main"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.hatch.build.targets.wheel]
+packages = ["sumeh"]
+
+[tool.hatch.envs.default]
+dependencies = ["pytest>=8", "pytest-cov>=4.1", "ruff>=0.1", "mypy>=1", "coverage>=7"]
+
+[tool.hatch.envs.pyflink]
+dependencies = ["apache-flink>=2.0.0,<3", "sumeh"]
+
+[tool.hatch.envs.dask]
+dependencies = ["dask[complete]>=2025.10.0,<2026", "sumeh"]
 
 [tool.semantic_release]
-version_toml = [
-    "pyproject.toml:tool.poetry.version"
-]
-version_variables = [
-    "sumeh/__init__.py:__version__"
-]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["sumeh/__init__.py:__version__"]
 prerelease_token = "rc"
 
 [tool.semantic_release.branches.main]
