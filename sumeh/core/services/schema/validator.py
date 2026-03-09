@@ -123,9 +123,9 @@ def _validate_recursive(
         canon_actual = _to_canonical_type(actual["raw_type"])
 
         if canon_expected != "unknown" and canon_expected != canon_actual:
-            type_errors[full_path] = (
-                f"Expected {canon_expected}, got {canon_actual} ({actual['raw_type']})"
-            )
+            type_errors[
+                full_path
+            ] = f"Expected {canon_expected}, got {canon_actual} ({actual['raw_type']})"
             continue
 
         # Array element type validation
@@ -143,9 +143,9 @@ def _validate_recursive(
         if col_def.require_comment and not actual_comment:
             metadata_errors[full_path] = "Missing required column comment."
         if col_def.expected_comment and col_def.expected_comment != actual_comment:
-            metadata_errors[full_path] = (
-                f"Comment mismatch. Expected: '{col_def.expected_comment}'"
-            )
+            metadata_errors[
+                full_path
+            ] = f"Comment mismatch. Expected: '{col_def.expected_comment}'"
 
         # Nullability validation
         actual_nullable = actual.get("nullable", True)

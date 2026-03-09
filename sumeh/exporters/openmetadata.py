@@ -39,10 +39,10 @@ class OpenMetadataExport(IExporter):
                     "min": str(s.get("min")) if s.get("min") is not None else None,
                     "max": str(s.get("max")) if s.get("max") is not None else None,
                     "mean": s.get("mean"),
-                    "sum": s.get("sum")
+                    "sum": s.get("sum"),
                 }
                 for col, s in col_stats.items()
-            ]
+            ],
         }
 
     def validation(self, report: Any) -> Dict[str, List[Dict[str, Any]]]:
@@ -52,7 +52,7 @@ class OpenMetadataExport(IExporter):
         """
         return {
             "definitions": self.test_definitions(report),
-            "results": self.test_results(report)
+            "results": self.test_results(report),
         }
 
     def test_definitions(self, report: Any) -> List[Dict[str, Any]]:
@@ -65,7 +65,7 @@ class OpenMetadataExport(IExporter):
                 "description": f"Sumeh DQ: {res.check_type}",
                 "testDefinition": self._map_test_definition(res.check_type),
                 "entityLink": self._entity_link(res),
-                "testSuite": f"{self.table_fqn}.testSuite"
+                "testSuite": f"{self.table_fqn}.testSuite",
             }
             for res in report.results
         ]
@@ -79,9 +79,11 @@ class OpenMetadataExport(IExporter):
                 "test_case_fqn": f"{self.table_fqn}.{self._test_name(res)}",
                 "payload": {
                     "timestamp": int(datetime.utcnow().timestamp() * 1000),
-                    "testCaseStatus": "Success" if res.status.value == "PASS" else "Failed",
-                    "result": f"Sumeh Pass Rate: {getattr(res, 'pass_rate', 0.0):.2%}"
-                }
+                    "testCaseStatus": "Success"
+                    if res.status.value == "PASS"
+                    else "Failed",
+                    "result": f"Sumeh Pass Rate: {getattr(res, 'pass_rate', 0.0):.2%}",
+                },
             }
             for res in report.results
         ]

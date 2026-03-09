@@ -148,6 +148,7 @@ def udf_validator(result_type):
 
     return decorator
 
+
 @runtime_checkable
 class IConstraint(Protocol):
     """
@@ -197,10 +198,15 @@ class IConstraint(Protocol):
         """
         ...
 
+
 @runtime_checkable
 class IExporter(Protocol):
     """
     Protocol for exporting results to external systems.
     """
-    def profile(self, data: Dict[str, Any]) -> Any: ...
-    def validation(self, report: Any) -> Any: ...
+
+    def profile(self, data: Dict[str, Any]) -> Any:
+        ...
+
+    def validation(self, report: Any) -> Any:
+        ...

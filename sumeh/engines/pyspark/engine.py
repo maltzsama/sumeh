@@ -102,7 +102,9 @@ def validate(
     )
 
 
-def _validate_row_level(df: DataFrame, rules: List[RuleDefinition]) -> List[ValidationResult]:
+def _validate_row_level(
+    df: DataFrame, rules: List[RuleDefinition]
+) -> List[ValidationResult]:
     """Execute row-level validations using Column API."""
     results = []
 

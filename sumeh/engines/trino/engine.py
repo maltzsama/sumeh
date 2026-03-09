@@ -52,7 +52,10 @@ def get_validation_sql(
 
 
 def validate(
-    table_name: str, rules: List[RuleDefinition], connection: Any, baseline_provider=None
+    table_name: str,
+    rules: List[RuleDefinition],
+    connection: Any,
+    baseline_provider=None,
 ) -> ValidationReport:
     """
     Validates data using Trino.

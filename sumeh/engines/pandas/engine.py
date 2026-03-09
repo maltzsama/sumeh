@@ -174,7 +174,9 @@ def _validate_table_level(
 
 
 # --- Helper Methods to keep main logic clean ---
-def _create_skipped_result(rule: RuleDefinition, level: str, reason: str) -> ValidationResult:
+def _create_skipped_result(
+    rule: RuleDefinition, level: str, reason: str
+) -> ValidationResult:
     return ValidationResult(
         rule_id=getattr(rule, "id", ""),
         level=ValidationLevel[level],
@@ -186,7 +188,9 @@ def _create_skipped_result(rule: RuleDefinition, level: str, reason: str) -> Val
     )
 
 
-def _create_error_result(rule: RuleDefinition, level: str, message: str) -> ValidationResult:
+def _create_error_result(
+    rule: RuleDefinition, level: str, message: str
+) -> ValidationResult:
     return ValidationResult(
         rule_id=getattr(rule, "id", ""),
         level=ValidationLevel[level],
