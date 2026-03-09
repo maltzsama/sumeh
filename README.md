@@ -4,7 +4,7 @@
 [![Coverage](https://codecov.io/gh/maltzsama/sumeh/branch/main/graph/badge.svg)](https://codecov.io/gh/maltzsama/sumeh)
 [![Downloads](https://img.shields.io/pypi/dm/sumeh?logo=pypi&logoColor=white)](https://pypi.org/project/sumeh/)
 [![PyPI Version](https://img.shields.io/pypi/v/sumeh?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/sumeh/)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/maltzsama/sumeh/releases)
+[![Version](https://img.shields.io/github/v/release/maltzsama/sumeh?color=blue&label=version&logo=github)](https://github.com/maltzsama/sumeh/releases)
 
 # <h1 style="display: flex; align-items: center; gap: 0.5rem;"><img src="https://raw.githubusercontent.com/maltzsama/sumeh/refs/heads/main/docs/img/sumeh.svg" alt="Logo" style="height: 40px; width: auto; vertical-align: middle;" /> <span>Sumeh DQ</span> </h1>
 
@@ -15,8 +15,6 @@
 *One API. Fifty-plus rules. Fourteen engines. Zero compromise.*
 
 [Documentation](https://maltzsama.github.io/sumeh/) · [PyPI](https://pypi.org/project/sumeh/) · [Changelog](CHANGELOG.md)
-
-</div>
 
 ---
 
@@ -105,12 +103,6 @@ v2.0 is a complete rewrite. The architecture is different, the API is different,
     - [Schema Registry DDL](#schema-registry-ddl)
     - [Extract and Validate](#extract-and-validate)
   - [Data Profiling](#data-profiling)
-  - [Rule Sources](#rule-sources)
-    - [CSV and S3](#csv-and-s3)
-    - [Databases](#databases)
-    - [Cloud Catalogs](#cloud-catalogs)
-    - [Reusing an existing connection](#reusing-an-existing-connection)
-    - [Rules table DDL](#rules-table-ddl)
   - [OpenMetadata Integration](#openmetadata-integration)
   - [SQL DDL Generator](#sql-ddl-generator)
   - [CLI](#cli)
@@ -119,6 +111,12 @@ v2.0 is a complete rewrite. The architecture is different, the API is different,
   - [Migrating from v1.x](#migrating-from-v1x)
     - [Import pattern](#import-pattern)
     - [Rule class](#rule-class)
+- [Loading Rules from Databases](#loading-rules-from-databases)
+  - [PostgreSQL / MySQL (via Pandas \& SQLAlchemy)](#postgresql--mysql-via-pandas--sqlalchemy)
+  - [BigQuery (via Google Cloud Client)](#bigquery-via-google-cloud-client)
+  - [DuckDB (Native)](#duckdb-native)
+  - [Passing Rules to the Engine](#passing-rules-to-the-engine)
+    - [Rules table DDL](#rules-table-ddl)
     - [Working with results](#working-with-results)
     - [cuallee](#cuallee)
   - [Contributing](#contributing)
@@ -129,21 +127,30 @@ v2.0 is a complete rewrite. The architecture is different, the API is different,
 ## Installation
 
 ```bash
-# Core (Pandas only)
+# Core (Pandas is included by default)
 pip install sumeh
 
-# Engine-specific extras
-pip install sumeh[pyspark]      # Apache Spark
+# Batch DataFrame Engines
 pip install sumeh[polars]       # Polars
+pip install sumeh[pyspark]      # Apache Spark
+pip install sumeh[dask]         # Dask
+
+# SQL Engines
 pip install sumeh[duckdb]       # DuckDB
 pip install sumeh[bigquery]     # Google BigQuery
-pip install sumeh[aws]          # S3 + Pandas
-pip install sumeh[mysql]        # MySQL rule storage
-pip install sumeh[postgresql]   # PostgreSQL rule storage
-pip install sumeh[dashboard]    # Streamlit dashboard
+pip install sumeh[snowflake]    # Snowflake
+pip install sumeh[redshift]     # Amazon Redshift
+pip install sumeh[athena]       # Amazon Athena
+pip install sumeh[trino]        # Trino
+pip install sumeh[doris]        # Apache Doris
 
-# Everything
-pip install sumeh[dev,aws,mysql,postgresql,bigquery,dashboard]
+# Streaming & ML Engines
+pip install sumeh[pyflink]      # Apache Flink
+pip install sumeh[ray]          # Ray Data
+
+# Example: Installing multiple engines at once
+pip install sumeh[polars,duckdb,bigquery]
+
 ```
 
 **Requirements:** Python 3.10+
@@ -405,15 +412,6 @@ for result in report.results:
 # Annotated DataFrame: adds _dq_errors column to each row
 annotated_df = report.df
 
-# Lightweight summary dict for APIs and dashboards
-metadata = report.summary()
-# {
-#   "pass_rate": 0.8333,
-#   "total_rules": 6,
-#   "passed": 5,
-#   "failed": 1,
-#   "results": [...]
-# }
 ```
 
 ---
@@ -565,100 +563,6 @@ The profiler output is directly consumable by the OpenMetadata exporter — see 
 
 ---
 
-## Rule Sources
-
-### CSV and S3
-
-```python
-from sumeh.config.csv import load_rules_csv
-
-rules = load_rules_csv("rules.csv", delimiter=";")
-rules = load_rules_csv("s3://bucket/rules/prod.csv")
-```
-
-### Databases
-
-```python
-from sumeh import get_rules_config
-
-# MySQL
-rules = get_rules_config.mysql(
-    host="localhost", user="root", password="secret",
-    database="mydb", table="dq_rules"
-)
-
-# PostgreSQL
-rules = get_rules_config.postgresql(
-    host="localhost", user="postgres", password="secret",
-    database="mydb", schema="public", table="dq_rules"
-)
-
-# BigQuery
-rules = get_rules_config.bigquery(
-    project_id="my-project", dataset_id="my-dataset", table_id="dq_rules"
-)
-
-# DuckDB
-import duckdb
-conn = duckdb.connect("warehouse.db")
-rules = get_rules_config.duckdb(conn=conn, table="dq_rules")
-```
-
-### Cloud Catalogs
-
-```python
-# AWS Glue
-rules = get_rules_config.glue(
-    glue_context=glue_context,
-    database_name="my_database",
-    table_name="dq_rules"
-)
-
-# Databricks Unity Catalog
-rules = get_rules_config.databricks(
-    spark=spark, catalog="main", schema="default", table="dq_rules"
-)
-```
-
-### Reusing an existing connection
-
-```python
-import psycopg2
-conn = psycopg2.connect(host="localhost", user="postgres", password="secret")
-
-rules = get_rules_config.postgresql(
-    conn=conn,
-    query="SELECT * FROM public.dq_rules WHERE execute = TRUE AND environment = 'prod'"
-)
-```
-
-### Rules table DDL
-
-```sql
-CREATE TABLE dq_rules (
-    id            INTEGER PRIMARY KEY,
-    environment   VARCHAR(50)  NOT NULL,
-    source_type   VARCHAR(50)  NOT NULL,
-    database_name VARCHAR(255) NOT NULL,
-    catalog_name  VARCHAR(255),
-    schema_name   VARCHAR(255),
-    table_name    VARCHAR(255) NOT NULL,
-    field         VARCHAR(255) NOT NULL,
-    level         VARCHAR(100) NOT NULL,   -- 'ROW' or 'TABLE'
-    category      VARCHAR(100) NOT NULL,   -- 'completeness', 'uniqueness', ...
-    check_type    VARCHAR(100) NOT NULL,
-    value         TEXT,
-    threshold     FLOAT        DEFAULT 1.0,
-    execute       BOOLEAN      DEFAULT TRUE,
-    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP
-);
-```
-
-Generate this DDL for any dialect with `sumeh sql generate --table rules --dialect <dialect>`.
-
----
-
 ## OpenMetadata Integration
 
 Export validation results and profiling statistics to OpenMetadata **without the `openmetadata-ingestion` SDK**.
@@ -785,8 +689,6 @@ sumeh rules info is_complete
 sumeh rules search "date"
 sumeh rules template
 
-# Streamlit dashboard
-sumeh dashboard --port 8501
 
 # System info
 sumeh info
@@ -885,6 +787,99 @@ from sumeh.core.rules.rule_model import RuleDefinition
 rule = RuleDefinition(field="email", check_type="is_complete", threshold=0.99)
 ```
 
+# Loading Rules from Databases
+
+In Sumeh v2.0, built-in proprietary database connectors (`get_rules_config`) have been removed to keep the core library lightweight and give you full control over connection management. 
+
+You now load rule configurations using standard Python data libraries (like Pandas, SQLAlchemy, or DuckDB) and map the results directly to the `RuleDefinition` dataclass.
+
+## PostgreSQL / MySQL (via Pandas & SQLAlchemy)
+
+```python
+import pandas as pd
+from sqlalchemy import create_engine
+from sumeh.core.rules.rule_model import RuleDefinition
+
+# 1. Connect and query your rules table
+engine = create_engine("postgresql://user:secret@localhost:5432/mydb")
+query = "SELECT * FROM public.dq_rules WHERE execute = true"
+df_rules = pd.read_sql(query, engine)
+
+# 2. Map DataFrame rows to RuleDefinition objects
+rules = [RuleDefinition(**row) for row in df_rules.to_dict(orient="records")]
+
+```
+
+## BigQuery (via Google Cloud Client)
+
+```python
+from google.cloud import bigquery
+from sumeh.core.rules.rule_model import RuleDefinition
+
+client = bigquery.Client(project="my-project")
+query = "SELECT * FROM `my-project.my_dataset.dq_rules` WHERE execute = TRUE"
+
+# Fetch results and convert directly
+records = client.query(query).result()
+rules = [RuleDefinition(**dict(row)) for row in records]
+
+```
+
+## DuckDB (Native)
+
+```python
+import duckdb
+from sumeh.core.rules.rule_model import RuleDefinition
+
+conn = duckdb.connect("warehouse.db")
+
+# Fetch directly as a Pandas DataFrame
+df_rules = conn.execute("SELECT * FROM dq_rules WHERE execute = true").df()
+
+# Map to dataclass
+rules = [RuleDefinition(**row) for row in df_rules.to_dict(orient="records")]
+
+```
+
+## Passing Rules to the Engine
+
+Once your `rules` list is populated, you pass it to any engine exactly the same way:
+
+```python
+from sumeh import pyspark
+
+# Validate using the loaded database rules
+report = pyspark.validate(spark_session, df, rules)
+
+```
+
+### Rules table DDL
+
+```sql
+CREATE TABLE dq_rules (
+    id            INTEGER PRIMARY KEY,
+    environment   VARCHAR(50)  NOT NULL,
+    source_type   VARCHAR(50)  NOT NULL,
+    database_name VARCHAR(255) NOT NULL,
+    catalog_name  VARCHAR(255),
+    schema_name   VARCHAR(255),
+    table_name    VARCHAR(255) NOT NULL,
+    field         VARCHAR(255) NOT NULL,
+    level         VARCHAR(100) NOT NULL,   -- 'ROW' or 'TABLE'
+    category      VARCHAR(100) NOT NULL,   -- 'completeness', 'uniqueness', ...
+    check_type    VARCHAR(100) NOT NULL,
+    value         TEXT,
+    threshold     FLOAT        DEFAULT 1.0,
+    execute       BOOLEAN      DEFAULT TRUE,
+    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP
+);
+```
+
+Generate this DDL for any dialect with `sumeh sql generate --table rules --dialect <dialect>`.
+
+---
+
 ### Working with results
 
 ```python
@@ -940,6 +935,4 @@ Licensed under the [Apache License 2.0](LICENSE).
 
 ---
 
-<div align="center">
-Built by <a href="https://github.com/maltzsama">@maltzsama</a>
-</div>
+Built by [@maltzsama](https://github.com/maltzsama)

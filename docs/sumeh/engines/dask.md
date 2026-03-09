@@ -1,3 +1,3 @@
-# dask
+# Dask
 
-::: sumeh.engines.dask_engine
+::: sumeh.engines.dask

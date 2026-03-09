@@ -1,3 +1,3 @@
-# pyspark
+# PySpark
 
-::: sumeh.engines.pyspark_engine
+::: sumeh.engines.pyspark

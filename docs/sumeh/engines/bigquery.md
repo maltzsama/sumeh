@@ -1,3 +1,3 @@
-# bigquery
+# BigQuery
 
-::: sumeh.engines.bigquery_engine
+::: sumeh.engines.bigquery

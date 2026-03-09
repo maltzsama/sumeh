@@ -1,3 +1,3 @@
-# polars
+# Polars
 
-::: sumeh.engines.polars_engine
+::: sumeh.engines.polars

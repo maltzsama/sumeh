@@ -1,3 +1,3 @@
-# duckdb
+# DuckDB
 
-::: sumeh.engines.duckdb_engine
+::: sumeh.engines.duckdb
