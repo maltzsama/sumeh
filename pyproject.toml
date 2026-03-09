@@ -41,14 +41,19 @@ python-dateutil = ">=2.8.0"
 sqlglot = "^27.0.0"
 typer = "^0.19.0"
 rich = "^14.2.0"
-pandas = { version = "^2.2.0", optional = true }
+pandas = { version = "^2.2.0", optional = false }
 dask = { version = "^2025.10.0", extras = ["complete"], optional = true }
 pyspark = { version = "^3.5.0", optional = true }
 polars = { version = "^1.34.0", optional = true }
 duckdb = { version = "^1.4.0", optional = true }
 apache-flink = { version = "^1.20.0", optional = true }
 ray = { version = "^2.30.0", extras = ["data"], optional = true }
-
+pyathena = { version = "^3.30.0",   optional = true }
+google-cloud-bigquery = { version = "^3.40.1", optional = true }
+snowflake-connector-python = { version = "^4.3.0", optional = true }
+redshift-connector = { version = "^2.1.12", optional = true }
+trino = { version = "^0.337.0", optional = true }
+pydoris = { version = "^1.1.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -67,25 +72,18 @@ dev = [
     "ruff"
 ]
 
-pyspark = [
-    "pyspark"
-]
-
-dask = [
-    "dask"
-]
-
-pyflink = [
-    "apache-flink"
-]
-
-ray = [
-    "ray"
-]
-
-polars = [
-    "polars"
-]
+doris     = ["pydoris"]
+pyspark   = ["pyspark"]
+dask      = ["dask"]
+pyflink   = ["apache-flink"]
+ray       = ["ray"]
+polars    = ["polars"]
+duckdb    = ["duckdb"]
+athena    = ["pyathena"]
+bigquery  = ["google-cloud-bigquery"]
+snowflake = ["snowflake-connector-python"]
+redshift  = ["redshift-connector"]
+trino     = ["trino"]
 
 
 
