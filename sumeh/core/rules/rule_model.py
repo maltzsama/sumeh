@@ -1,49 +1,63 @@
+"""
+Rule definition model with metadata preservation.
+
+Combines original RuleDef features with metadata preservation.
+"""
+
 import ast
 import re
-import warnings
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime, date
 from typing import Any, List, Union, Optional
 
 from dateutil import parser
 
-from .regristry import RuleRegistry
+from .registry import RuleRegistry
 
 
 @dataclass
-class RuleDef:
+class RuleDefinition:
     """
-    Data quality rule with automatic validation and metadata enrichment.
+    Data quality rule with validation and metadata preservation.
 
-    Validates rule types against RuleRegistry (manifest.json) and automatically
-    populates category and level metadata.
+    Features:
+        - Validates against RuleRegistry (manifest.json)
+        - Auto-enriches category/level from manifest
+        - Intelligent parsing of field/value
+        - Engine compatibility validation
+        - Preserves extra columns in metadata dict
 
     Attributes:
-        field: Column name(s) to validate (string or list of strings)
-        check_type: Validation rule type (e.g., 'is_complete', 'is_unique')
-        value: Threshold or comparison value for the rule (auto-parsed to correct type)
-        threshold: Pass rate threshold (0.0-1.0, default 1.0 = 100%)
-        execute: Whether rule should be executed (default True)
-        category: Rule category (auto-populated from manifest)
-        level: Validation level 'ROW' or 'TABLE' (auto-populated from manifest)
-        engine: Target engine name (optional, for validation)
+        field: Column name(s) to validate
+        check_type: Validation rule type
+        value: Threshold or comparison value
+        threshold: Pass rate threshold (0.0-1.0)
+        execute: Whether rule should be executed
+        category: Rule category (auto-populated)
+        level: Validation level (auto-populated)
+        engine: Target engine (optional)
         created_at: Rule creation timestamp
         updated_at: Rule update timestamp
+        metadata: Extra fields from source (PRESERVED!)
     """
 
     field: Union[str, List[str]]
     check_type: str
     value: Any = None
     threshold: float = 1.0
+    level: str = "ROW"
+    category: str = "unknown"
     execute: bool = True
-    category: Optional[str] = None
-    level: Optional[str] = None
-    engine: Optional[str] = None
-    created_at: datetime = None
-    updated_at: Optional[datetime] = None
+    updated_at: Optional[Any] = None
+    metadata: dict = None  # ✅ Extra fields from source (PRESERVED!)
 
     def __post_init__(self):
         """Validates rule and enriches with metadata from RuleRegistry."""
+        # Initialize metadata if None
+        if self.metadata is None:
+            self.metadata = {}
+
+        # Validate rule type exists
         rule_def = RuleRegistry.get_rule(self.check_type)
         if rule_def is None:
             available = RuleRegistry.list_rules()
@@ -52,46 +66,43 @@ class RuleDef:
                 f"Available rules: {', '.join(available[:10])}... ({len(available)} total)"
             )
 
-        if self.engine and not RuleRegistry.is_rule_supported(
-            self.check_type, self.engine
-        ):
-            supported = rule_def.get("engines", [])
-            warnings.warn(
-                f"Rule '{self.check_type}' not supported by engine '{self.engine}'. "
-                f"Supported: {', '.join(supported)}. Rule will be skipped during validation."
-            )
-            self.execute = False
-
+        # Auto-enrich category and level from manifest
         if self.category is None or self.level is None:
             self._enrich_from_manifest()
 
     def _enrich_from_manifest(self):
         """Enrich rule with category and level from manifest."""
-        RuleRegistry._ensure_loaded()
-        for level_key, level_data in RuleRegistry._manifest["levels"].items():
-            for cat_key, cat_data in level_data["categories"].items():
-                if self.check_type in cat_data["rules"]:
-                    if self.level is None:
-                        self.level = level_key.replace("_level", "").upper()
-                    if self.category is None:
-                        self.category = cat_key
-                    return
+        rule_def = RuleRegistry.get_rule(self.check_type)
+        if rule_def:
+            if self.level is None:
+                self.level = rule_def.get("level", "ROW")
+            if self.category is None:
+                self.category = rule_def.get("category", "unknown")
 
     @classmethod
-    def from_dict(cls, data: dict, engine: Optional[str] = None) -> "RuleDef":
+    def from_dict(cls, data: dict, engine: Optional[str] = None) -> "RuleDefinition":
         """
-        Creates RuleDef from dictionary with automatic parsing and validation.
+        Creates RuleDef from dictionary with metadata preservation.
 
         Args:
             data: Dictionary containing rule configuration
             engine: Optional engine name for compatibility validation
 
         Returns:
-            Validated RuleDef instance with enriched metadata
-
-        Raises:
-            ValueError: If rule type is invalid or unsupported by engine
+            Validated RuleDef instance with preserved metadata
         """
+        # Known Sumeh fields
+        known_fields = {
+            "field",
+            "check_type",
+            "value",
+            "threshold",
+            "level",
+            "category",
+            "execute",
+            "updated_at",
+        }
+
         # Parse field (handles multiple formats)
         field = cls._parse_field(data.get("field", ""))
 
@@ -110,10 +121,13 @@ class RuleDef:
             execute = execute.lower() in ["true", "1", "yes", "y", "t"]
 
         # Parse timestamps
-        created_at = cls._parse_timestamp(
-            data.get("created_at"), default=datetime.utcnow()
-        )
         updated_at = cls._parse_timestamp(data.get("updated_at"))
+
+        # Extract metadata (extra fields)
+        metadata = {}
+        for key, val in data.items():
+            if key not in known_fields:
+                metadata[key] = val
 
         return cls(
             field=field,
@@ -123,30 +137,16 @@ class RuleDef:
             execute=execute,
             category=data.get("category"),
             level=data.get("level"),
-            engine=engine or data.get("engine"),
-            created_at=created_at,
             updated_at=updated_at,
+            metadata=metadata,  # ✅ Preserved!
         )
 
     @staticmethod
     def _parse_field(field_input: Any) -> Union[str, List[str]]:
-        """
-        Parse field input into string or list of strings.
-
-        Handles formats:
-            - "column_name"
-            - "[col1, col2]"
-            - "col1, col2"
-            - ['col1', 'col2']
-
-        Returns:
-            String for single column, List[str] for multiple columns
-        """
-        # Already a list
+        """Parse field input into string or list of strings."""
         if isinstance(field_input, list):
             return field_input if len(field_input) > 1 else field_input[0]
 
-        # Not a string
         if not isinstance(field_input, str):
             return str(field_input)
 
@@ -158,7 +158,6 @@ class RuleDef:
         ):
             field_str = field_str[1:-1].strip()
 
-        # Handle empty
         if not field_str:
             return ""
 
@@ -168,7 +167,6 @@ class RuleDef:
             if not inner:
                 return ""
 
-            # Try AST parse first (safest)
             try:
                 result = ast.literal_eval(field_str)
                 if isinstance(result, list):
@@ -176,7 +174,6 @@ class RuleDef:
             except (ValueError, SyntaxError):
                 pass
 
-            # Fallback: manual split
             if "," in inner:
                 items = [
                     item.strip(" \"'") for item in inner.split(",") if item.strip()
@@ -185,65 +182,45 @@ class RuleDef:
             else:
                 return inner.strip(" \"'")
 
-        # Handle comma-separated without brackets: "col1, col2"
+        # Handle comma-separated: "col1, col2"
         elif "," in field_str:
             items = [
                 item.strip(" \"'") for item in field_str.split(",") if item.strip()
             ]
             return items if len(items) > 1 else (items[0] if items else "")
 
-        # Single column
         return field_str.strip(" \"'")
 
     @staticmethod
     def _parse_value(value_input: Any) -> Any:
-        """
-        Parse value input into appropriate type.
-
-        Auto-detects and converts to:
-            - None (for NULL/"")
-            - date/datetime
-            - list (int/float/str)
-            - float
-            - int
-            - string (including regex)
-
-        Returns:
-            Parsed value in appropriate type
-        """
-        # Handle None/NULL/empty
+        """Parse value input into appropriate type."""
         if value_input is None:
             return None
         if isinstance(value_input, str) and value_input.upper() in ("NULL", ""):
             return None
 
-        # Already correct type
         if isinstance(value_input, (int, float, bool, date, datetime)):
             return value_input
 
-        # Already a list
         if isinstance(value_input, list):
-            return RuleDef._parse_value_list(value_input)
+            return RuleDefinition._parse_value_list(value_input)
 
-        # String parsing
         if isinstance(value_input, str):
             value_str = value_input.strip()
 
-            # Handle list notation: "[1, 2, 3]" or "[a, b, c]"
+            # Handle list notation
             if value_str.startswith("[") and value_str.endswith("]"):
                 try:
-                    # Try AST parse (safest)
                     result = ast.literal_eval(value_str)
                     if isinstance(result, list):
-                        return RuleDef._parse_value_list(result)
+                        return RuleDefinition._parse_value_list(result)
                 except (ValueError, SyntaxError):
-                    # Fallback: manual split
                     inner = value_str[1:-1].strip()
                     if inner:
                         items = [item.strip(" \"'") for item in inner.split(",")]
-                        return RuleDef._parse_value_list(items)
+                        return RuleDefinition._parse_value_list(items)
 
-            # Try date parsing (YYYY-MM-DD or DD/MM/YYYY)
+            # Try date parsing
             try:
                 if re.match(r"^\d{4}-\d{2}-\d{2}$", value_str):
                     return datetime.strptime(value_str, "%Y-%m-%d").date()
@@ -260,20 +237,13 @@ class RuleDef:
             except ValueError:
                 pass
 
-            # Return as string (could be regex or text)
             return value_str
 
-        # Fallback: return as-is
         return value_input
 
     @staticmethod
     def _parse_value_list(items: List[Any]) -> List[Union[int, float, str]]:
-        """
-        Parse list items into appropriate types.
-
-        Returns:
-            List with items converted to int/float/str
-        """
+        """Parse list items into appropriate types."""
         if not items:
             return []
 
@@ -281,7 +251,6 @@ class RuleDef:
         for item in items:
             if isinstance(item, str):
                 item = item.strip(" \"'")
-                # Try numeric
                 try:
                     if "." in item:
                         parsed.append(float(item))
@@ -312,18 +281,29 @@ class RuleDef:
 
     def to_dict(self) -> dict:
         """
-        Converts RuleDef to dictionary with formatted timestamps.
+        Converts RuleDef to dictionary with metadata flattened.
 
         Returns:
-            Dictionary representation of the rule
+            Dictionary with all fields + metadata
         """
-        result = asdict(self)
+        result = {
+            "field": self.field,
+            "check_type": self.check_type,
+            "value": self.value,
+            "threshold": self.threshold,
+            "level": self.level,
+            "category": self.category,
+            "execute": self.execute,
+            "updated_at": (
+                self.updated_at.isoformat()
+                if isinstance(self.updated_at, datetime)
+                else self.updated_at
+            ),
+        }
 
-        # Format timestamps
-        if self.created_at:
-            result["created_at"] = self.created_at.isoformat()
-        if self.updated_at:
-            result["updated_at"] = self.updated_at.isoformat()
+        # Flatten metadata
+        if self.metadata:
+            result.update(self.metadata)
 
         # Format date values
         if isinstance(self.value, date) and not isinstance(self.value, datetime):
@@ -341,15 +321,6 @@ class RuleDef:
         rule_def = RuleRegistry.get_rule(self.check_type)
         return rule_def.get("engines", []) if rule_def else []
 
-    def __repr__(self) -> str:
-        field_str = (
-            self.field if isinstance(self.field, str) else f"[{','.join(self.field)}]"
-        )
-        return (
-            f"RuleDef(field={field_str}, check={self.check_type}, "
-            f"level={self.level}, category={self.category})"
-        )
-
     def is_supported_by_engine(self, engine: str) -> bool:
         """Check if this rule is supported by the given engine."""
         return RuleRegistry.is_rule_supported(self.check_type, engine)
@@ -357,8 +328,7 @@ class RuleDef:
     def is_applicable_for_level(self, target_level: str) -> bool:
         """Check if this rule matches the target level."""
         if self.level is None:
-            return True  # Se não tem level definido, assume que é aplicável
-        # Normaliza: "ROW" ou "row_level" -> "ROW"
+            return True
         rule_level = self.level.upper().replace("_LEVEL", "")
         target_level = target_level.upper().replace("_LEVEL", "")
         return rule_level == target_level
@@ -378,3 +348,13 @@ class RuleDef:
             )
 
         return None
+
+    def __repr__(self) -> str:
+        field_str = (
+            self.field if isinstance(self.field, str) else f"[{','.join(self.field)}]"
+        )
+        meta_str = f", +{len(self.metadata)} meta" if self.metadata else ""
+        return (
+            f"RuleDef(field={field_str}, check={self.check_type}, "
+            f"level={self.level}, category={self.category}{meta_str})"
+        )
