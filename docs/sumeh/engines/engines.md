@@ -1,283 +1,213 @@
 # Engines Overview
 
-Sumeh supports multiple DataFrame processing engines to validate data at any scale, from local CSVs to distributed big data workloads.
+Sumeh v2.0 supports **14 execution engines** across three tiers, enabling data quality validation at any scale—from local CSVs to unbounded streams and distributed Big Data workloads.
 
 ---
 
 ## What are Engines?
 
-Engines are adapters that allow Sumeh to work with different DataFrame implementations. Each engine provides the same validation API but optimized for different use cases and scales.
+Engines are adapters that allow Sumeh to work with different DataFrame and SQL implementations. Each engine provides the exact same validation API (`validate`, `extract_schema`, `validate_schema`) but is optimized for different use cases and scales.
+
+In v2.0, Sumeh uses a **namespace-first API**. You explicitly import the engine you want to use. This provides perfect IDE autocomplete and avoids hidden runtime routing.
 
 ```python
-from sumeh import validate, summarize
-from sumeh.core.config import get_rules_config
+from sumeh import pandas, polars, duckdb
+from sumeh.core.rules.rule_model import RuleDefinition
+import pandas as pd
 
-# Works with ANY engine!
-rules = get_rules_config(source="rules.csv")
-invalid_raw, invalid_agg = validate(df, rules)
-summary = summarize(invalid_raw, rules, total_rows=len(df))
+# Load rules (from CSV, DB, etc.)
+rules = [RuleDefinition(field="age", check_type="is_positive")]
+
+# Validate explicitly with the engine of your choice
+df = pd.read_csv("data.csv")
+report = pandas.validate(df, rules)
+
 ```
-
-Sumeh **automatically detects** which engine your DataFrame is using and applies the appropriate validation logic.
 
 ---
 
 ## Supported Engines
 
-| Engine | Best For | Scale | Speed | Memory |
-|--------|----------|-------|-------|--------|
-| [Pandas](pandas.md) | General purpose, prototyping | Small-Medium | Moderate | High |
-| [Polars](polars.md) | Fast analytics, large datasets | Medium-Large | Very Fast | Low |
-| [Dask](dask.md) | Distributed computing, clusters | Large-Huge | Parallel | Scalable |
-| [PySpark](pyspark.md) | Big data, Spark clusters | Huge | Parallel | Distributed |
-| [DuckDB](duckdb.md) | Analytical queries, OLAP | Medium-Large | Very Fast | Low |
-| [BigQuery](bigquery.md) | Cloud data warehouse | Huge | Serverless | Cloud |
+| Engine | Tier | Best For | Scale | Speed | Memory |
+| --- | --- | --- | --- | --- | --- |
+| **Pandas** | Batch | General purpose, prototyping | Small-Medium | Moderate | High |
+| **Polars** | Batch | Fast analytics, large datasets | Medium-Large | Very Fast | Low |
+| **Dask** | Batch | Distributed computing, clusters | Large-Huge | Parallel | Scalable |
+| **PySpark** | Batch | Big data, Spark clusters | Huge | Parallel | Distributed |
+| **DuckDB** | SQL | Analytical queries, OLAP | Medium-Large | Very Fast | Low |
+| **BigQuery** | SQL | Cloud data warehouse | Huge | Serverless | Cloud |
+| *(+8 Others)* | Various | Snowflake, Flink, Ray, etc. | Varies | Varies | Varies |
 
 ---
 
 ## Engine Selection Guide
 
 ### 🐼 Pandas
+
 **Use when:**
-- Dataset < 10GB
-- Local development
-- Quick prototyping
-- Standard data science workflow
+
+* Dataset < 10GB
+* Local development
+* Quick prototyping
+* Standard data science workflow
 
 ```python
 import pandas as pd
-from sumeh import validate
+from sumeh import pandas as sumeh_pandas
 
 df = pd.read_csv("data.csv")
-invalid_raw, invalid_agg = validate(df, rules)
+report = sumeh_pandas.validate(df, rules)
+
 ```
 
-**Pros:** Simple, widely-used, great ecosystem  
+**Pros:** Simple, widely-used, great ecosystem
+
 **Cons:** Single-threaded, memory-intensive
 
 ---
 
 ### 🐻‍❄️ Polars
+
 **Use when:**
-- Dataset 1GB - 100GB
-- Need better performance than Pandas
-- Memory efficiency is important
-- Modern Python syntax
+
+* Dataset 1GB - 100GB
+* Need better performance than Pandas
+* Memory efficiency is important
+* Modern Python syntax
 
 ```python
 import polars as pl
-from sumeh import validate
+from sumeh import polars as sumeh_polars
 
 df = pl.read_csv("data.csv")
-invalid_raw, invalid_agg = validate(df, rules)
+report = sumeh_polars.validate(df, rules)
+
 ```
 
-**Pros:** 10-100x faster than Pandas, lazy evaluation, low memory  
+**Pros:** 10-100x faster than Pandas, lazy evaluation, low memory
+
 **Cons:** Newer ecosystem, fewer integrations
 
 ---
 
 ### ⚡ Dask
+
 **Use when:**
-- Dataset > 100GB
-- Multi-core processing needed
-- Out-of-memory computation
-- Scaling to multiple machines
+
+* Dataset > 100GB
+* Multi-core processing needed
+* Out-of-memory computation
+* Scaling to multiple machines
 
 ```python
 import dask.dataframe as dd
-from sumeh import validate
+from sumeh import dask as sumeh_dask
 
 df = dd.read_csv("data/*.csv")
-invalid_raw, invalid_agg = validate(df, rules)
+report = sumeh_dask.validate(df, rules)
+
 ```
 
-**Pros:** Scales to clusters, familiar Pandas API, parallel  
+**Pros:** Scales to clusters, familiar Pandas API, parallel
+
 **Cons:** Overhead for small data, complex debugging
 
 ---
 
 ### 🔥 PySpark
+
 **Use when:**
-- Dataset > 1TB
-- Already using Spark infrastructure
-- Complex distributed processing
-- Databricks, EMR, or Dataproc
+
+* Dataset > 1TB
+* Already using Spark infrastructure
+* Complex distributed processing
+* Databricks, EMR, or Dataproc
 
 ```python
 from pyspark.sql import SparkSession
-from sumeh import validate
+from sumeh import pyspark as sumeh_pyspark
 
 spark = SparkSession.builder.getOrCreate()
 df = spark.read.csv("data.csv", header=True)
-invalid_raw, invalid_agg = validate(df, rules)
+
+# Fully lazy evaluation via fail_condition columns
+report = sumeh_pyspark.validate(spark, df, rules)
+
 ```
 
-**Pros:** Industry standard for big data, fault-tolerant, mature  
+**Pros:** Industry standard for big data, fault-tolerant, mature
+
 **Cons:** JVM overhead, complex setup, verbose API
 
 ---
 
 ### 🦆 DuckDB
+
 **Use when:**
-- Analytical queries on large CSVs/Parquet
-- Need SQL-like performance
-- In-process OLAP
-- Embedded analytics
+
+* Analytical queries on large CSVs/Parquet
+* Need SQL-like performance
+* In-process OLAP
+* Embedded analytics
 
 ```python
 import duckdb
-from sumeh import validate
+from sumeh import duckdb as sumeh_duckdb
 
 conn = duckdb.connect()
-df = conn.execute("SELECT * FROM 'data.parquet'").df()
-invalid_raw, invalid_agg = validate(df, rules, conn=conn)
+report = sumeh_duckdb.validate(con=conn, df="data.parquet", rules=rules)
+
 ```
 
-**Pros:** Extremely fast for analytics, SQL support, columnar  
+**Pros:** Extremely fast for analytics, SQL support, columnar
+
 **Cons:** Less mature than Pandas, limited ML ecosystem
 
 ---
 
 ### ☁️ BigQuery
+
 **Use when:**
-- Data already in BigQuery
-- Serverless compute needed
-- Petabyte-scale datasets
-- Google Cloud Platform
+
+* Data already in BigQuery
+* Serverless compute needed
+* Petabyte-scale datasets
+* Google Cloud Platform
 
 ```python
 from google.cloud import bigquery
-from sumeh import validate
+from sumeh import bigquery as sumeh_bq
 
 client = bigquery.Client()
-query = "SELECT * FROM `project.dataset.table` LIMIT 1000000"
-df = client.query(query).to_dataframe()
-invalid_raw, invalid_agg = validate(df, rules)
+# Pushes the AST-compiled validation SQL directly to BigQuery
+report = sumeh_bq.validate(client=client, table="project.dataset.table", rules=rules)
+
 ```
 
-**Pros:** Serverless, auto-scaling, SQL interface  
+**Pros:** Serverless, auto-scaling, SQL interface
+
 **Cons:** Network latency, costs per query
-
----
-
-## Engine Auto-Detection
-
-Sumeh automatically detects your DataFrame engine:
-
-```python
-from sumeh.core import __detect_engine
-
-# Returns engine name based on DataFrame type
-engine = __detect_engine(df)
-# → "pandas_engine" | "polars_engine" | "pyspark_engine" | ...
-```
-
-Detection logic:
-
-```python
-def __detect_engine(df):
-    mod = df.__class__.__module__
-    
-    if mod.startswith("pyspark"):
-        return "pyspark_engine"
-    elif mod.startswith("dask"):
-        return "dask_engine"
-    elif mod.startswith("polars"):
-        return "polars_engine"
-    elif mod.startswith("pandas"):
-        return "pandas_engine"
-    elif mod.startswith("duckdb"):
-        return "duckdb_engine"
-    else:
-        raise TypeError(f"Unsupported DataFrame type: {type(df)}")
-```
 
 ---
 
 ## CLI Engine Selection
 
-Use the `--engine` flag to specify which engine to use for loading data:
+When using the CLI, Sumeh automatically handles the file loading and engine dispatching. Use the `--engine` flag to specify which engine to use:
 
 ```bash
 # Use Pandas (default)
 sumeh validate data.csv rules.csv
 
-# Use Polars for better performance
+# Use Polars for better performance and memory management
 sumeh validate data.csv rules.csv --engine polars
 
-# Use Dask for large files
+# Use Dask for out-of-core large files
 sumeh validate data.csv rules.csv --engine dask
+
+# Use DuckDB for SQL-speed processing
+sumeh validate data.parquet rules.csv --engine duckdb
+
 ```
-
-Available engines:
-- `pandas` (default)
-- `polars`
-- `dask`
-
----
-
-## Engine-Specific Features
-
-### Context Parameters
-
-Some engines require additional context:
-
-```python
-# DuckDB requires connection
-import duckdb
-conn = duckdb.connect()
-invalid_raw, invalid_agg = validate(df, rules, conn=conn)
-
-# PySpark can use custom executors
-invalid_raw, invalid_agg = validate(
-    df, 
-    rules, 
-    num_partitions=100
-)
-```
-
-### Lazy Evaluation
-
-Polars and Dask support lazy evaluation:
-
-```python
-import polars as pl
-
-# Build computation graph (lazy)
-df = pl.scan_csv("data.csv")
-df_filtered = df.filter(pl.col("age") > 18)
-
-# Execute validation (triggers computation)
-invalid_raw, invalid_agg = validate(df_filtered, rules)
-```
-
----
-
-## Custom Engine Implementation
-
-Want to add support for a new DataFrame library? Implement these functions:
-
-```python
-# sumeh/engines/myengine_engine.py
-
-def validate(df, rules):
-    """Run validation checks."""
-    # Implementation here
-    return invalid_raw, invalid_agg
-
-def validate_schema(df, expected, **kwargs):
-    """Validate schema matches expected."""
-    # Implementation here
-    return is_valid, errors
-
-def summarize(df, rules, total_rows=None):
-    """Summarize validation results."""
-    # Implementation here
-    return summary_df
-```
-
-See [Custom Engine Guide](custom-engine.md) for details.
 
 ---
 
@@ -287,93 +217,86 @@ See [Custom Engine Guide](custom-engine.md) for details.
 
 ```python
 # < 1GB → Pandas
-if data_size < 1_000_000_000:
-    engine = "pandas"
-
 # 1-100GB → Polars or DuckDB
-elif data_size < 100_000_000_000:
-    engine = "polars"  # or "duckdb"
+# > 100GB → Dask or PySpark
+# Petabyte → BigQuery / Snowflake
 
-# > 100GB → Dask or Spark
-else:
-    engine = "dask"  # or "pyspark"
 ```
 
-### 2. Use Lazy Evaluation
+### 2. Use Lazy Evaluation & Bifurcation
+
+All modern Batch engines in Sumeh v2.0 support single-pass bifurcation (`report.split()`). Take advantage of lazy execution where available:
 
 ```python
-# Polars
-df = pl.scan_csv("*.csv")  # Lazy
-df = df.filter(...)  # Still lazy
-result = validate(df, rules)  # Triggers execution
+# Polars (Lazy)
+df = pl.scan_csv("*.csv")  
+df = df.filter(pl.col("age") > 18) 
+report = sumeh_polars.validate(df, rules)  # Triggers execution
+good_df, bad_df = report.split()
 
-# Dask
-df = dd.read_csv("*.csv")  # Lazy
-df = df[df.age > 18]  # Still lazy
-result = validate(df, rules)  # Triggers execution
+# Dask (Lazy)
+df = dd.read_csv("*.csv")  
+df = df[df.age > 18]  
+report = sumeh_dask.validate(df, rules)  # Triggers execution
+
 ```
 
 ### 3. Optimize for Your Environment
 
-```python
-# Local laptop → Pandas/Polars
-# Corporate server → DuckDB/Dask
-# Cloud → BigQuery/Spark
-# Edge/IoT → Polars (smallest footprint)
-```
+* **Local laptop** → Pandas / Polars
+* **Corporate server** → DuckDB / Dask
+* **Cloud** → BigQuery / Snowflake / PySpark
+* **Edge/IoT** → Polars (smallest footprint)
 
 ### 4. Consider Data Format
 
 | Format | Best Engine |
-|--------|-------------|
+| --- | --- |
 | CSV | DuckDB, Polars |
-| Parquet | DuckDB, Polars, Spark |
+| Parquet | DuckDB, Polars, PySpark |
 | JSON | Pandas, Polars |
-| Database | Native connectors |
-| Cloud Storage | BigQuery, Spark |
+| Cloud Storage | BigQuery, PySpark, Athena |
 
 ---
 
 ## Troubleshooting
 
-### "Unsupported DataFrame type"
+### Import Errors
 
-**Problem:** Engine not detected
+**Problem:** `ModuleNotFoundError: No module named 'polars'`
 
-**Solution:** Check if the DataFrame is from a supported library
+**Solution:** Sumeh v2.0 uses optional dependencies to keep the core lightweight. Install the specific engine you need:
 
-```python
-print(type(df))
-print(df.__class__.__module__)
+```bash
+pip install sumeh[polars]
+pip install sumeh[pyspark]
 
-# Should be one of:
-# - pandas.core.frame.DataFrame
-# - polars.dataframe.frame.DataFrame
-# - dask.dataframe.core.DataFrame
-# - pyspark.sql.dataframe.DataFrame
 ```
 
 ### Memory Errors
 
-**Problem:** Pandas runs out of memory
+**Problem:** Pandas runs out of memory (OOM)
 
 **Solutions:**
-1. Switch to Polars (lower memory footprint)
-2. Use Dask (out-of-core processing)
-3. Sample the data first
-4. Use columnar format (Parquet)
+
+1. Switch to **Polars** (much lower memory footprint).
+2. Use **Dask** (out-of-core processing via disk spilling).
+3. Sample the data first.
+4. Use a columnar format like Parquet instead of CSV.
 
 ```python
 # Option 1: Polars
 import polars as pl
+from sumeh import polars as sumeh_pl
 df = pl.read_csv("large.csv")
+report = sumeh_pl.validate(df, rules)
 
 # Option 2: Dask
 import dask.dataframe as dd
+from sumeh import dask as sumeh_dd
 df = dd.read_csv("large.csv")
+report = sumeh_dd.validate(df, rules)
 
-# Option 3: Sample
-df = pd.read_csv("large.csv", nrows=100000)
 ```
 
 ### Slow Performance
@@ -381,53 +304,50 @@ df = pd.read_csv("large.csv", nrows=100000)
 **Problem:** Validation takes too long
 
 **Solutions:**
-1. Use faster engine (Polars, DuckDB)
-2. Parallelize with Dask/Spark
-3. Reduce data size (filter first)
-4. Optimize rules (remove duplicates)
 
-```python
-# Use faster engine
-import polars as pl
-df = pl.read_csv("data.csv")
-
-# Or parallelize
-import dask.dataframe as dd
-df = dd.read_csv("data.csv")
-```
+1. Use a faster engine like **Polars** or **DuckDB**.
+2. Parallelize with **Dask** or **Spark**.
+3. Reduce data size (filter first).
 
 ---
 
 ## Migration Guide
+
+Migrating between engines is trivial because the `validate` signature and `ValidationReport` output are identical across the board.
 
 ### Pandas → Polars
 
 ```python
 # Before (Pandas)
 import pandas as pd
+from sumeh import pandas as sumeh_pd
+
 df = pd.read_csv("data.csv")
-df_clean = df[df.age > 18]
+report = sumeh_pd.validate(df, rules)
 
 # After (Polars)
 import polars as pl
-df = pl.read_csv("data.csv")
-df_clean = df.filter(pl.col("age") > 18)
+from sumeh import polars as sumeh_pl
 
-# Validation works the same!
-invalid_raw, invalid_agg = validate(df_clean, rules)
+df = pl.read_csv("data.csv")
+report = sumeh_pl.validate(df, rules)
+
 ```
 
-### Pandas → Dask
+### Pandas → DuckDB
 
 ```python
 # Before (Pandas)
 import pandas as pd
-df = pd.read_csv("data.csv")
+from sumeh import pandas as sumeh_pd
+df = pd.read_parquet("data.parquet")
+report = sumeh_pd.validate(df, rules)
 
-# After (Dask)
-import dask.dataframe as dd
-df = dd.read_csv("data.csv")
+# After (DuckDB) - No need to load the DataFrame into Python memory!
+import duckdb
+from sumeh import duckdb as sumeh_duckdb
 
-# Validation works the same!
-invalid_raw, invalid_agg = validate(df, rules)
+conn = duckdb.connect()
+report = sumeh_duckdb.validate(con=conn, df="data.parquet", rules=rules)
+
 ```

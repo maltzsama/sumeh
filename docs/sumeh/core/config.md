@@ -1,3 +1,0 @@
-# Configuration
-
-::: sumeh.core.config

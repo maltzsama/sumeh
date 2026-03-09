@@ -1,10 +1,10 @@
-# SQL Generator
+# DDL Generator & Transpiler
 
-Sumeh's SQL Generator provides cross-dialect DDL generation for creating `rules` and `schema_registry` tables across 17+ database systems using SQLGlot transpilation.
+Sumeh provides cross-dialect DDL generation for creating `rules` and `schema_registry` tables across 17+ database systems, as well as a standalone SQL transpiler, all powered by SQLGlot.
 
 ## Overview
 
-The SQLGenerator class automatically generates CREATE TABLE statements optimized for each database dialect, handling differences in:
+The `SQLGenerator` class automatically generates `CREATE TABLE` statements optimized for each database dialect, handling differences in:
 
 - **Data types** (VARCHAR vs STRING vs TEXT)
 - **Auto-increment** (SERIAL vs AUTO_INCREMENT vs IDENTITY)
@@ -36,54 +36,58 @@ The SQLGenerator class automatically generates CREATE TABLE statements optimized
 ## Table Schemas
 
 ### Rules Table
-Stores data quality validation rules with metadata:
+Stores data quality validation rules with metadata. The generator will adapt the `PRIMARY KEY` and data types based on the requested dialect.
 
 ```sql
 CREATE TABLE rules (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    environment VARCHAR(50) NOT NULL,
-    source_type VARCHAR(50) NOT NULL,
+    id            INTEGER PRIMARY KEY,
+    environment   VARCHAR(50)  NOT NULL,
+    source_type   VARCHAR(50)  NOT NULL,
     database_name VARCHAR(255) NOT NULL,
-    catalog_name VARCHAR(255),
-    schema_name VARCHAR(255),
-    table_name VARCHAR(255) NOT NULL,
-    field VARCHAR(255) NOT NULL,
-    level VARCHAR(100) NOT NULL,
-    category VARCHAR(100) NOT NULL,
-    check_type VARCHAR(100) NOT NULL,
-    value TEXT,
-    threshold FLOAT DEFAULT 1.0,
-    execute BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
+    catalog_name  VARCHAR(255),
+    schema_name   VARCHAR(255),
+    table_name    VARCHAR(255) NOT NULL,
+    field         VARCHAR(255) NOT NULL,
+    level         VARCHAR(100) NOT NULL,
+    category      VARCHAR(100) NOT NULL,
+    check_type    VARCHAR(100) NOT NULL,
+    value         TEXT,
+    threshold     FLOAT        DEFAULT 1.0,
+    execute       BOOLEAN      DEFAULT TRUE,
+    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP
 );
+
 ```
 
 ### Schema Registry Table
+
 Stores expected schema definitions for validation:
 
 ```sql
 CREATE TABLE schema_registry (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    environment VARCHAR(50) NOT NULL,
-    source_type VARCHAR(50) NOT NULL,
+    id            INTEGER PRIMARY KEY,
+    environment   VARCHAR(50)  NOT NULL,
+    source_type   VARCHAR(50)  NOT NULL,
     database_name VARCHAR(255) NOT NULL,
-    catalog_name VARCHAR(255),
-    schema_name VARCHAR(255),
-    table_name VARCHAR(255) NOT NULL,
-    field VARCHAR(255) NOT NULL,
-    data_type VARCHAR(100) NOT NULL,
-    nullable BOOLEAN DEFAULT TRUE,
-    max_length INTEGER,
-    comment TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
+    catalog_name  VARCHAR(255),
+    schema_name   VARCHAR(255),
+    table_name    VARCHAR(255) NOT NULL,
+    field         VARCHAR(255) NOT NULL,
+    data_type     VARCHAR(100) NOT NULL,
+    nullable      BOOLEAN      DEFAULT TRUE,
+    max_length    INTEGER,
+    comment       TEXT,
+    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP
 );
+
 ```
 
-## Usage Examples
+## DDL Generation Examples
 
 ### Basic Generation
+
 ```python
 from sumeh.generators import SQLGenerator
 
@@ -94,11 +98,13 @@ print(ddl)
 # Generate both tables for MySQL
 ddl = SQLGenerator.generate(table="all", dialect="mysql", schema="dq")
 print(ddl)
+
 ```
 
 ### Advanced Features
 
 #### BigQuery with Optimization
+
 ```python
 # Partitioned and clustered table
 ddl = SQLGenerator.generate(
@@ -108,21 +114,11 @@ ddl = SQLGenerator.generate(
     partition_by="DATE(created_at)",
     cluster_by=["table_name", "environment"]
 )
-```
 
-#### Redshift with Distribution
-```python
-# Optimized for analytics workload
-ddl = SQLGenerator.generate(
-    table="rules",
-    dialect="redshift",
-    schema="analytics",
-    distkey="table_name",
-    sortkey=["created_at", "environment"]
-)
 ```
 
 #### Databricks Delta Lake
+
 ```python
 # Unity Catalog with Delta optimizations
 ddl = SQLGenerator.generate(
@@ -133,46 +129,70 @@ ddl = SQLGenerator.generate(
     cluster_by=["table_name", "field"],
     location="s3://data-lake/schema-registry/"
 )
+
 ```
 
-## Dialect-Specific Features
+---
+
+## SQL Transpiler
+
+Sumeh v2.0 exposes its internal AST-based SQL transpiler as a standalone utility. You can use it to translate any SQL query between dialects safely.
+
+```python
+from sumeh.generators import transpile
+
+sql = "SELECT * FROM users WHERE created_at >= CURRENT_DATE - 7"
+
+# Transpile from PostgreSQL to BigQuery
+bq_sql = transpile(sql, from_dialect="postgres", to_dialect="bigquery")
+print(bq_sql)
+
+```
+
+---
+
+## Dialect-Specific Features Supported
 
 ### Cloud Data Warehouses
-- **BigQuery**: Partitioning, clustering, nested/repeated fields
-- **Snowflake**: Clustering keys, time travel, zero-copy cloning
-- **Redshift**: Distribution keys, sort keys, columnar compression
-- **Databricks**: Delta Lake, Z-ordering, Unity Catalog integration
+
+* **BigQuery**: Partitioning, clustering, nested/repeated fields
+* **Snowflake**: Clustering keys, time travel, zero-copy cloning
+* **Redshift**: Distribution keys, sort keys, columnar compression
+* **Databricks**: Delta Lake, Z-ordering, Unity Catalog integration
 
 ### Traditional Databases
-- **PostgreSQL**: Advanced indexing, constraints, extensions
-- **MySQL**: Storage engines (InnoDB, MyISAM), charset selection
-- **Oracle**: Sequences, tablespaces, advanced partitioning
-- **SQL Server**: Identity columns, filegroups, compression
+
+* **PostgreSQL**: Advanced indexing, constraints, extensions
+* **MySQL**: Storage engines (InnoDB, MyISAM), charset selection
 
 ### Analytics Engines
-- **DuckDB**: Columnar storage, vectorized execution
-- **ClickHouse**: MergeTree engines, materialized views
-- **Athena**: External tables, Parquet/ORC optimization
-- **Presto/Trino**: Federated queries, connector-specific optimizations
+
+* **DuckDB**: Columnar storage, vectorized execution
+* **Athena**: External tables, Parquet/ORC optimization
+* **Presto/Trino**: Federated queries, connector-specific optimizations
+
+---
 
 ## CLI Integration
 
-Generate DDL directly from command line:
+Generate DDL directly from the command line:
 
 ```bash
-# List supported dialects
-sumeh sql --list-dialects
-
 # Generate PostgreSQL DDL
-sumeh sql --table rules --dialect postgres --schema public
+sumeh ddl generate --table rules --dialect postgres
 
-# Generate all tables for BigQuery
-sumeh sql --table all --dialect bigquery --schema prod_dq
+# Generate schema registry for BigQuery
+sumeh ddl generate --table schema_registry --dialect bigquery
 
 # Save to file
-sumeh sql --table rules --dialect mysql --output schema.sql
+sumeh ddl generate --table rules --dialect mysql > schema.sql
+
 ```
+
+---
 
 ## API Reference
 
-::: sumeh.generators.SQLGenerator
+::: sumeh.generators.ddl
+
+::: sumeh.generators.transpiler

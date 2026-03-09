@@ -1,6 +1,6 @@
 site_name: Sumeh DQ — Unified Data Quality Framework
-site_description: "Library for Data Quality checks"
-site_author: "Demetrius Albuquerque"
+site_description: "One API. Fifty-plus rules. Fourteen engines. Zero compromise."
+site_author: "Demetrius Albuquerque, Otavio Lara"
 
 theme:
   name: material
@@ -29,11 +29,12 @@ theme:
     - search.highlight
     - content.code.copy
     - content.code.annotate
+    - navigation.tabs
+    - navigation.indexes
 
 plugins:
   - search
-  - include-markdown:
-      basepath: ../
+  - include-markdown
   - mkdocstrings:
       handlers:
         python:
@@ -49,23 +50,42 @@ plugins:
             show_docstring_description: true
             show_private: true
             show_private_members: true
+
 nav:
-  - home: index.md
-  - quickstart: quickstart.md
-  - cli: sumeh/cli.md
-  - core:
-    - config: sumeh/core/config.md
-    - utils: sumeh/core/utils.md
-  - engines:
-    - engine overview: sumeh/engines/engines.md
-    - bigquery: sumeh/engines/bigquery.md
-    - dask: sumeh/engines/dask.md
-    - duckDB: sumeh/engines/duckdb.md
-    - pandas: sumeh/engines/pandas.md
-    - polars: sumeh/engines/polars.md
-    - pyspark: sumeh/engines/pyspark.md
-  - generators: sumeh/generators.md
-  - dash: sumeh/dash/index.md
+  - Home: 
+    - index.md
+    - Changelog: CHANGELOG.md
+    - License: LICENSE.md
+  - Quickstart: quickstart.md
+  - CLI: sumeh/cli.md
+  - Core API:
+    - Rules & Definition: sumeh/core/rules.md
+    - Validation Report: sumeh/core/validation.md
+    - Data Profiling: sumeh/core/profiler.md
+    - Schema Extraction: sumeh/core/schema.md
+  - Engines:
+    - Engine Overview: sumeh/engines/engines.md
+    - Batch DataFrames:
+      - Pandas: sumeh/engines/pandas.md
+      - Polars: sumeh/engines/polars.md
+      - PySpark: sumeh/engines/pyspark.md
+      - Dask: sumeh/engines/dask.md
+    - SQL Engines:
+      - SQL Core & AST: sumeh/engines/sql_core.md
+      - DuckDB: sumeh/engines/duckdb.md
+      - BigQuery: sumeh/engines/bigquery.md
+      - Snowflake: sumeh/engines/snowflake.md
+      - Redshift: sumeh/engines/redshift.md
+      - Athena: sumeh/engines/athena.md
+      - Trino: sumeh/engines/trino.md
+      - Apache Doris: sumeh/engines/doris.md
+    - Streaming & ML:
+      - PyFlink: sumeh/engines/pyflink.md
+      - Ray Data: sumeh/engines/ray_data.md
+  - Integrations:
+    - OpenMetadata Exporter: sumeh/exporters/openmetadata.md
+  - Generators: 
+    - DDL & Transpiler: sumeh/generators.md
 
 markdown_extensions:
   - toc:

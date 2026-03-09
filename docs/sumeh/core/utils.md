@@ -1,3 +1,0 @@
-# utils
-
-::: sumeh.core.utils

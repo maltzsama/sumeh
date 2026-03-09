@@ -1,3 +1,0 @@
-# Dashboard
-
-::: sumeh.dash.app
