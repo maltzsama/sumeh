@@ -206,7 +206,28 @@ class IExporter(Protocol):
     """
 
     def profile(self, data: Dict[str, Any]) -> Any:
+        """
+        Process and profile the given data.
+
+        Args:
+            data: A dictionary containing arbitrary key-value pairs to be profiled.
+
+        Returns:
+            The profiling result or analysis of the input data.
+        """
         ...
 
     def validation(self, report: Any) -> Any:
+        """
+        Validate the provided report.
+
+        Args:
+            report: The report object to be validated.
+
+        Returns:
+            The validation result or processed report.
+
+        Raises:
+            ValidationError: If the report fails validation.
+        """
         ...

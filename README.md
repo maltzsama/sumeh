@@ -107,6 +107,7 @@ v2.0 is a complete rewrite. The architecture is different, the API is different,
   - [SQL DDL Generator](#sql-ddl-generator)
   - [CLI](#cli)
   - [Architecture](#architecture)
+    - [Directories Tree](#directories-tree)
     - [Design Decisions](#design-decisions)
   - [Migrating from v1.x](#migrating-from-v1x)
     - [Import pattern](#import-pattern)
@@ -697,7 +698,68 @@ sumeh info
 ---
 
 ## Architecture
+```mermaid
+graph TD
+    %% ========== ESTILOS GLOBAIS ==========
+    classDef client fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-weight:bold
+    classDef core fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#0d47a1,font-weight:bold
+    classDef engine fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#bf360c,font-weight:bold
+    classDef output fill:#d1c4e9,stroke:#512da8,stroke-width:2px,color:#311b92,font-weight:bold
+    classDef report fill:#ffb74d,stroke:#bf360c,stroke-width:3px,color:#4a2512,font-weight:bold,font-size:16px
 
+    %% ========== CLIENT LAYER ==========
+    subgraph Client_Layer [📦 CLIENT LAYER]
+        direction TB
+        A["🚀 CLI / Python Code"] --> B["📋 RuleDefinition List"]
+    end
+    class A,B client
+
+    %% ========== CORE LAYER ==========
+    subgraph Core_Layer [⚙️ CORE ORCHESTRATION]
+        direction TB
+        B --> C{"🔄 Orchestrator"}
+        C --> D["📄 Rules Manifest"]
+        C --> E["🔍 Validation Models"]
+    end
+    class C core
+    class D,E core
+
+    %% ========== ENGINE LAYER ==========
+    subgraph Engine_Layer [⚡ EXECUTION ENGINES]
+        direction TB
+        C --> F["🐼 Pandas / Polars"]
+        C --> G["🗄️ SQL Core"]
+        C --> H["🌐 Distributed"]
+        
+        G --> G1["🦆 DuckDB"]
+        G --> G2["🔷 BigQuery"]
+        G --> G3["❄️ Snowflake/Redshift"]
+        
+        H --> H1["🔥 PySpark"]
+        H --> H2["⚡ Dask / Ray"]
+    end
+    class F,G,H engine
+    class G1,G2,G3,H1,H2 engine
+
+    %% ========== OUTPUT LAYER ==========
+    subgraph Output_Layer [📊 OUTPUT & REPORTING]
+        direction TB
+        F & G1 & G2 & G3 & H1 & H2 --> I("📋 ValidationReport")
+        I --> J["✅ Good Data / ❌ Bad Data"]
+        I --> K["📤 OpenMetadata Export"]
+        I --> L["📦 JSON/Dict Summary"]
+    end
+    class I report
+    class J,K,L output
+
+    %% ========== CONEXÕES COM ESTILO ==========
+    linkStyle 0 stroke:#2e7d32,stroke-width:2px
+    linkStyle 1,2,3 stroke:#1565c0,stroke-width:2px
+    linkStyle 4,5,6,7,8,9,10,11,12 stroke:#e65100,stroke-width:2px
+    linkStyle 13,14,15,16 stroke:#512da8,stroke-width:2px
+```
+### Directories Tree
+    
 ```
 sumeh/
 │

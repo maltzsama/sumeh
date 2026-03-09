@@ -1,5 +1,5 @@
 from typing import runtime_checkable, Protocol, Any
-
+from sumeh.core.models.metrics import MetricResult
 
 @runtime_checkable
 class IAnalyzer(Protocol):
