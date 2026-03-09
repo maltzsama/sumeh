@@ -27,7 +27,7 @@ class ColumnDef:
     Methods:
         from_dict(cls, name: str, props: Any) -> ColumnDef:
             Create a ColumnDef instance from a dictionary specification.
-            
+
             Args:
                 name (str): The column name.
                 props (Any): A dictionary or string containing column properties. If a string is provided,
@@ -39,10 +39,11 @@ class ColumnDef:
                             - 'require_comment': Whether a comment is required
                             - 'expected_comment': The expected comment text
                             - 'fields': A dictionary of nested column definitions
-            
+
             Returns:
                 ColumnDef: A new ColumnDef instance initialized with the provided properties.
     """
+
     name: str
     expected_type: str
     is_optional: bool = False
@@ -120,10 +121,10 @@ class SchemaReport:
         to_dict() -> Dict[str, Any]:
             Convert the report to a dictionary representation including all validation details
             and a total issue count.
-        
+
         __repr__() -> str:
             Return a human-readable string representation showing validation status and issue count.
-        
+
         __bool__() -> bool:
             Allow boolean conversion of the report for convenient conditional checks.
     """

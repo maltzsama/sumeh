@@ -25,13 +25,13 @@ class CompletenessConstraint:
     Methods:
         check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
             Validates the completeness of data against a defined rule.
-            
+
             Args:
                 metric: A MetricResult object containing the completeness metric value
                        and metadata including null counts and affected row IDs.
                 rule: A RuleDefinition object specifying the completeness threshold
                      and other validation parameters.
-            
+
             Returns:
                 ValidationResult: An object containing the validation outcome including:
                     - pass/fail status based on whether the metric value meets the threshold
@@ -39,10 +39,11 @@ class CompletenessConstraint:
                     - count of null values found
                     - IDs of rows with null values (if validation failed)
                     - detailed metadata about the validation
-            
+
             Note:
                 If no threshold is specified in the rule, defaults to 1.0 (100% completeness).
     """
+
     @staticmethod
     def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
@@ -79,14 +80,14 @@ class MultiFieldCompletenessConstraint:
     Methods:
         check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
             Validates a metric against a completeness rule.
-            
+
             Args:
-                metric (MetricResult): The computed completeness metric containing the 
-                    completeness value (0.0-1.0), affected row IDs, and metadata about 
+                metric (MetricResult): The computed completeness metric containing the
+                    completeness value (0.0-1.0), affected row IDs, and metadata about
                     incomplete records.
-                rule (RuleDefinition): The validation rule defining the threshold and 
+                rule (RuleDefinition): The validation rule defining the threshold and
                     other constraint properties.
-            
+
             Returns:
                 ValidationResult: A validation result object containing:
                     - PASS status if metric.value >= threshold
@@ -94,11 +95,12 @@ class MultiFieldCompletenessConstraint:
                     - Row-level violation details (IDs of incomplete rows)
                     - Pass rate and expected/actual values for reporting
                     - Count of incomplete rows in the failure message
-            
+
             Note:
                 - Uses a default threshold of 1.0 (100% complete) if not specified in the rule
                 - Extracts incomplete row count from metric metadata
     """
+
     @staticmethod
     def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
@@ -134,13 +136,13 @@ class UniquenessConstraint:
         check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
             Validates the uniqueness constraint by comparing the metric value
             against the rule's threshold.
-            
+
             Args:
                 metric: A MetricResult containing the uniqueness score (0.0-1.0)
                        and metadata with duplicate count and affected row IDs.
                 rule: A RuleDefinition containing the uniqueness threshold and
                      other validation parameters.
-            
+
             Returns:
                 ValidationResult: A validation result object containing:
                     - status: PASS if metric value meets or exceeds threshold,
@@ -151,6 +153,7 @@ class UniquenessConstraint:
                     - violating_row_ids: List of row IDs with duplicate values
                     - metadata: Additional metadata from the metric
     """
+
     @staticmethod
     def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
@@ -185,13 +188,13 @@ class GenericConstraint:
             Validates a metric against a rule definition by comparing the metric value
             against a threshold. Returns a detailed validation result including pass/fail
             status, pass rate, expected vs actual values, and affected row information.
-            
+
             Args:
                 metric (MetricResult): The metric result to validate, containing a value,
                     metadata, and list of affected row IDs.
                 rule (RuleDefinition): The rule definition containing the threshold,
                     category, check type, field, and ID to validate against.
-            
+
             Returns:
                 ValidationResult: A validation result object containing:
                     - rule_id: The identifier of the rule
@@ -207,6 +210,7 @@ class GenericConstraint:
                     - message: Descriptive message with fail count if validation fails
                     - metadata: Additional metadata from the metric
     """
+
     @staticmethod
     def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         threshold = rule.threshold if rule.threshold is not None else 1.0
@@ -239,18 +243,18 @@ class AggregationConstraint:
     Methods:
         check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
             Validates a metric result against a rule definition.
-            
+
             Compares the actual metric value against an expected value, optionally
             allowing a percentage-based tolerance. When tolerance is specified (> 0),
             the validation uses relative error calculation. Otherwise, it performs
             exact equality comparison.
-            
+
             Args:
                 metric (MetricResult): The metric result containing the actual value
                     and associated metadata to validate.
                 rule (RuleDefinition): The rule definition containing expected value,
                     threshold tolerance, and validation metadata.
-            
+
             Returns:
                 ValidationResult: A validation result object containing:
                     - Validation status (PASS/FAIL)
@@ -259,6 +263,7 @@ class AggregationConstraint:
                     - Human-readable message on failure
                     - Rule metadata and categorization
     """
+
     @staticmethod
     def check(metric: MetricResult, rule: RuleDefinition) -> ValidationResult:
         expected = rule.value

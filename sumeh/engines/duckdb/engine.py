@@ -114,14 +114,13 @@ def validate(
                 pass
 
 
-
 def _bifurcate(
     con: duckdb.DuckDBPyConnection,
     table_name: str,
     rules: List[RuleDefinition],
     results: list,
 ) -> ValidatedDuckDBDataFrame:
-    
+
     from sumeh.engines.sql_core.registry import get_analyzer
     import sqlglot.expressions as exp
 
@@ -159,7 +158,6 @@ def _bifurcate(
     bad = con.execute(f"SELECT * FROM {table_name} WHERE {combined}").df()
 
     return ValidatedDuckDBDataFrame(good, bad)
-
 
 
 def get_validation_sql(rules, table_name, global_filter=None):

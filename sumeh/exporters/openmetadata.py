@@ -79,9 +79,9 @@ class OpenMetadataExport(IExporter):
                 "test_case_fqn": f"{self.table_fqn}.{self._test_name(res)}",
                 "payload": {
                     "timestamp": int(datetime.utcnow().timestamp() * 1000),
-                    "testCaseStatus": "Success"
-                    if res.status.value == "PASS"
-                    else "Failed",
+                    "testCaseStatus": (
+                        "Success" if res.status.value == "PASS" else "Failed"
+                    ),
                     "result": f"Sumeh Pass Rate: {getattr(res, 'pass_rate', 0.0):.2%}",
                 },
             }
