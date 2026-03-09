@@ -2,6 +2,172 @@
 
 <!-- version list -->
 
+## v2.0.0 (2026-03-09)
+
+### Bug Fixes
+
+- **pandas**: Resolve indexing mismatch when filling empty error lists
+  ([`ea89997`](https://github.com/maltzsama/sumeh/commit/ea89997b96722db748caa8b963d82739b52a313f))
+
+- **sql**: Ensure proper table identifier formatting and import structure
+  ([`cb2de80`](https://github.com/maltzsama/sumeh/commit/cb2de8024a90b2c5cb8c45c78f3864eb0e138ba5))
+
+### Build System
+
+- **deps**: Update Python version to 3.10 and bump dependencies
+  ([`9f9d32c`](https://github.com/maltzsama/sumeh/commit/9f9d32c0ba19160770b6e8a5e32487f94fc6193c))
+
+### Chores
+
+- Clean up pyproject.toml dependencies and extras
+  ([`571aa3b`](https://github.com/maltzsama/sumeh/commit/571aa3b8ca7ca1f8c1f203fd98f270bb74a38242))
+
+- Remove legacy monolithic engine
+  ([`5c96bcc`](https://github.com/maltzsama/sumeh/commit/5c96bcca8f92b33b69099768fe85aefe6aac9204))
+
+- Remove legacy monolithic engine files
+  ([`a21b217`](https://github.com/maltzsama/sumeh/commit/a21b2172292a6f07c799fb80ea744e3e36f9cc39))
+
+- **cleanup**: Remove empty baseline and sinks modules
+  ([`53fffbf`](https://github.com/maltzsama/sumeh/commit/53fffbf61b86ae2859fb2e33e77d8969427e58c2))
+
+- **tests**: Remove outdated v1.3.0 test suite
+  ([`d7b2f21`](https://github.com/maltzsama/sumeh/commit/d7b2f21eca2576283f58a1cb7a6d8f9bc8e3bebb))
+
+### Code Style
+
+- Apply consistent code formatting across all modules
+  ([`7db9778`](https://github.com/maltzsama/sumeh/commit/7db9778b8d3404d11bb4a46498432e9a7a1fe8e9))
+
+- Fix formatting and imports across sink modules
+  ([`aac1e9f`](https://github.com/maltzsama/sumeh/commit/aac1e9f76fbc21543e93fa4df4cc6c7d271fc412))
+
+- Fix import ordering and remove unused imports across codebase
+  ([`01d6c59`](https://github.com/maltzsama/sumeh/commit/01d6c59f5f6f9dd04f0a99c1f8dd1ed5825c1f24))
+
+- Format code with consistent imports and line breaks
+  ([`cbff8e0`](https://github.com/maltzsama/sumeh/commit/cbff8e0dfa3946e2a58b6091154262e51cb4c461))
+
+- Normalize quotes and formatting across codebase
+  ([`bbd15a3`](https://github.com/maltzsama/sumeh/commit/bbd15a3bc67d46d64558d4725cc81c0633954236))
+
+### Documentation
+
+- Update module docstrings and implement lazy engine loading
+  ([`85aafaa`](https://github.com/maltzsama/sumeh/commit/85aafaa12a25428f9e501fb6537556ce6e793312))
+
+- **init**: Shorten top-level engine exports comment
+  ([`30d5173`](https://github.com/maltzsama/sumeh/commit/30d5173f8d223ead60273e5a2b458f3dac289452))
+
+### Features
+
+- Add auto-profiler, schema validation, and engine capabilities
+  ([`6a47750`](https://github.com/maltzsama/sumeh/commit/6a477509457cab5ccdcf54d329e6c4ea05a7d211))
+
+- Add AWS Athena SQL-based validation engine
+  ([`7a2b018`](https://github.com/maltzsama/sumeh/commit/7a2b018ad1d78fd526d54e1e049085a7be6a6b48))
+
+- Add CSV rule loader and SQL generators
+  ([`32bee27`](https://github.com/maltzsama/sumeh/commit/32bee274f9c49802025cb03649694712c9d52e0d))
+
+- Add DataFrame accessors to ValidationReport
+  ([`5c426c5`](https://github.com/maltzsama/sumeh/commit/5c426c5010e2e9f152c77cffe3925eddf610f075))
+
+- Add distributed Dask engine with lazy evaluation
+  ([`976f2f3`](https://github.com/maltzsama/sumeh/commit/976f2f3a1671bace1eab7addb47c0b561054c84f))
+
+- Add get_validation_sql helper to BigQuery and DuckDB engines
+  ([`f304dc3`](https://github.com/maltzsama/sumeh/commit/f304dc320eea4fbaf5df2079b6da370d168fda0f))
+
+- Add OpenMetadata sink with SinkProtocol
+  ([`fe4a940`](https://github.com/maltzsama/sumeh/commit/fe4a9401750d5289c3c2beca177963da68d5f19a))
+
+- Add PyFlink streaming validation engine
+  ([`e62d2d5`](https://github.com/maltzsama/sumeh/commit/e62d2d55d85ed3bda8945ecb69d71ad86c736f2f))
+
+- Add PySpark engine with pure Column API (zero UDFs)
+  ([`f488d47`](https://github.com/maltzsama/sumeh/commit/f488d475b2526154df63d39941ca0bba45599309))
+
+- Add rule validation and metadata preservation
+  ([`0722918`](https://github.com/maltzsama/sumeh/commit/072291883a24ab1d73150c5e924984a78f2ec9ae))
+
+- Add Snowflake engine with pure SQL validation
+  ([`5c5d416`](https://github.com/maltzsama/sumeh/commit/5c5d4163c292d39f69afb4a20a699866434fa019))
+
+- Add SQL generator for Flink validation queries
+  ([`15df523`](https://github.com/maltzsama/sumeh/commit/15df523a331356547589ad65406824522aed9024))
+
+- Add SQLCore-based BigQuery engine
+  ([`00b6b23`](https://github.com/maltzsama/sumeh/commit/00b6b23499dd3b82db3f4fece34f58835b2a9e3f))
+
+- Add Trino, Redshift, and Doris SQL engines
+  ([`13a3d3e`](https://github.com/maltzsama/sumeh/commit/13a3d3e73c0ef8305da686adde9d1834888c6eb3))
+
+- Complete analyzers with all date, comparison, and aggregation rules
+  ([`02616fe`](https://github.com/maltzsama/sumeh/commit/02616fefb36a26d19e3d8a1deaf1f5efeaf687cf))
+
+- Complete README rewrite and project restructure for v2.0 release
+  ([`6ff4d39`](https://github.com/maltzsama/sumeh/commit/6ff4d39ac3e31c538ce69de9744012e851bca9ea))
+
+- Expand PyFlink validation engine to full feature parity
+  ([`c5840d4`](https://github.com/maltzsama/sumeh/commit/c5840d4348423d9d0d076c9d24ece04661486097))
+
+- Implement DuckDB engine with SQLCore validation
+  ([`8aef6a7`](https://github.com/maltzsama/sumeh/commit/8aef6a7c01551d1dd5328744498a0b54bdf288f9))
+
+- **duckdb**: Add data bifurcation and standardize code formatting
+  ([`b64bbc1`](https://github.com/maltzsama/sumeh/commit/b64bbc1bfd8aeca4846cc090d8854c6e34d3339a))
+
+- **exporters**: Add IExporter protocol for pure metadata formatting
+  ([`4866921`](https://github.com/maltzsama/sumeh/commit/4866921cd6d643889c8d821167093160e8a8a241))
+
+- **init**: Replace dynamic engine loading with explicit imports for better IDE support
+  ([`cfc3859`](https://github.com/maltzsama/sumeh/commit/cfc385938f8599c6005abf39f199e2c691b4f3f0))
+
+- **polars**: Add Polars engine with optimized bulk error aggregation
+  ([`6b337ef`](https://github.com/maltzsama/sumeh/commit/6b337ef748abcc1393a549a0aa8233ddde5352cd))
+
+- **sumeh**: V2.0 rewrite with analyzer/constraint architecture
+  ([`cc05b17`](https://github.com/maltzsama/sumeh/commit/cc05b17dc1b0ee3fdf4d3cddec103afcf5e10d06))
+
+### Performance Improvements
+
+- Optimize pandas and polars engines with bulk error aggregation
+  ([`bba5d81`](https://github.com/maltzsama/sumeh/commit/bba5d818edba342170a0c0176b37ee7ed8cab333))
+
+### Refactoring
+
+- Remove OOM-prone ID collection from analyzers
+  ([`d5b6401`](https://github.com/maltzsama/sumeh/commit/d5b640143ea7a68abf874ca5ad686f7463bac952))
+
+- Simplify Ray Data engine implementation
+  ([`4e753d9`](https://github.com/maltzsama/sumeh/commit/4e753d914af0afd167fefc6988b3ebb9fe9c9b30))
+
+- Split CLI into modular command files
+  ([`29253e3`](https://github.com/maltzsama/sumeh/commit/29253e32a447dc1ddbf6da31d7a1aa8fd7a5c40b))
+
+- **core**: Consolidate protocols and remove dead code
+  ([`ef6b43e`](https://github.com/maltzsama/sumeh/commit/ef6b43e5cd3b1384b1a1d2b23cce8b6dcdd45262))
+
+- **core**: Rename RuleDef to RuleDefinition for consistency
+  ([`c54432c`](https://github.com/maltzsama/sumeh/commit/c54432c194383fa4759e6779483058ddb5c29f1d))
+
+- **core**: Reorganize core module structure for better maintainability
+  ([`79a3298`](https://github.com/maltzsama/sumeh/commit/79a32983a025fd09c3315e03dfe1b5670a11f747))
+
+- **engines**: Simplify engine package exports
+  ([`deb9c45`](https://github.com/maltzsama/sumeh/commit/deb9c45dc33f7b96851521d2052d7564c5449700))
+
+- **models**: Remove duplicate SinkResult class
+  ([`a8579bb`](https://github.com/maltzsama/sumeh/commit/a8579bb358cc49c1874a2f3cc94d3e679de47158))
+
+- **polars**: Use consistent timestamp and simplify error aggregation
+  ([`c57fd5e`](https://github.com/maltzsama/sumeh/commit/c57fd5e98ac11b9ba4c2c0e421db44e7ca92cbae))
+
+- **profiler**: Clean up DataProfiler with better docs and safety checks
+  ([`3ba2565`](https://github.com/maltzsama/sumeh/commit/3ba25657471378ae72765bab6627ec747ba7b900))
+
+
 ## v1.3.0 (2025-10-16)
 
 ### Bug Fixes
