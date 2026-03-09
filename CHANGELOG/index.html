@@ -1,0 +1,3016 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="One API. Fifty-plus rules. Fourteen engines. Zero compromise.">
+      
+      
+        <meta name="author" content="Demetrius Albuquerque, Otavio Lara">
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../LICENSE/">
+      
+      
+      <link rel="icon" href="../img/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
+    
+    
+      
+        <title>Changelog - Sumeh DQ — Unified Data Quality Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Sumeh DQ — Unified Data Quality Framework" class="md-header__button md-logo" aria-label="Sumeh DQ — Unified Data Quality Framework" data-md-component="logo">
+      
+  <img src="../img/sumeh.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Sumeh DQ — Unified Data Quality Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+    
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../quickstart/" class="md-tabs__link">
+        
+  
+    
+  
+  Quickstart
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../sumeh/cli/" class="md-tabs__link">
+        
+  
+    
+  
+  CLI
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../sumeh/core/rules/" class="md-tabs__link">
+          
+  
+    
+  
+  Core API
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../sumeh/engines/engines/" class="md-tabs__link">
+          
+  
+    
+  
+  Engines
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../sumeh/exporters/openmetadata/" class="md-tabs__link">
+          
+  
+    
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../sumeh/generators/" class="md-tabs__link">
+          
+  
+    
+  
+  Generators
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Sumeh DQ — Unified Data Quality Framework" class="md-nav__button md-logo" aria-label="Sumeh DQ — Unified Data Quality Framework" data-md-component="logo">
+      
+  <img src="../img/sumeh.svg" alt="logo">
+
+    </a>
+    Sumeh DQ — Unified Data Quality Framework
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Home
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Changelog
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v200-2026-03-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.0.0 (2026-03-09)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v2.0.0 (2026-03-09)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chores" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chores
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Improvements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v130-2025-10-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.3.0 (2025-10-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.3.0 (2025-10-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v120-2025-10-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.0 (2025-10-09)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.2.0 (2025-10-09)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chores_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chores
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v110-2025-10-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.1.0 (2025-10-08)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.1.0 (2025-10-08)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v101-2025-10-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.1 (2025-10-08)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.1 (2025-10-08)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100-2025-10-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0 (2025-10-08)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.0 (2025-10-08)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100-rc1-2025-10-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0-rc.1 (2025-10-07)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.0-rc.1 (2025-10-07)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-system_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-integration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v030-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.3.0 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.3.0 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v026-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.6 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.6 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v025-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.5 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.5 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v024-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.4 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.4 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chores_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chores
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v020-2025-04-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.0 (2025-04-29)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../LICENSE/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Quickstart
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/cli/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Core API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/core/rules/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Rules & Definition
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/core/validation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Validation Report
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/core/profiler/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Profiling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/core/schema/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Schema Extraction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Engines
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Engines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/engines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Engine Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Batch DataFrames
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            Batch DataFrames
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/pandas/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pandas
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/polars/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Polars
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/pyspark/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PySpark
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/dask/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dask
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    SQL Engines
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            SQL Engines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/sql_core/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SQL Core & AST
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/duckdb/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DuckDB
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/bigquery/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    BigQuery
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/snowflake/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Snowflake
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/redshift/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Redshift
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/athena/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Athena
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/trino/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Trino
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/doris/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Apache Doris
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_4" id="__nav_5_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Streaming & ML
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_4">
+            <span class="md-nav__icon md-icon"></span>
+            Streaming & ML
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/pyflink/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PyFlink
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/engines/ray_data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ray Data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Integrations
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Integrations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/exporters/openmetadata/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    OpenMetadata Exporter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Generators
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Generators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sumeh/generators/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DDL & Transpiler
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v200-2026-03-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      v2.0.0 (2026-03-09)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v2.0.0 (2026-03-09)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chores" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chores
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Improvements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v130-2025-10-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.3.0 (2025-10-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.3.0 (2025-10-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v120-2025-10-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.2.0 (2025-10-09)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.2.0 (2025-10-09)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chores_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chores
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v110-2025-10-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.1.0 (2025-10-08)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.1.0 (2025-10-08)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v101-2025-10-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.1 (2025-10-08)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.1 (2025-10-08)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100-2025-10-08" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0 (2025-10-08)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.0 (2025-10-08)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100-rc1-2025-10-07" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0-rc.1 (2025-10-07)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.0-rc.1 (2025-10-07)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-system_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#continuous-integration_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refactoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v030-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.3.0 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.3.0 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug Fixes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-style_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Style
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v026-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.6 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.6 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v025-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.5 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.5 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v024-2025-05-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.4 (2025-05-16)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.2.4 (2025-05-16)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#chores_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chores
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Features
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v020-2025-04-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      v0.2.0 (2025-04-29)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="changelog">CHANGELOG<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<!-- version list -->
+
+<h2 id="v200-2026-03-09">v2.0.0 (2026-03-09)<a class="headerlink" href="#v200-2026-03-09" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes">Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>pandas</strong>: Resolve indexing mismatch when filling empty error lists
+  (<a href="https://github.com/maltzsama/sumeh/commit/ea89997b96722db748caa8b963d82739b52a313f"><code>ea89997</code></a>)</p>
+</li>
+<li>
+<p><strong>sql</strong>: Ensure proper table identifier formatting and import structure
+  (<a href="https://github.com/maltzsama/sumeh/commit/cb2de8024a90b2c5cb8c45c78f3864eb0e138ba5"><code>cb2de80</code></a>)</p>
+</li>
+</ul>
+<h3 id="build-system">Build System<a class="headerlink" href="#build-system" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>deps</strong>: Update Python version to 3.10 and bump dependencies
+  (<a href="https://github.com/maltzsama/sumeh/commit/9f9d32c0ba19160770b6e8a5e32487f94fc6193c"><code>9f9d32c</code></a>)</li>
+</ul>
+<h3 id="chores">Chores<a class="headerlink" href="#chores" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Clean up pyproject.toml dependencies and extras
+  (<a href="https://github.com/maltzsama/sumeh/commit/571aa3b8ca7ca1f8c1f203fd98f270bb74a38242"><code>571aa3b</code></a>)</p>
+</li>
+<li>
+<p>Remove legacy monolithic engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/5c96bcca8f92b33b69099768fe85aefe6aac9204"><code>5c96bcc</code></a>)</p>
+</li>
+<li>
+<p>Remove legacy monolithic engine files
+  (<a href="https://github.com/maltzsama/sumeh/commit/a21b2172292a6f07c799fb80ea744e3e36f9cc39"><code>a21b217</code></a>)</p>
+</li>
+<li>
+<p><strong>cleanup</strong>: Remove empty baseline and sinks modules
+  (<a href="https://github.com/maltzsama/sumeh/commit/53fffbf61b86ae2859fb2e33e77d8969427e58c2"><code>53fffbf</code></a>)</p>
+</li>
+<li>
+<p><strong>tests</strong>: Remove outdated v1.3.0 test suite
+  (<a href="https://github.com/maltzsama/sumeh/commit/d7b2f21eca2576283f58a1cb7a6d8f9bc8e3bebb"><code>d7b2f21</code></a>)</p>
+</li>
+</ul>
+<h3 id="code-style">Code Style<a class="headerlink" href="#code-style" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Apply consistent code formatting across all modules
+  (<a href="https://github.com/maltzsama/sumeh/commit/7db9778b8d3404d11bb4a46498432e9a7a1fe8e9"><code>7db9778</code></a>)</p>
+</li>
+<li>
+<p>Fix formatting and imports across sink modules
+  (<a href="https://github.com/maltzsama/sumeh/commit/aac1e9f76fbc21543e93fa4df4cc6c7d271fc412"><code>aac1e9f</code></a>)</p>
+</li>
+<li>
+<p>Fix import ordering and remove unused imports across codebase
+  (<a href="https://github.com/maltzsama/sumeh/commit/01d6c59f5f6f9dd04f0a99c1f8dd1ed5825c1f24"><code>01d6c59</code></a>)</p>
+</li>
+<li>
+<p>Format code with consistent imports and line breaks
+  (<a href="https://github.com/maltzsama/sumeh/commit/cbff8e0dfa3946e2a58b6091154262e51cb4c461"><code>cbff8e0</code></a>)</p>
+</li>
+<li>
+<p>Normalize quotes and formatting across codebase
+  (<a href="https://github.com/maltzsama/sumeh/commit/bbd15a3bc67d46d64558d4725cc81c0633954236"><code>bbd15a3</code></a>)</p>
+</li>
+</ul>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Update module docstrings and implement lazy engine loading
+  (<a href="https://github.com/maltzsama/sumeh/commit/85aafaa12a25428f9e501fb6537556ce6e793312"><code>85aafaa</code></a>)</p>
+</li>
+<li>
+<p><strong>init</strong>: Shorten top-level engine exports comment
+  (<a href="https://github.com/maltzsama/sumeh/commit/30d5173f8d223ead60273e5a2b458f3dac289452"><code>30d5173</code></a>)</p>
+</li>
+</ul>
+<h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Add auto-profiler, schema validation, and engine capabilities
+  (<a href="https://github.com/maltzsama/sumeh/commit/6a477509457cab5ccdcf54d329e6c4ea05a7d211"><code>6a47750</code></a>)</p>
+</li>
+<li>
+<p>Add AWS Athena SQL-based validation engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/7a2b018ad1d78fd526d54e1e049085a7be6a6b48"><code>7a2b018</code></a>)</p>
+</li>
+<li>
+<p>Add CSV rule loader and SQL generators
+  (<a href="https://github.com/maltzsama/sumeh/commit/32bee274f9c49802025cb03649694712c9d52e0d"><code>32bee27</code></a>)</p>
+</li>
+<li>
+<p>Add DataFrame accessors to ValidationReport
+  (<a href="https://github.com/maltzsama/sumeh/commit/5c426c5010e2e9f152c77cffe3925eddf610f075"><code>5c426c5</code></a>)</p>
+</li>
+<li>
+<p>Add distributed Dask engine with lazy evaluation
+  (<a href="https://github.com/maltzsama/sumeh/commit/976f2f3a1671bace1eab7addb47c0b561054c84f"><code>976f2f3</code></a>)</p>
+</li>
+<li>
+<p>Add get_validation_sql helper to BigQuery and DuckDB engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/f304dc320eea4fbaf5df2079b6da370d168fda0f"><code>f304dc3</code></a>)</p>
+</li>
+<li>
+<p>Add OpenMetadata sink with SinkProtocol
+  (<a href="https://github.com/maltzsama/sumeh/commit/fe4a9401750d5289c3c2beca177963da68d5f19a"><code>fe4a940</code></a>)</p>
+</li>
+<li>
+<p>Add PyFlink streaming validation engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/e62d2d55d85ed3bda8945ecb69d71ad86c736f2f"><code>e62d2d5</code></a>)</p>
+</li>
+<li>
+<p>Add PySpark engine with pure Column API (zero UDFs)
+  (<a href="https://github.com/maltzsama/sumeh/commit/f488d475b2526154df63d39941ca0bba45599309"><code>f488d47</code></a>)</p>
+</li>
+<li>
+<p>Add rule validation and metadata preservation
+  (<a href="https://github.com/maltzsama/sumeh/commit/072291883a24ab1d73150c5e924984a78f2ec9ae"><code>0722918</code></a>)</p>
+</li>
+<li>
+<p>Add Snowflake engine with pure SQL validation
+  (<a href="https://github.com/maltzsama/sumeh/commit/5c5d4163c292d39f69afb4a20a699866434fa019"><code>5c5d416</code></a>)</p>
+</li>
+<li>
+<p>Add SQL generator for Flink validation queries
+  (<a href="https://github.com/maltzsama/sumeh/commit/15df523a331356547589ad65406824522aed9024"><code>15df523</code></a>)</p>
+</li>
+<li>
+<p>Add SQLCore-based BigQuery engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/00b6b23499dd3b82db3f4fece34f58835b2a9e3f"><code>00b6b23</code></a>)</p>
+</li>
+<li>
+<p>Add Trino, Redshift, and Doris SQL engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/13a3d3e73c0ef8305da686adde9d1834888c6eb3"><code>13a3d3e</code></a>)</p>
+</li>
+<li>
+<p>Complete analyzers with all date, comparison, and aggregation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/02616fefb36a26d19e3d8a1deaf1f5efeaf687cf"><code>02616fe</code></a>)</p>
+</li>
+<li>
+<p>Complete README rewrite and project restructure for v2.0 release
+  (<a href="https://github.com/maltzsama/sumeh/commit/6ff4d39ac3e31c538ce69de9744012e851bca9ea"><code>6ff4d39</code></a>)</p>
+</li>
+<li>
+<p>Expand PyFlink validation engine to full feature parity
+  (<a href="https://github.com/maltzsama/sumeh/commit/c5840d4348423d9d0d076c9d24ece04661486097"><code>c5840d4</code></a>)</p>
+</li>
+<li>
+<p>Implement DuckDB engine with SQLCore validation
+  (<a href="https://github.com/maltzsama/sumeh/commit/8aef6a7c01551d1dd5328744498a0b54bdf288f9"><code>8aef6a7</code></a>)</p>
+</li>
+<li>
+<p><strong>duckdb</strong>: Add data bifurcation and standardize code formatting
+  (<a href="https://github.com/maltzsama/sumeh/commit/b64bbc1bfd8aeca4846cc090d8854c6e34d3339a"><code>b64bbc1</code></a>)</p>
+</li>
+<li>
+<p><strong>exporters</strong>: Add IExporter protocol for pure metadata formatting
+  (<a href="https://github.com/maltzsama/sumeh/commit/4866921cd6d643889c8d821167093160e8a8a241"><code>4866921</code></a>)</p>
+</li>
+<li>
+<p><strong>init</strong>: Replace dynamic engine loading with explicit imports for better IDE support
+  (<a href="https://github.com/maltzsama/sumeh/commit/cfc385938f8599c6005abf39f199e2c691b4f3f0"><code>cfc3859</code></a>)</p>
+</li>
+<li>
+<p><strong>polars</strong>: Add Polars engine with optimized bulk error aggregation
+  (<a href="https://github.com/maltzsama/sumeh/commit/6b337ef748abcc1393a549a0aa8233ddde5352cd"><code>6b337ef</code></a>)</p>
+</li>
+<li>
+<p><strong>sumeh</strong>: V2.0 rewrite with analyzer/constraint architecture
+  (<a href="https://github.com/maltzsama/sumeh/commit/cc05b17dc1b0ee3fdf4d3cddec103afcf5e10d06"><code>cc05b17</code></a>)</p>
+</li>
+</ul>
+<h3 id="performance-improvements">Performance Improvements<a class="headerlink" href="#performance-improvements" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Optimize pandas and polars engines with bulk error aggregation
+  (<a href="https://github.com/maltzsama/sumeh/commit/bba5d818edba342170a0c0176b37ee7ed8cab333"><code>bba5d81</code></a>)</li>
+</ul>
+<h3 id="refactoring">Refactoring<a class="headerlink" href="#refactoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Remove OOM-prone ID collection from analyzers
+  (<a href="https://github.com/maltzsama/sumeh/commit/d5b640143ea7a68abf874ca5ad686f7463bac952"><code>d5b6401</code></a>)</p>
+</li>
+<li>
+<p>Simplify Ray Data engine implementation
+  (<a href="https://github.com/maltzsama/sumeh/commit/4e753d914af0afd167fefc6988b3ebb9fe9c9b30"><code>4e753d9</code></a>)</p>
+</li>
+<li>
+<p>Split CLI into modular command files
+  (<a href="https://github.com/maltzsama/sumeh/commit/29253e32a447dc1ddbf6da31d7a1aa8fd7a5c40b"><code>29253e3</code></a>)</p>
+</li>
+<li>
+<p><strong>core</strong>: Consolidate protocols and remove dead code
+  (<a href="https://github.com/maltzsama/sumeh/commit/ef6b43e5cd3b1384b1a1d2b23cce8b6dcdd45262"><code>ef6b43e</code></a>)</p>
+</li>
+<li>
+<p><strong>core</strong>: Rename RuleDef to RuleDefinition for consistency
+  (<a href="https://github.com/maltzsama/sumeh/commit/c54432c194383fa4759e6779483058ddb5c29f1d"><code>c54432c</code></a>)</p>
+</li>
+<li>
+<p><strong>core</strong>: Reorganize core module structure for better maintainability
+  (<a href="https://github.com/maltzsama/sumeh/commit/79a32983a025fd09c3315e03dfe1b5670a11f747"><code>79a3298</code></a>)</p>
+</li>
+<li>
+<p><strong>engines</strong>: Simplify engine package exports
+  (<a href="https://github.com/maltzsama/sumeh/commit/deb9c45dc33f7b96851521d2052d7564c5449700"><code>deb9c45</code></a>)</p>
+</li>
+<li>
+<p><strong>models</strong>: Remove duplicate SinkResult class
+  (<a href="https://github.com/maltzsama/sumeh/commit/a8579bb358cc49c1874a2f3cc94d3e679de47158"><code>a8579bb</code></a>)</p>
+</li>
+<li>
+<p><strong>polars</strong>: Use consistent timestamp and simplify error aggregation
+  (<a href="https://github.com/maltzsama/sumeh/commit/c57fd5e98ac11b9ba4c2c0e421db44e7ca92cbae"><code>c57fd5e</code></a>)</p>
+</li>
+<li>
+<p><strong>profiler</strong>: Clean up DataProfiler with better docs and safety checks
+  (<a href="https://github.com/maltzsama/sumeh/commit/3ba25657471378ae72765bab6627ec747ba7b900"><code>3ba2565</code></a>)</p>
+</li>
+</ul>
+<h2 id="v130-2025-10-16">v1.3.0 (2025-10-16)<a class="headerlink" href="#v130-2025-10-16" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_1">Bug Fixes<a class="headerlink" href="#bug-fixes_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Dask dependancie error
+  (<a href="https://github.com/maltzsama/sumeh/commit/f8c1b62a09c2e503c8d342a27092fc82ea15e59b"><code>f8c1b62</code></a>)</li>
+</ul>
+<h3 id="code-style_1">Code Style<a class="headerlink" href="#code-style_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Improve readability with standardized line breaks and spacing
+  (<a href="https://github.com/maltzsama/sumeh/commit/a220071979be0b9444da74e598519de3b0caae86"><code>a220071</code></a>)</p>
+</li>
+<li>
+<p>Standardize and clean up import ordering
+  (<a href="https://github.com/maltzsama/sumeh/commit/99cc1ae5b36c4013e7762855455f60beb71e77b0"><code>99cc1ae</code></a>)</p>
+</li>
+</ul>
+<h3 id="continuous-integration">Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Simplify Poetry install by using <code>--all-extras</code> in publish workflow
+  (<a href="https://github.com/maltzsama/sumeh/commit/a8d59b32559d51e6d279d174278d677de383a7cf"><code>a8d59b3</code></a>)</li>
+</ul>
+<h3 id="features_1">Features<a class="headerlink" href="#features_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Add full BigQuery table-level validation support and unify rule model across engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/af58f5cc9c877b14e1544537455f8fc27801126f"><code>af58f5c</code></a>)</p>
+</li>
+<li>
+<p>Enhance DuckDB detection and refactor Pandas date checks
+  (<a href="https://github.com/maltzsama/sumeh/commit/39a64ca9547ffcdca772f2add84a4dfbacb9d81f"><code>39a64ca</code></a>)</p>
+</li>
+<li>
+<p>Enhance rule parsing and standardize rule usage in engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/945ae8bc98fe25fb0c0406acca9450d228c36ec6"><code>945ae8b</code></a>)</p>
+</li>
+<li>
+<p>Refactor validation engine to use RuleDef model and fix ambiguity issues
+  (<a href="https://github.com/maltzsama/sumeh/commit/808ff222254484a1387a901966f25761f1a9edb0"><code>808ff22</code></a>)</p>
+</li>
+<li>
+<p>Standardize aggregation checks and implement multi-level validation
+  (<a href="https://github.com/maltzsama/sumeh/commit/bc5683029991f84bf25fb3f788a40fffcd37d181"><code>bc56830</code></a>)</p>
+</li>
+<li>
+<p>Unify table-level validation engine interface across all backends
+  (<a href="https://github.com/maltzsama/sumeh/commit/e1234fa615227af4e722866d84e243edabcace16"><code>e1234fa</code></a>)</p>
+</li>
+<li>
+<p><strong>core</strong>: Implement Dispatcher pattern for core modules
+  (<a href="https://github.com/maltzsama/sumeh/commit/13a43495cb5c5902bf53724b9c58e23345d7c4c5"><code>13a4349</code></a>)</p>
+</li>
+<li>
+<p><strong>duckdb</strong>: Enhance validation dispatchers, add robust error handling &amp; input checks**
+  (<a href="https://github.com/maltzsama/sumeh/commit/82c427413d76c97db722fde9673790c1f9c37e61"><code>82c4274</code></a>)</p>
+</li>
+</ul>
+<h3 id="refactoring_1">Refactoring<a class="headerlink" href="#refactoring_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Clean up and organize imports across core modules and engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/7953b20899bfb9b37b68325b56ddd4304fa6a681"><code>7953b20</code></a>)</p>
+</li>
+<li>
+<p>Introduce RuleDef model and registry for configuration
+  (<a href="https://github.com/maltzsama/sumeh/commit/90522e52aa8dc146f4b1eef805bb2c60b6f05720"><code>90522e5</code></a>)</p>
+</li>
+<li>
+<p>Remove obsolete extract_params test and align test suite with current codebase_
+  (<a href="https://github.com/maltzsama/sumeh/commit/5bfc07b7c45098db01c7eaf0df4037176705e051"><code>5bfc07b</code></a>)</p>
+</li>
+<li>
+<p>Standardize code formatting and improve error handling in BigQuery engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/20c994ad953d09b6877e543e75adeb41afd3944c"><code>20c994a</code></a>)</p>
+</li>
+<li>
+<p>Unify and modernize configuration dispatchers with clear, consistent API
+  (<a href="https://github.com/maltzsama/sumeh/commit/8915815e87407cc369368cbfeff3b7ae0653fde2"><code>8915815</code></a>)</p>
+</li>
+<li>
+<p>Unify date validation aliases across all engines for consistency
+  (<a href="https://github.com/maltzsama/sumeh/commit/7becdd5285f803f8fbf5dc59721670b48f6f5e3b"><code>7becdd5</code></a>)</p>
+</li>
+<li>
+<p><strong>cli</strong>: Migrate CLI implementation from argparse to Typer
+  (<a href="https://github.com/maltzsama/sumeh/commit/e161748a4493dfe52216c14313c5bde731412f3e"><code>e161748</code></a>)</p>
+</li>
+<li>
+<p><strong>pyspark</strong>: Standardize validation functions and remove legacy logic
+  (<a href="https://github.com/maltzsama/sumeh/commit/fc03b78e2713b9432c33a31659c283a6f520dcde"><code>fc03b78</code></a>)</p>
+</li>
+</ul>
+<h2 id="v120-2025-10-09">v1.2.0 (2025-10-09)<a class="headerlink" href="#v120-2025-10-09" title="Permanent link">&para;</a></h2>
+<h3 id="chores_1">Chores<a class="headerlink" href="#chores_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>deps</strong>: Update AWS, caching, and core dependencies
+  (<a href="https://github.com/maltzsama/sumeh/commit/e6821e03c02aa435a901a09239c0bc9a1e2250d2"><code>e6821e0</code></a>)</li>
+</ul>
+<h3 id="documentation_1">Documentation<a class="headerlink" href="#documentation_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Show private members in MkDocs API documentation
+  (<a href="https://github.com/maltzsama/sumeh/commit/3f447e54308c001a628daa494822949a21e29da0"><code>3f447e5</code></a>)</li>
+</ul>
+<h3 id="features_2">Features<a class="headerlink" href="#features_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>bigquery</strong>: Implement native Data Quality validation and summarization
+  (<a href="https://github.com/maltzsama/sumeh/commit/eeaf615fb5040d093a70e58cec8730dab271c8eb"><code>eeaf615</code></a>)</p>
+</li>
+<li>
+<p><strong>bigquery</strong>: Rewrite validation to use 100% SQLGlot and improve docs
+  (<a href="https://github.com/maltzsama/sumeh/commit/5ad0d7f760ae07a86c482144c58fa2438b068971"><code>5ad0d7f</code></a>)</p>
+</li>
+</ul>
+<h2 id="v110-2025-10-08">v1.1.0 (2025-10-08)<a class="headerlink" href="#v110-2025-10-08" title="Permanent link">&para;</a></h2>
+<h3 id="features_3">Features<a class="headerlink" href="#features_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>schema</strong>: Decouple schema extraction and improve validation output
+  (<a href="https://github.com/maltzsama/sumeh/commit/852c36b2205385dbe0a6946341ba7428b6254ae2"><code>852c36b</code></a>)</li>
+</ul>
+<h3 id="refactoring_2">Refactoring<a class="headerlink" href="#refactoring_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>core, duckdb</strong>: Minor cleanup and improved schema error formatting
+  (<a href="https://github.com/maltzsama/sumeh/commit/cfbb695f08f969c25682eec86f4de6b7e4f671d7"><code>cfbb695</code></a>)</li>
+</ul>
+<h2 id="v101-2025-10-08">v1.0.1 (2025-10-08)<a class="headerlink" href="#v101-2025-10-08" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_2">Bug Fixes<a class="headerlink" href="#bug-fixes_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Correctly parse field lists and handle complex string inputs
+  (<a href="https://github.com/maltzsama/sumeh/commit/66a5a393705c149c9b8c7cbb1fd91545295813f7"><code>66a5a39</code></a>)</li>
+</ul>
+<h2 id="v100-2025-10-08">v1.0.0 (2025-10-08)<a class="headerlink" href="#v100-2025-10-08" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_3">Bug Fixes<a class="headerlink" href="#bug-fixes_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Sync version numbers with latest release tag
+  (<a href="https://github.com/maltzsama/sumeh/commit/b65b42082290d3d1f462292c2f1b6ac99b868c05"><code>b65b420</code></a>)</li>
+</ul>
+<h2 id="v100-rc1-2025-10-07">v1.0.0-rc.1 (2025-10-07)<a class="headerlink" href="#v100-rc1-2025-10-07" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_4">Bug Fixes<a class="headerlink" href="#bug-fixes_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>engines</strong>: Correct inverse logic for comparison validation functions
+  (<a href="https://github.com/maltzsama/sumeh/commit/64dd3da6a99b2cdb73384bc23a84f50b41a89f54"><code>64dd3da</code></a>)</li>
+</ul>
+<h3 id="build-system_1">Build System<a class="headerlink" href="#build-system_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Update pyproject.toml with complete metadata
+  (<a href="https://github.com/maltzsama/sumeh/commit/03f4fd23ad610aff264447ee75b3b351ec778059"><code>03f4fd2</code></a>)</li>
+</ul>
+<h3 id="continuous-integration_1">Continuous Integration<a class="headerlink" href="#continuous-integration_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Adopt Trusted Publishers for PyPI deployment and refactor release flow
+  (<a href="https://github.com/maltzsama/sumeh/commit/e5077175e51797b12dafe6d08e4f0fb0c7778830"><code>e507717</code></a>)</p>
+</li>
+<li>
+<p>Fix on ci/cd deployment
+  (<a href="https://github.com/maltzsama/sumeh/commit/420454f7ed6854a90268cece69aeda10d5ae7958"><code>420454f</code></a>)</p>
+</li>
+<li>
+<p><strong>config</strong>: Add python-semantic-release configuration
+  (<a href="https://github.com/maltzsama/sumeh/commit/95b311390e95f73db7749ecca253e9d522ebcfb2"><code>95b3113</code></a>)</p>
+</li>
+<li>
+<p><strong>workflow</strong>: Configure conditional PyPI publishing for releases
+  (<a href="https://github.com/maltzsama/sumeh/commit/72f3bb6db37d9132f5b5906f873684b569ea3f01"><code>72f3bb6</code></a>)</p>
+</li>
+</ul>
+<h3 id="documentation_2">Documentation<a class="headerlink" href="#documentation_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Improve configuration examples and workflow clarity
+  (<a href="https://github.com/maltzsama/sumeh/commit/bf09a5f2e27401b9fa2049867448de557ae48a61"><code>bf09a5f</code></a>)</p>
+</li>
+<li>
+<p>Update documentation structure following module refactoring
+  (<a href="https://github.com/maltzsama/sumeh/commit/f9383828c1aa9aa0877e8d0503c4bed95030629f"><code>f938382</code></a>)</p>
+</li>
+</ul>
+<h3 id="features_4">Features<a class="headerlink" href="#features_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Add Schema Validation feature and various data source support
+  (<a href="https://github.com/maltzsama/sumeh/commit/4415c920224e7dfe7c91013b059b1400ad0129c8"><code>4415c92</code></a>)</p>
+</li>
+<li>
+<p>Centralized schema definition using Schema Registry
+  (<a href="https://github.com/maltzsama/sumeh/commit/53ee185602f121f46f8399582b9716c83dfe71ed"><code>53ee185</code></a>)</p>
+</li>
+<li>
+<p>Implement interactive Streamlit dashboard for validation results
+  (<a href="https://github.com/maltzsama/sumeh/commit/7c9804adaf243b7c04a48989592506adba233c5a"><code>7c9804a</code></a>)</p>
+</li>
+<li>
+<p>Introduce Databricks rule source and refine configuration methods
+  (<a href="https://github.com/maltzsama/sumeh/commit/03ef55c0d6ebb1a81a5bebc32ca2d76b3f92329c"><code>03ef55c</code></a>)</p>
+</li>
+<li>
+<p><strong>ci</strong>: Major package refactoring, automate PyPI publishing, and enhance SQL connections
+  (<a href="https://github.com/maltzsama/sumeh/commit/69bd9c7d65a0b01ca17f7776f4bf30559da54913"><code>69bd9c7</code></a>)</p>
+</li>
+<li>
+<p><strong>cli</strong>: Add SQL DDL generation for 8 database dialects
+  (<a href="https://github.com/maltzsama/sumeh/commit/82ca12cdaca563b527199eecbbdfc2f081b6611b"><code>82ca12c</code></a>)</p>
+</li>
+<li>
+<p><strong>dashboard</strong>: Rework Streamlit dashboard with advanced visuals and filters
+  (<a href="https://github.com/maltzsama/sumeh/commit/64dd3da6a99b2cdb73384bc23a84f50b41a89f54"><code>64dd3da</code></a>)</p>
+</li>
+</ul>
+<h3 id="refactoring_3">Refactoring<a class="headerlink" href="#refactoring_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>General code cleanup and API simplification
+  (<a href="https://github.com/maltzsama/sumeh/commit/99368aa8b001cebe9f6ab47326ac821a94d51943"><code>99368aa</code></a>)</p>
+</li>
+<li>
+<p>Make schema lookup flexible and enhance security checks
+  (<a href="https://github.com/maltzsama/sumeh/commit/ee2b41de96b1ab28b5cd51a8ab2562654cc5956f"><code>ee2b41d</code></a>)</p>
+</li>
+<li>
+<p><strong>core, cli</strong>: Introduce core utility modules and prepare for 'validate' command
+  (<a href="https://github.com/maltzsama/sumeh/commit/791146565bb0c6d78ea25479e653e4f97493b944"><code>7911465</code></a>)</p>
+</li>
+<li>
+<p><strong>core, config</strong>: Standardize config/schema API and enforce required parameters
+  (<a href="https://github.com/maltzsama/sumeh/commit/75614bc74c1a2697d3045eaea02aa0c9b036ac0b"><code>75614bc</code></a>)</p>
+</li>
+</ul>
+<h2 id="v030-2025-05-16">v0.3.0 (2025-05-16)<a class="headerlink" href="#v030-2025-05-16" title="Permanent link">&para;</a></h2>
+<h3 id="bug-fixes_5">Bug Fixes<a class="headerlink" href="#bug-fixes_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>dask_engine</strong>: Invert validation logic to flag non-compliant records
+  (<a href="https://github.com/maltzsama/sumeh/commit/2a76fe7152270647fcdbdf9e2cbc4ebb09fcd810"><code>2a76fe7</code></a>)</li>
+</ul>
+<h3 id="code-style_2">Code Style<a class="headerlink" href="#code-style_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Apply code formatting and cleanup across core and engine files
+  (<a href="https://github.com/maltzsama/sumeh/commit/dd0a0ad16761d76a5c6abddc45ef1d2bcf131353"><code>dd0a0ad</code></a>)</p>
+</li>
+<li>
+<p>Clean up whitespace and formatting in test files
+  (<a href="https://github.com/maltzsama/sumeh/commit/aa47a973a101fd3befaa66419e94d86bbf9d798a"><code>aa47a97</code></a>)</p>
+</li>
+</ul>
+<h3 id="documentation_3">Documentation<a class="headerlink" href="#documentation_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Complete Pandas engine docstrings and enhance core module documentation
+  (<a href="https://github.com/maltzsama/sumeh/commit/65d511065f37b22ddd6d61a50422152d57935af4"><code>65d5110</code></a>)</p>
+</li>
+<li>
+<p>Enhance documentation and reorganize validation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/0873ca3412dd0d0a2bb0d13c11edbddcceee5fc8"><code>0873ca3</code></a>)</p>
+</li>
+<li>
+<p><strong>polars_engine</strong>: Add comprehensive docstrings for data quality functions
+  (<a href="https://github.com/maltzsama/sumeh/commit/dcc93c532ba1e418fb8b534646138792b0bb3bc5"><code>dcc93c5</code></a>)</p>
+</li>
+</ul>
+<h3 id="features_5">Features<a class="headerlink" href="#features_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p>Add 'is_in' and 'not_in' rule aliases to engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/b522cb08fb6259fb1af45a086818e651c80a3dcc"><code>b522cb0</code></a>)</p>
+</li>
+<li>
+<p>Add comprehensive date and numeric validation functions to pandas engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/c23d5133c80992c300a610ebb77083957bb805a4"><code>c23d513</code></a>)</p>
+</li>
+<li>
+<p>Add date and numeric validation functions to Polars engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/2675e840a86c5dafc3b78b133c7471cbd312c001"><code>2675e84</code></a>)</p>
+</li>
+<li>
+<p>Improve date and numeric validation rules in DuckDB engine
+  (<a href="https://github.com/maltzsama/sumeh/commit/6de088c728cf5eba92cf66f664e5002628fccb0c"><code>6de088c</code></a>)</p>
+</li>
+<li>
+<p><strong>dask</strong>: Implement numeric threshold and detailed date/weekday validation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/522d33210f40e769c6fd59a1985f8e8e0e0dfd21"><code>522d332</code></a>)</p>
+</li>
+<li>
+<p><strong>duckdb</strong>: Implement numeric threshold and detailed date/weekday validation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/8112e96e37c603566cd470e05c1b1888178eaced"><code>8112e96</code></a>)</p>
+</li>
+<li>
+<p><strong>pandas</strong>: Add new engine for Pandas DataFrames with comprehensive rule support
+  (<a href="https://github.com/maltzsama/sumeh/commit/d31234b6df94f7240fd25bb4aed000d9ff5ff47a"><code>d31234b</code></a>)</p>
+</li>
+<li>
+<p><strong>pyspark</strong>: Implement numeric threshold and detailed date validation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/073c0ad73e65494a7cf189d9759b94afca6ff24e"><code>073c0ad</code></a>)</p>
+</li>
+</ul>
+<h2 id="v026-2025-05-16">v0.2.6 (2025-05-16)<a class="headerlink" href="#v026-2025-05-16" title="Permanent link">&para;</a></h2>
+<h3 id="documentation_4">Documentation<a class="headerlink" href="#documentation_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add docstrings for date validation rules in Dask and DuckDB engines
+  (<a href="https://github.com/maltzsama/sumeh/commit/42cb80a2ce0e183b5bbb9db5225c562f2d954f23"><code>42cb80a</code></a>)</li>
+</ul>
+<h3 id="features_6">Features<a class="headerlink" href="#features_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>dask</strong>: Implement date validation rules and add dedicated tests
+  (<a href="https://github.com/maltzsama/sumeh/commit/0a719d440c9ffb63f1de42344690f1f2a74b9d2a"><code>0a719d4</code></a>)</p>
+</li>
+<li>
+<p><strong>duckdb</strong>: Implement date and additional validation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/d45afc874303f982d8e819365685265ea7935382"><code>d45afc8</code></a>)</p>
+</li>
+<li>
+<p><strong>polars</strong>: Implement multiple validation rules and enhance documentation
+  (<a href="https://github.com/maltzsama/sumeh/commit/fc83ae6c927f8a7fb2573d6f1c39aa9042b7f1b9"><code>fc83ae6</code></a>)</p>
+</li>
+</ul>
+<h2 id="v025-2025-05-16">v0.2.5 (2025-05-16)<a class="headerlink" href="#v025-2025-05-16" title="Permanent link">&para;</a></h2>
+<h3 id="documentation_5">Documentation<a class="headerlink" href="#documentation_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Update README with logo path and completed tasks
+  (<a href="https://github.com/maltzsama/sumeh/commit/85fcc940e918f190df99da0bd085a937455714e7"><code>85fcc94</code></a>)</li>
+</ul>
+<h2 id="v024-2025-05-16">v0.2.4 (2025-05-16)<a class="headerlink" href="#v024-2025-05-16" title="Permanent link">&para;</a></h2>
+<h3 id="chores_2">Chores<a class="headerlink" href="#chores_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Version
+  (<a href="https://github.com/maltzsama/sumeh/commit/92fa3c5ee63d70233cec60fee72e7458c96952e4"><code>92fa3c5</code></a>)</li>
+</ul>
+<h3 id="features_7">Features<a class="headerlink" href="#features_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add quickstart guide and list supported validation rules
+  (<a href="https://github.com/maltzsama/sumeh/commit/d307c85be7310dabc69b1ca2e723df36885f6810"><code>d307c85</code></a>)</li>
+</ul>
+<h2 id="v020-2025-04-29">v0.2.0 (2025-04-29)<a class="headerlink" href="#v020-2025-04-29" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Initial Release</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "navigation.tabs", "navigation.indexes"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.60a45f97.min.js"></script>
+      
+    
+  </body>
+</html>

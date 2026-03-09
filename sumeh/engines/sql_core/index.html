@@ -13,10 +13,10 @@
       
       
       
-        <link rel="prev" href="../duckdb/">
+        <link rel="prev" href="../dask/">
       
       
-        <link rel="next" href="../snowflake/">
+        <link rel="next" href="../duckdb/">
       
       
       <link rel="icon" href="../../../img/favicon.png">
@@ -24,7 +24,7 @@
     
     
       
-        <title>BigQuery - Sumeh DQ — Unified Data Quality Framework</title>
+        <title>SQL Core & AST - Sumeh DQ — Unified Data Quality Framework</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#bigquery" class="md-skip">
+        <a href="#sql-core" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              BigQuery
+              SQL Core & AST
             
           </span>
         </div>
@@ -933,10 +933,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../sql_core/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    SQL Core & AST
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -945,6 +965,68 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engines.sql_core" class="md-nav__link">
+    <span class="md-ellipsis">
+      sql_core
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="sql_core">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.sql_core--execute-with-your-own-db-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute with your own DB client
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.sql_core.compile_rules_to_sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      compile_rules_to_sql
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.sql_core.validate_results" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate_results
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -975,30 +1057,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    BigQuery
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../bigquery/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1007,68 +1069,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery" class="md-nav__link">
-    <span class="md-ellipsis">
-      bigquery
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="bigquery">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery--authenticates-using-google-default-credentials" class="md-nav__link">
-    <span class="md-ellipsis">
-      Authenticates using Google Default Credentials
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.get_validation_sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      get_validation_sql
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.validate" class="md-nav__link">
-    <span class="md-ellipsis">
-      validate
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1455,37 +1455,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery" class="md-nav__link">
+  <a href="#sumeh.engines.sql_core" class="md-nav__link">
     <span class="md-ellipsis">
-      bigquery
+      sql_core
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="bigquery">
+    <nav class="md-nav" aria-label="sql_core">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery--authenticates-using-google-default-credentials" class="md-nav__link">
+  <a href="#sumeh.engines.sql_core--execute-with-your-own-db-client" class="md-nav__link">
     <span class="md-ellipsis">
-      Authenticates using Google Default Credentials
+      Execute with your own DB client
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.get_validation_sql" class="md-nav__link">
+  <a href="#sumeh.engines.sql_core.compile_rules_to_sql" class="md-nav__link">
     <span class="md-ellipsis">
-      get_validation_sql
+      compile_rules_to_sql
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.validate" class="md-nav__link">
+  <a href="#sumeh.engines.sql_core.validate_results" class="md-nav__link">
     <span class="md-ellipsis">
-      validate
+      validate_results
     </span>
   </a>
   
@@ -1511,24 +1511,24 @@
                   
 
 
-<h1 id="bigquery">BigQuery<a class="headerlink" href="#bigquery" title="Permanent link">&para;</a></h1>
+<h1 id="sql-core">SQL Core<a class="headerlink" href="#sql-core" title="Permanent link">&para;</a></h1>
 
 
 <div class="doc doc-object doc-module">
 
 
 
-<h2 id="sumeh.engines.bigquery" class="doc doc-heading">
-            <span class="doc doc-object-name doc-module-name">sumeh.engines.bigquery</span>
+<h2 id="sumeh.engines.sql_core" class="doc doc-heading">
+            <span class="doc doc-object-name doc-module-name">sumeh.engines.sql_core</span>
 
 
-<a href="#sumeh.engines.bigquery" class="headerlink" title="Permanent link">&para;</a></h2>
+<a href="#sumeh.engines.sql_core" class="headerlink" title="Permanent link">&para;</a></h2>
 
     <div class="doc doc-contents first">
 
-        <p>BigQuery Engine - Serverless SQL Validation.</p>
-<p>Executes validation rules directly on Google BigQuery tables using SQLGlot translation.
-Leverages BigQuery's distributed compute for massive datasets.</p>
+        <p>SQL Core Engine - SQL-based validation for databases.</p>
+<p>Translates validation rules into optimized SQL queries using SQLGlot.
+Supports multiple dialects: duckdb, postgres, spark, bigquery, etc.</p>
 
 
 <details class="example" open>
@@ -1536,12 +1536,21 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
   <blockquote>
 <blockquote>
 <blockquote>
-<p>from sumeh import bigquery as sumeh_bq</p>
-<h3 id="sumeh.engines.bigquery--authenticates-using-google-default-credentials">Authenticates using Google Default Credentials<a class="headerlink" href="#sumeh.engines.bigquery--authenticates-using-google-default-credentials" title="Permanent link">&para;</a></h3>
-<p>report = sumeh_bq.validate(
-...     table_id="my-project.analytics.users",
-...     rules=rules
-... )</p>
+<p>from sumeh import sql_core</p>
+<p>rules = [
+...     {"check_type": "is_complete", "field": "email"},
+...     {"check_type": "has_mean", "field": "salary", "value": 50000}
+... ]</p>
+<p>sql, rule_ids = sql_core.compile_rules_to_sql(
+...     rules=rules,
+...     table_name="users",
+...     dialect="duckdb",
+...     global_filter="date = '2024-01-15'"
+... )
+print(sql)</p>
+<h3 id="sumeh.engines.sql_core--execute-with-your-own-db-client">Execute with your own DB client<a class="headerlink" href="#sumeh.engines.sql_core--execute-with-your-own-db-client" title="Permanent link">&para;</a></h3>
+<p>result = conn.execute(sql).fetchone()
+report = sql_core.validate_results(result, rule_ids, rules)</p>
 </blockquote>
 </blockquote>
 </blockquote>
@@ -1569,43 +1578,22 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
 <div class="doc doc-object doc-function">
 
 
-<h3 id="sumeh.engines.bigquery.get_validation_sql" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">get_validation_sql</span>
+<h3 id="sumeh.engines.sql_core.compile_rules_to_sql" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">compile_rules_to_sql</span>
 
 
-<a href="#sumeh.engines.bigquery.get_validation_sql" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_validation_sql</span><span class="p">(</span><span class="n">rules</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">global_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<a href="#sumeh.engines.sql_core.compile_rules_to_sql" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile_rules_to_sql</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">dialect</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">global_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Generate BigQuery SQL.</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="sumeh.engines.bigquery.validate" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">validate</span>
-
-
-<a href="#sumeh.engines.bigquery.validate" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">table_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RuleDefinition</span><span class="p">],</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">project_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span>
-</span></code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Validates a BigQuery table.</p>
+        <p>Compiles rules into a single optimized SQL query.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1621,14 +1609,30 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>table_id</code>
+                <code>rules</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of RuleDef objects</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table_name</code>
             </td>
             <td>
                   <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Fully qualified table ID (e.g., "project.dataset.table")</p>
+                <p>Target table name</p>
               </div>
             </td>
             <td>
@@ -1637,35 +1641,14 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>rules</code>
+                <code>dialect</code>
             </td>
             <td>
-                  <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="RuleDefinition
-
-
-  
-      dataclass
-   (sumeh.core.rules.rule_model.RuleDefinition)" href="../../core/rules/#sumeh.core.rules.rule_model.RuleDefinition">RuleDefinition</a>]</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>List of validation rules</p>
-              </div>
-            </td>
-            <td>
-                <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>client</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Any">Any</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional bigquery.Client instance (uses default creds if None)</p>
+                <p>Target SQL dialect (duckdb, spark, postgres, bigquery)</p>
               </div>
             </td>
             <td>
@@ -1674,30 +1657,14 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>project_id</code>
+                <code>global_filter</code>
             </td>
             <td>
                   <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional project ID (if not providing client)</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>location</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional job location (e.g., "US", "EU")</p>
+                <p>Optional SQL WHERE clause (e.g., "date = '2024-01-01'")</p>
               </div>
             </td>
             <td>
@@ -1719,21 +1686,42 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><a class="autorefs autorefs-internal" title="ValidationReport
-
-
-  
-      dataclass
-   (sumeh.core.models.validation.ValidationReport)" href="../../core/validation/#sumeh.core.models.validation.ValidationReport">ValidationReport</a></code>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="typing.List">List</span>[<span title="str">str</span>]]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>ValidationReport</p>
+                <p>(sql_string, list_of_rule_ids_in_order)</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.sql_core.validate_results" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">validate_results</span>
+
+
+<a href="#sumeh.engines.sql_core.validate_results" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate_results</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">metrics_row</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">rule_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RuleDefinition</span><span class="p">],</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">total_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ValidationResult</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Maps the raw metrics row from SQL execution back to Rule Constraints.
+Wraps raw SQL values into MetricResult objects to satisfy Constraint interface.</p>
 
 
     </div>

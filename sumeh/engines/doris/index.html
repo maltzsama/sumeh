@@ -13,10 +13,10 @@
       
       
       
-        <link rel="prev" href="../duckdb/">
+        <link rel="prev" href="../trino/">
       
       
-        <link rel="next" href="../snowflake/">
+        <link rel="next" href="../pyflink/">
       
       
       <link rel="icon" href="../../../img/favicon.png">
@@ -24,7 +24,7 @@
     
     
       
-        <title>BigQuery - Sumeh DQ — Unified Data Quality Framework</title>
+        <title>Apache Doris - Sumeh DQ — Unified Data Quality Framework</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#bigquery" class="md-skip">
+        <a href="#doris" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              BigQuery
+              Apache Doris
             
           </span>
         </div>
@@ -975,30 +975,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    BigQuery
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../bigquery/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1007,68 +987,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery" class="md-nav__link">
-    <span class="md-ellipsis">
-      bigquery
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="bigquery">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery--authenticates-using-google-default-credentials" class="md-nav__link">
-    <span class="md-ellipsis">
-      Authenticates using Google Default Credentials
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.get_validation_sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      get_validation_sql
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.validate" class="md-nav__link">
-    <span class="md-ellipsis">
-      validate
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1162,10 +1080,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../doris/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Apache Doris
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1174,6 +1112,68 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sumeh.engines.doris" class="md-nav__link">
+    <span class="md-ellipsis">
+      doris
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="doris">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.doris--execute-manually-in-doris-mysql-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute manually in Doris MySQL client
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.doris.get_validation_sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_validation_sql
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sumeh.engines.doris.validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1455,26 +1455,26 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery" class="md-nav__link">
+  <a href="#sumeh.engines.doris" class="md-nav__link">
     <span class="md-ellipsis">
-      bigquery
+      doris
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="bigquery">
+    <nav class="md-nav" aria-label="doris">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery--authenticates-using-google-default-credentials" class="md-nav__link">
+  <a href="#sumeh.engines.doris--execute-manually-in-doris-mysql-client" class="md-nav__link">
     <span class="md-ellipsis">
-      Authenticates using Google Default Credentials
+      Execute manually in Doris MySQL client
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.get_validation_sql" class="md-nav__link">
+  <a href="#sumeh.engines.doris.get_validation_sql" class="md-nav__link">
     <span class="md-ellipsis">
       get_validation_sql
     </span>
@@ -1483,7 +1483,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sumeh.engines.bigquery.validate" class="md-nav__link">
+  <a href="#sumeh.engines.doris.validate" class="md-nav__link">
     <span class="md-ellipsis">
       validate
     </span>
@@ -1511,37 +1511,60 @@
                   
 
 
-<h1 id="bigquery">BigQuery<a class="headerlink" href="#bigquery" title="Permanent link">&para;</a></h1>
+<h1 id="doris">Doris<a class="headerlink" href="#doris" title="Permanent link">&para;</a></h1>
 
 
 <div class="doc doc-object doc-module">
 
 
 
-<h2 id="sumeh.engines.bigquery" class="doc doc-heading">
-            <span class="doc doc-object-name doc-module-name">sumeh.engines.bigquery</span>
+<h2 id="sumeh.engines.doris" class="doc doc-heading">
+            <span class="doc doc-object-name doc-module-name">sumeh.engines.doris</span>
 
 
-<a href="#sumeh.engines.bigquery" class="headerlink" title="Permanent link">&para;</a></h2>
+<a href="#sumeh.engines.doris" class="headerlink" title="Permanent link">&para;</a></h2>
 
     <div class="doc doc-contents first">
 
-        <p>BigQuery Engine - Serverless SQL Validation.</p>
-<p>Executes validation rules directly on Google BigQuery tables using SQLGlot translation.
-Leverages BigQuery's distributed compute for massive datasets.</p>
+        <p>Doris Engine - SQL-based validation with Apache Doris.</p>
+<p>Apache Doris is a high-performance, real-time analytical database
+based on MPP architecture. MySQL-compatible protocol.</p>
+<p>Two modes:
+1. validate() - Execute and return ValidationReport
+2. get_validation_sql() - Generate SQL without executing (Open SQL)</p>
 
 
-<details class="example" open>
-  <summary>Example</summary>
+<details class="example---execute" open>
+  <summary>Example - Execute</summary>
   <blockquote>
 <blockquote>
 <blockquote>
-<p>from sumeh import bigquery as sumeh_bq</p>
-<h3 id="sumeh.engines.bigquery--authenticates-using-google-default-credentials">Authenticates using Google Default Credentials<a class="headerlink" href="#sumeh.engines.bigquery--authenticates-using-google-default-credentials" title="Permanent link">&para;</a></h3>
-<p>report = sumeh_bq.validate(
-...     table_id="my-project.analytics.users",
-...     rules=rules
+<p>import pymysql
+from sumeh import doris as sumeh_doris</p>
+<p>conn = pymysql.connect(
+...     host='doris-fe.example.com',
+...     port=9030,
+...     user='root',
+...     database='analytics'
 ... )</p>
+<p>report = sumeh_doris.validate("analytics.users", rules, conn)
+print(f"Pass rate: {report.pass_rate:.2%}")</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+<details class="example---generate-sql" open>
+  <summary>Example - Generate SQL</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>sql = sumeh_doris.get_validation_sql(
+...     rules=rules,
+...     table_name="analytics.users"
+... )
+print(sql)</p>
+<h3 id="sumeh.engines.doris--execute-manually-in-doris-mysql-client">Execute manually in Doris MySQL client<a class="headerlink" href="#sumeh.engines.doris--execute-manually-in-doris-mysql-client" title="Permanent link">&para;</a></h3>
 </blockquote>
 </blockquote>
 </blockquote>
@@ -1569,43 +1592,20 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
 <div class="doc doc-object doc-function">
 
 
-<h3 id="sumeh.engines.bigquery.get_validation_sql" class="doc doc-heading">
+<h3 id="sumeh.engines.doris.get_validation_sql" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">get_validation_sql</span>
 
 
-<a href="#sumeh.engines.bigquery.get_validation_sql" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_validation_sql</span><span class="p">(</span><span class="n">rules</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">global_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<a href="#sumeh.engines.doris.get_validation_sql" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_validation_sql</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RuleDefinition</span><span class="p">],</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">global_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Generate BigQuery SQL.</p>
-
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h3 id="sumeh.engines.bigquery.validate" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">validate</span>
-
-
-<a href="#sumeh.engines.bigquery.validate" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">table_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RuleDefinition</span><span class="p">],</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">project_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">location</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span>
-</span></code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Validates a BigQuery table.</p>
+        <p>Generate Doris validation SQL without executing (Open SQL mode).</p>
+<p>Returns the SQL query as a string for manual execution or inspection.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -1621,14 +1621,148 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                <code>table_id</code>
+                <code>rules</code>
+            </td>
+            <td>
+                  <code><span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="RuleDefinition
+
+
+  
+      dataclass
+   (sumeh.core.rules.rule_model.RuleDefinition)" href="../../core/rules/#sumeh.core.rules.rule_model.RuleDefinition">RuleDefinition</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Validation rules</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table_name</code>
             </td>
             <td>
                   <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Fully qualified table ID (e.g., "project.dataset.table")</p>
+                <p>Target table name (database.table)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>global_filter</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional WHERE clause (e.g., "date = '2024-01-01'")</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQL query string (Doris dialect)</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>from sumeh import doris as sumeh_doris</p>
+<p>sql = sumeh_doris.get_validation_sql(
+...     rules=rules,
+...     table_name="analytics.users",
+...     global_filter="created_at &gt;= '2024-01-01'"
+... )
+print(sql)</p>
+<h4 id="sumeh.engines.doris.get_validation_sql--copy-paste-into-doris-mysql-client">Copy-paste into Doris MySQL client<a class="headerlink" href="#sumeh.engines.doris.get_validation_sql--copy-paste-into-doris-mysql-client" title="Permanent link">&para;</a></h4>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sumeh.engines.doris.validate" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">validate</span>
+
+
+<a href="#sumeh.engines.doris.validate" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">validate</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">rules</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RuleDefinition</span><span class="p">],</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">connection</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">baseline_provider</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Validates data using Apache Doris.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>table_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Fully qualified table name (database.table)</p>
               </div>
             </td>
             <td>
@@ -1649,7 +1783,7 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>List of validation rules</p>
+                <p>Validation rules</p>
               </div>
             </td>
             <td>
@@ -1658,46 +1792,29 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>client</code>
+                <code>connection</code>
             </td>
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="typing.Any">Any</span>]</code>
+                  <code><span title="typing.Any">Any</span></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional bigquery.Client instance (uses default creds if None)</p>
+                <p>MySQL-compatible connection (pymysql or mysql.connector)</p>
               </div>
             </td>
             <td>
-                  <code>None</code>
+                <em>required</em>
             </td>
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>project_id</code>
+                <code>baseline_provider</code>
             </td>
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Optional project ID (if not providing client)</p>
-              </div>
-            </td>
-            <td>
-                  <code>None</code>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>location</code>
-            </td>
-            <td>
-                  <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Optional job location (e.g., "US", "EU")</p>
+                <p>Optional baseline provider</p>
               </div>
             </td>
             <td>
@@ -1728,13 +1845,35 @@ Leverages BigQuery's distributed compute for massive datasets.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>ValidationReport</p>
+                <p>ValidationReport with .generated_sql for inspection</p>
               </div>
             </td>
           </tr>
       </tbody>
     </table>
 
+
+<details class="example" open>
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>import pymysql
+from sumeh import doris as sumeh_doris</p>
+<p>conn = pymysql.connect(
+...     host='doris-fe.example.com',
+...     port=9030,
+...     user='root',
+...     password='',
+...     database='analytics'
+... )</p>
+<p>report = sumeh_doris.validate("analytics.users", rules, conn)
+print(report.generated_sql)
+report.explain()</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
 
     </div>
 
