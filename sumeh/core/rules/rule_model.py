@@ -57,7 +57,8 @@ class RuleDefinition:
         if self.metadata is None:
             self.metadata = {}
 
-        # Validate rule type exists
+        self.field = self._parse_field(self.field)
+
         rule_def = RuleRegistry.get_rule(self.check_type)
         if rule_def is None:
             available = RuleRegistry.list_rules()
@@ -66,9 +67,8 @@ class RuleDefinition:
                 f"Available rules: {', '.join(available[:10])}... ({len(available)} total)"
             )
 
-        # Auto-enrich category and level from manifest
-        if self.category is None or self.level is None:
-            self._enrich_from_manifest()
+        self.level = rule_def.get("level", "ROW")
+        self.category = rule_def.get("category", "unknown")
 
     def _enrich_from_manifest(self):
         """Enrich rule with category and level from manifest."""
