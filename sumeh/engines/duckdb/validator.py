@@ -1,4 +1,3 @@
-
 class ValidatedDuckDBDataFrame:
     def __init__(self, good_df, bad_df):
         self._good = good_df

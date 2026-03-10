@@ -130,7 +130,21 @@ def validate(
 
 
 def get_validation_sql(rules, table_name, global_filter=None):
-    """Generate BigQuery SQL."""
+    """
+    Generate a validation SQL query for BigQuery based on the provided rules.
+    Args:
+        rules: A list or collection of validation rules to be compiled into SQL.
+        table_name: The name of the table to validate.
+        global_filter (str, optional): A global filter condition to apply to the validation query. Defaults to None.
+    Returns:
+        str: A SQL query string compiled from the rules in BigQuery dialect.
+    Raises:
+        ValueError: If rules is empty or table_name is invalid.
+    Example:
+        >>> rules = [{"column": "age", "check": "NOT NULL"}]
+        >>> sql = get_validation_sql(rules, "my_dataset.my_table")
+        >>> print(sql)
+    """
     formatted_table = _format_table_id(table_name)
     return compile_rules_to_sql(
         rules, formatted_table, dialect="bigquery", global_filter=global_filter

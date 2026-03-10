@@ -123,9 +123,9 @@ def _validate_recursive(
         canon_actual = _to_canonical_type(actual["raw_type"])
 
         if canon_expected != "unknown" and canon_expected != canon_actual:
-            type_errors[
-                full_path
-            ] = f"Expected {canon_expected}, got {canon_actual} ({actual['raw_type']})"
+            type_errors[full_path] = (
+                f"Expected {canon_expected}, got {canon_actual} ({actual['raw_type']})"
+            )
             continue
 
         # Array element type validation
@@ -143,9 +143,9 @@ def _validate_recursive(
         if col_def.require_comment and not actual_comment:
             metadata_errors[full_path] = "Missing required column comment."
         if col_def.expected_comment and col_def.expected_comment != actual_comment:
-            metadata_errors[
-                full_path
-            ] = f"Comment mismatch. Expected: '{col_def.expected_comment}'"
+            metadata_errors[full_path] = (
+                f"Comment mismatch. Expected: '{col_def.expected_comment}'"
+            )
 
         # Nullability validation
         actual_nullable = actual.get("nullable", True)
@@ -188,14 +188,13 @@ def _to_canonical_type(raw_type: str) -> str:
         Canonical type name (integer, float, string, etc)
     """
     raw = str(raw_type).lower()
-
-    # Remove numbers, brackets, parentheses, and Pandas [ns] suffix
-    clean = re.sub(r"[\d\[\]()<>,\s]|ns$", "", raw)
-
-    # Remove 'type' suffix if present
+    # Try exact match first (before stripping digits)
+    if raw in TYPE_MAP:
+        return TYPE_MAP[raw]
+    # Strip brackets, ns suffix, whitespace — but keep digits for uint8/int64 etc.
+    clean = re.sub(r"[\[\]()<>,\s]|ns$", "", raw)
     if clean.endswith("type"):
         clean = clean[:-4]
-
     return TYPE_MAP.get(clean, "unknown")
 
 

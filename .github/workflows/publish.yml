@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: write
-  id-token: write  # ← CRÍTICO para Trusted Publishers
+  id-token: write
 
 jobs:
   release-test:
@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - run: pip install poetry python-semantic-release
+      - run: pip install hatch python-semantic-release
 
       - name: Create version with semantic-release
         env:
@@ -33,7 +33,7 @@ jobs:
         run: semantic-release version
 
       - name: Build package
-        run: poetry build
+        run: hatch build
 
       - name: Publish to TestPyPI (Trusted Publisher)
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -54,7 +54,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - run: pip install poetry python-semantic-release
+      - run: pip install hatch python-semantic-release
 
       - name: Create version with semantic-release
         env:
@@ -62,7 +62,7 @@ jobs:
         run: semantic-release version
 
       - name: Build package
-        run: poetry build
+        run: hatch build
 
       - name: Publish to PyPI (Trusted Publisher)
         uses: pypa/gh-action-pypi-publish@release/v1
