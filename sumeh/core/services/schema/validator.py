@@ -188,14 +188,13 @@ def _to_canonical_type(raw_type: str) -> str:
         Canonical type name (integer, float, string, etc)
     """
     raw = str(raw_type).lower()
-
-    # Remove numbers, brackets, parentheses, and Pandas [ns] suffix
-    clean = re.sub(r"[\d\[\]()<>,\s]|ns$", "", raw)
-
-    # Remove 'type' suffix if present
+    # Try exact match first (before stripping digits)
+    if raw in TYPE_MAP:
+        return TYPE_MAP[raw]
+    # Strip brackets, ns suffix, whitespace — but keep digits for uint8/int64 etc.
+    clean = re.sub(r"[\[\]()<>,\s]|ns$", "", raw)
     if clean.endswith("type"):
         clean = clean[:-4]
-
     return TYPE_MAP.get(clean, "unknown")
 
 
