@@ -4,7 +4,7 @@ Polars-specific analyzers - COMPLETE IMPLEMENTATION.
 All row-level + table-level analyzers for Polars engine.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import polars as pl
 
@@ -26,9 +26,9 @@ class CompletenessAnalyzer:
         total = len(df)
         null_count = df.select(pl.col(field).is_null().sum()).item()
         null_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(pl.col(field).is_null())
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -60,7 +60,7 @@ class MultiFieldCompletenessAnalyzer:
         any_null = pl.any_horizontal([pl.col(f).is_null() for f in fields])
         incomplete_count = df.select(any_null.sum()).item()
         incomplete_row_ids = (
-            df.with_row_count().filter(any_null).select("row_nr").to_series().to_list()
+            df.with_row_index().filter(any_null).select("index").to_series().to_list()
         )
 
         completeness_rate = (total - incomplete_count) / total if total > 0 else 1.0
@@ -97,9 +97,9 @@ class UniquenessAnalyzer:
         duplicate_mask = df.select(pl.col(field).is_duplicated()).to_series()
         duplicate_count = duplicate_mask.sum()
         duplicate_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(duplicate_mask)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -131,9 +131,9 @@ class MultiFieldUniquenessAnalyzer:
         duplicate_mask = df.select(pl.struct(fields).is_duplicated()).to_series()
         duplicate_count = duplicate_mask.sum()
         duplicate_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(duplicate_mask)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -195,9 +195,9 @@ class ComparisonAnalyzer:
 
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -234,9 +234,9 @@ class BetweenAnalyzer:
         fail_condition = (pl.col(field) < min_val) | (pl.col(field) > max_val)
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -270,9 +270,9 @@ class ColumnComparisonAnalyzer:
         fail_condition = pl.col(field) != pl.col(other_field)
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -318,9 +318,9 @@ class MembershipAnalyzer:
 
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -362,9 +362,9 @@ class PatternAnalyzer:
         fail_condition = ~pl.col(field).str.contains(pattern)
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -398,9 +398,9 @@ class LegitAnalyzer:
         )
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -448,21 +448,13 @@ class DateAnalyzer:
         if check_type == "is_today":
             fail_condition = pl.col(field).dt.date() != today
         elif check_type == "is_yesterday":
-            fail_condition = pl.col(field).dt.date() != (
-                today - datetime.timedelta(days=1)
-            )
+            fail_condition = pl.col(field).dt.date() != (today - timedelta(days=1))
         elif check_type == "is_t_minus_1":
-            fail_condition = pl.col(field).dt.date() != (
-                today - datetime.timedelta(days=1)
-            )
+            fail_condition = pl.col(field).dt.date() != (today - timedelta(days=1))
         elif check_type == "is_t_minus_2":
-            fail_condition = pl.col(field).dt.date() != (
-                today - datetime.timedelta(days=2)
-            )
+            fail_condition = pl.col(field).dt.date() != (today - timedelta(days=2))
         elif check_type == "is_t_minus_3":
-            fail_condition = pl.col(field).dt.date() != (
-                today - datetime.timedelta(days=3)
-            )
+            fail_condition = pl.col(field).dt.date() != (today - timedelta(days=3))
         elif check_type == "is_past_date":
             fail_condition = pl.col(field).dt.date() >= today
         elif check_type == "is_future_date":
@@ -482,9 +474,9 @@ class DateAnalyzer:
 
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -524,9 +516,9 @@ class DateBetweenAnalyzer:
         )
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
@@ -566,9 +558,9 @@ class DateComparisonAnalyzer:
 
         fail_count = df.select(fail_condition.sum()).item()
         fail_row_ids = (
-            df.with_row_count()
+            df.with_row_index()
             .filter(fail_condition)
-            .select("row_nr")
+            .select("index")
             .to_series()
             .to_list()
         )
