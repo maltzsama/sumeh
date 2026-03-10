@@ -28,7 +28,7 @@ def sql(
     """
     try:
         from sumeh.config.csv import load_rules_csv
-        from sumeh.engines.sql_core.compiler import SQLCompiler
+        from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 
         # Load rules
         console.print(f"📋 Loading rules: [cyan]{rules_file}[/cyan]")
@@ -37,8 +37,7 @@ def sql(
 
         # Generate SQL
         console.print(f"🔨 Generating SQL ({dialect})...")
-        compiler = SQLCompiler(dialect=dialect)
-        sql_query = compiler.compile_validation_query(rules, table)
+        sql_query, _ = compile_rules_to_sql(rules, table, dialect=dialect)
 
         # Output
         if output:
