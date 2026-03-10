@@ -2,6 +2,73 @@
 
 <!-- version list -->
 
+## v2.0.1 (2026-03-10)
+
+### Bug Fixes
+
+- **polars**: Update deprecated Polars API and add missing unit tests
+  ([`45adf0b`](https://github.com/maltzsama/sumeh/commit/45adf0b6c9bf2da6176138c6ff29b945f24efd61))
+
+- **schema**: Correct type mapping logic and add comprehensive test suite
+  ([`051df56`](https://github.com/maltzsama/sumeh/commit/051df563b34778806dd132d14f7d0a3f51b47c9e))
+
+### Code Style
+
+- Add missing blank lines and fix line break formatting
+  ([`54c2a12`](https://github.com/maltzsama/sumeh/commit/54c2a124dd325334ed7ecf564399d1aaffb1894a))
+
+### Continuous Integration
+
+- Migrate build system from Poetry to Hatch
+  ([`f4fff7b`](https://github.com/maltzsama/sumeh/commit/f4fff7bac5eed5895f55b4f1b4de5e62ab437cc3))
+
+### Documentation
+
+- Add Mermaid architecture diagram and API docstrings
+  ([`4c54b20`](https://github.com/maltzsama/sumeh/commit/4c54b2094da10b3daaff6f23cfa39b17daf90a4a))
+
+- Complete v2.0 documentation overhaul
+  ([`1583ee6`](https://github.com/maltzsama/sumeh/commit/1583ee6163b9dbbd5feec42d28d29c15f989cf19))
+
+### Testing
+
+- Add comparator logic unit tests
+  ([`5572ef4`](https://github.com/maltzsama/sumeh/commit/5572ef4a7495d25985c3b32a0ac3048948e9249a))
+
+- Add core rule registry and rule model tests
+  ([`b1d149d`](https://github.com/maltzsama/sumeh/commit/b1d149d6b7e29b6c1acee476bd3d6195db581181))
+
+- Add global fixtures and CSV config tests for all rule categories
+  ([`7161882`](https://github.com/maltzsama/sumeh/commit/7161882abc7caa3f057f3ab66b992f354e912495))
+
+- Add OpenMetadata exporter unit tests
+  ([`de5e791`](https://github.com/maltzsama/sumeh/commit/de5e791b53fda6ec263e156c652e44e481b2a548))
+
+- Add pandas engine unit tests
+  ([`e5477d9`](https://github.com/maltzsama/sumeh/commit/e5477d94280a690c4ff3ccbe955933017ff8f438))
+
+- Add validation models unit tests
+  ([`ff2840a`](https://github.com/maltzsama/sumeh/commit/ff2840a4af55e410b48df3eee6075a83713e45e0))
+
+- **cli**: Add full test coverage for CLI commands (ddl, sql, validate)
+  ([`e77d2e2`](https://github.com/maltzsama/sumeh/commit/e77d2e247505753d59d2e794d188e66c135e814d))
+
+- **config**: Add validation tests for rules schema and rule dicts
+  ([`7c1402e`](https://github.com/maltzsama/sumeh/commit/7c1402ea92d8d4b7de7d44641a33026e93287161))
+
+- **duckdb**: Add full test coverage for SQL core and DuckDB engine
+  ([`7f8c341`](https://github.com/maltzsama/sumeh/commit/7f8c34178c41d8b89a98188230bc4de181aebb6f))
+
+- **generators**: Add comprehensive test suite for SQL DDL generation
+  ([`ce5c302`](https://github.com/maltzsama/sumeh/commit/ce5c3023184ed9617696ddc07085f17f9b1d339d))
+
+- **generators**: Add comprehensive tests for SQL transpiler
+  ([`dfad1cc`](https://github.com/maltzsama/sumeh/commit/dfad1cc7f9f6c50cd948a866269e067814b105eb))
+
+- **profiler**: Add comprehensive unit tests for DataProfiler
+  ([`99b95b9`](https://github.com/maltzsama/sumeh/commit/99b95b9955ca9a3a13de000d9de439fbc8f6deb4))
+
+
 ## v2.0.0 (2026-03-09)
 
 ### Bug Fixes

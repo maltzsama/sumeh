@@ -54,7 +54,7 @@ Coverage:
 
 __author__ = "Demetrius Albuquerque"
 __email__ = "demetrius.albuquerque@yahoo.com.br"
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 # ============================================================================
 # Core Models
