@@ -8,14 +8,14 @@ Covers:
 - engines/duckdb/engine: validate() integration with real DuckDB
 """
 
-import pytest
 import duckdb
 import pandas as pd
-
+import pytest
 import sqlglot.expressions as exp
 
+from sumeh.core.models.validation import ValidationStatus
 from sumeh.core.rules.rule_model import RuleDefinition
-from sumeh.core.models.validation import ValidationStatus, ValidationLevel
+from sumeh.engines.duckdb.engine import validate
 from sumeh.engines.sql_core.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
@@ -32,7 +32,7 @@ from sumeh.engines.sql_core.analyzers import (
 )
 from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
-from sumeh.engines.duckdb.engine import validate
+
 
 # Helpers
 

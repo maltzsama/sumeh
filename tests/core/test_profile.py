@@ -7,17 +7,19 @@ Covers:
 - DataProfiler._sample_df()
 """
 
-import pytest
-import pandas as pd
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from sumeh.core.services.profiler.profiler import DataProfiler
+import pandas as pd
+import pytest
+
 from sumeh.core.models.validation import (
     ValidationReport,
     ValidationResult,
     ValidationStatus,
     ValidationLevel,
 )
+from sumeh.core.services.profiler.profiler import DataProfiler
+
 
 # ─────────────────────────────────────────────
 # Helpers

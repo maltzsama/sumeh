@@ -5,10 +5,10 @@ Maps business rules to SQLGlot Abstract Syntax Trees (AST).
 Achieves parity with Pandas engine features (Dates, Patterns, Multi-field).
 """
 
-from typing import List
 import sqlglot.expressions as exp
 
 from sumeh.core.rules.rule_model import RuleDefinition
+
 
 # ============================================================================
 # HELPER FUNCTIONS

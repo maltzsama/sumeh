@@ -8,14 +8,13 @@ from typing import List
 
 from sumeh.engines.ray_data.registry import get_analyzer, get_constraint
 
+from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import (
     ValidationReport,
     ValidationResult,
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.models.metrics import MetricResult
-
 from sumeh.core.rules.rule_model import RuleDefinition
 
 

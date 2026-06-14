@@ -2,6 +2,7 @@
 """SQL DDL generator using SQLGlot for cross-dialect support."""
 
 from typing import List, Optional
+
 import sqlglot
 
 

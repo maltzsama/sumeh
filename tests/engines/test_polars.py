@@ -6,13 +6,13 @@ Covers:
 - engine: validate() integration, bifurcation, row/table rules, error handling
 """
 
-import pytest
 from datetime import date, timedelta
 
 import polars as pl
+import pytest
 
-from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.core.models.validation import ValidationStatus
+from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.polars import validate
 from sumeh.engines.polars.analyzers import (
     CompletenessAnalyzer,
@@ -29,6 +29,7 @@ from sumeh.engines.polars.analyzers import (
     DateComparisonAnalyzer,
     AggregationAnalyzer,
 )
+
 
 # Fixtures
 

@@ -56,6 +56,7 @@ __author__ = "Demetrius Albuquerque"
 __email__ = "demetrius.albuquerque@yahoo.com.br"
 __version__ = "2.0.1"
 
+from sumeh.core.models.metrics import MetricResult
 # ============================================================================
 # Core Models
 # ============================================================================
@@ -65,9 +66,6 @@ from sumeh.core.models.validation import (
     ValidationStatus,
     ValidationLevel,
 )
-
-from sumeh.core.models.metrics import MetricResult
-
 from sumeh.generators import SQLGenerator
 
 # ============================================================================

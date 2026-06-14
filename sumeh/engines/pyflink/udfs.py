@@ -12,6 +12,7 @@ from pyflink.table import DataTypes
 from pyflink.table.udf import udf
 from sumeh.engines.pyflink.protocols import stream_validator
 
+
 # ============================================================================
 # COMPLETENESS VALIDATORS
 # ============================================================================

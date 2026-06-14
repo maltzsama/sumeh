@@ -13,15 +13,14 @@ Covers:
 """
 
 import pytest
-from unittest.mock import MagicMock
 
-from sumeh.exporters.openmetadata import OpenMetadataExport
 from sumeh.core.models.validation import (
     ValidationResult,
     ValidationReport,
     ValidationStatus,
     ValidationLevel,
 )
+from sumeh.exporters.openmetadata import OpenMetadataExport
 
 # Helpers
 

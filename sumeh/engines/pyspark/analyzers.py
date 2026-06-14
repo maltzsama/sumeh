@@ -7,7 +7,6 @@ All 48+ validation rules implemented.
 
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
-from pyspark.sql.window import Window
 
 from sumeh.core.models.metrics import MetricResult
 from sumeh.core.rules.rule_model import RuleDefinition

@@ -6,10 +6,13 @@ Covers:
 - RuleDefinition: instantiation, validation, parsing, enrichment, methods
 """
 
-import pytest
 from datetime import date
+
+import pytest
+
 from sumeh.core.rules.registry import RuleRegistry
 from sumeh.core.rules.rule_model import RuleDefinition
+
 
 # RuleRegistry
 

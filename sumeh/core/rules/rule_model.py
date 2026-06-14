@@ -6,10 +6,9 @@ Combines original RuleDef features with metadata preservation.
 
 import ast
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dataclass_field
 from datetime import datetime, date
 from typing import Any, List, Union, Optional
-from dataclasses import dataclass, field as dataclass_field
 
 from dateutil import parser
 

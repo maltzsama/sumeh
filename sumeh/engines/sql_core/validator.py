@@ -6,12 +6,12 @@ Converts SQL result rows (tuples) into Sumeh ValidationResults.
 
 from typing import List, Tuple, Any, Dict
 
+from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import (
     ValidationLevel,
     ValidationResult,
     ValidationStatus,
 )
-from sumeh.core.models.metrics import MetricResult
 from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.sql_core.registry import get_constraint
 

@@ -8,14 +8,12 @@ Covers:
 - cli/utils.py: print_summary, print_table
 """
 
-import json
-import pytest
-import tempfile
+from unittest.mock import patch
+
 import pandas as pd
-from pathlib import Path
-from unittest.mock import MagicMock, patch
-from typer.testing import CliRunner
+import pytest
 from typer import Typer
+from typer.testing import CliRunner
 
 from sumeh.cli.commands.ddl import ddl
 from sumeh.cli.commands.sql import sql

@@ -6,10 +6,11 @@ Covers:
 - validate_rule_dict()
 """
 
-import pytest
 import pandas as pd
+import pytest
 
 from sumeh.config.validate import validate_rules_schema, validate_rule_dict
+
 
 # validate_rules_schema
 
