@@ -64,6 +64,9 @@ sumeh = "sumeh.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["sumeh"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"sumeh/py.typed" = "sumeh/py.typed"
+
 [tool.hatch.envs.default]
 dependencies = ["pytest>=8", "pytest-cov>=4.1", "ruff>=0.1", "mypy>=1", "coverage>=7"]
 
