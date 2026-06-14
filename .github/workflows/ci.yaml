@@ -28,7 +28,8 @@ jobs:
         run: pip install hatch
 
       - name: Install dependencies
-        run: hatch run pip install -e '.[polars,duckdb,dask,ray,pyflink,bigquery,snowflake,redshift,athena,trino,doris,dev]'
+        run: hatch run pip install -e '.[polars,duckdb,dask,ray,bigquery,snowflake,redshift,athena,trino,doris,dev]'
+        
 
       - name: Run linter (ruff)
         run: hatch run ruff check .
