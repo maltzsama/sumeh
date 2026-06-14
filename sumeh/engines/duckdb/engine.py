@@ -15,6 +15,15 @@ from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
 
 
+def _fetch_scalar(con, sql: str):
+    row = con.execute(sql).fetchone()
+
+    if row is None:
+        raise ValueError(f"Query returned no rows: {sql}")
+
+    return row[0]
+
+
 def validate(
     df: Union[Any, str, duckdb.DuckDBPyRelation],
     rules: List[RuleDefinition],
@@ -43,7 +52,10 @@ def validate(
             con = connection or duckdb.connect(":memory:")
             should_close = connection is None
             df.create_view(table_name, replace=True)
-            total_rows = con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+
+            total_rows = _fetch_scalar(
+                con=con, sql=f"SELECT COUNT(*) FROM {table_name}"
+            )
 
         elif isinstance(df, str):
             if not connection:
@@ -53,14 +65,16 @@ def validate(
             con = connection
             table_name = df
             try:
-                total_rows = con.execute(
-                    f"SELECT COUNT(*) FROM {table_name}"
-                ).fetchone()[0]
+
+                total_rows = _fetch_scalar(
+                    con=con, sql=f"SELECT COUNT(*) FROM {table_name}"
+                )
             except Exception:
                 return ValidationReport(
                     results=[],
                     total_rows=0,
                     engine="duckdb",
+                    execution_time_ms=(time.time() - start_time) * 1000,
                     error_message=f"Table '{table_name}' not found in provided connection.",
                 )
 
@@ -71,13 +85,18 @@ def validate(
             total_rows = (
                 len(df)
                 if hasattr(df, "__len__")
-                else con.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+                else _fetch_scalar(con, f"SELECT COUNT(*) FROM {table_name}")
             )
 
         # --- SQL aggregated validation ---
         sql_query, rule_ids = compile_rules_to_sql(rules, table_name, dialect="duckdb")
         if not sql_query:
-            return ValidationReport(results=[], total_rows=total_rows, engine="duckdb")
+            return ValidationReport(
+                results=[],
+                total_rows=total_rows,
+                engine="duckdb",
+                execution_time_ms=(time.time() - start_time) * 1000,
+            )
 
         metrics_row = con.execute(sql_query).fetchone()
         if metrics_row is None:

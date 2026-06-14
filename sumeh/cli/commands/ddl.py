@@ -28,7 +28,11 @@ def ddl(
         from sumeh.generators import SQLGenerator
 
         console.print(f"🔨 Generating DDL for [cyan]{table}[/cyan] ({dialect})...")
-        ddl_sql = SQLGenerator.generate(table, dialect, schema)
+
+        schema_value: str = schema if schema is not None else "public"
+        
+        ddl_sql = SQLGenerator.generate(table, dialect, schema_value)
+
 
         if output:
             output.write_text(ddl_sql)

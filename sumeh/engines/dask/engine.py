@@ -64,6 +64,7 @@ def validate(
             results=[],
             total_rows=0,
             engine="dask",
+            execution_time_ms=(time.time() - start_time) * 1000,
             error_message=f"Dask Compute Error: {str(e)}",
         )
 

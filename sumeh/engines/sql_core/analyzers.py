@@ -5,6 +5,7 @@ Maps business rules to SQLGlot Abstract Syntax Trees (AST).
 Achieves parity with Pandas engine features (Dates, Patterns, Multi-field).
 """
 
+from typing import List
 import sqlglot.expressions as exp
 
 from sumeh.core.rules.rule_model import RuleDefinition
@@ -14,7 +15,7 @@ from sumeh.core.rules.rule_model import RuleDefinition
 # ============================================================================
 
 
-def _to_col(field):
+def _to_col(field: str) -> exp.Column:
     """Safely converts string field to Column expression."""
     return exp.to_column(field)
 
@@ -47,7 +48,10 @@ class CompletenessAnalyzer:
     def analyze(rule: RuleDefinition) -> exp.Expression:
         # Metric: COUNT(field) / COUNT(*)
         # Note: SQL COUNT(col) automatically ignores NULLs
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
 
         count_val = exp.Count(this=col)
         count_all = _count_all()
@@ -68,7 +72,7 @@ class MultiFieldCompletenessAnalyzer:
         ]
 
         # Combine with AND
-        final_condition = conditions[0]
+        final_condition: exp.Expression = conditions[0]
         for c in conditions[1:]:
             final_condition = exp.And(this=final_condition, expression=c)
 
@@ -84,9 +88,12 @@ class UniquenessAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
         # Metric: COUNT(DISTINCT field) / COUNT(*)
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
 
-        count_distinct = exp.Count(this=exp.Distinct(expressions=[col]))
+        count_distinct: exp.Expression = exp.Count(this=exp.Distinct(expressions=[col]))
         count_all = _count_all()
 
         return (
@@ -103,7 +110,7 @@ class MultiFieldUniquenessAnalyzer:
 
         # Some DBs don't support COUNT(DISTINCT a, b), may need concatenation in dialect transpilation
         # SQLGlot handles generic COUNT(DISTINCT struct) or dialect specifics usually.
-        count_distinct = exp.Count(this=exp.Distinct(expressions=cols))
+        count_distinct: exp.Expression = exp.Count(this=exp.Distinct(expressions=cols))
         count_all = _count_all()
 
         return (
@@ -119,9 +126,14 @@ class MultiFieldUniquenessAnalyzer:
 class ComparisonAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         val = exp.convert(rule.value)
         check_type = rule.check_type
+
+        cond: exp.Expression
 
         if check_type == "is_equal":
             cond = exp.EQ(this=col, expression=val)
@@ -152,22 +164,28 @@ class ComparisonAnalyzer:
 class BetweenAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         min_val = exp.convert(rule.value[0])
         max_val = exp.convert(rule.value[1])
 
         # col BETWEEN min AND max
-        cond = exp.Between(this=col, low=min_val, high=max_val)
+        cond: exp.Expression = exp.Between(this=col, low=min_val, high=max_val)
         return _pass_rate(cond)
 
 
 class ColumnComparisonAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col1 = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col1 = _to_col(field)
         col2 = _to_col(rule.value)  # value is the other column name
 
-        cond = exp.EQ(this=col1, expression=col2)
+        cond: exp.Expression = exp.EQ(this=col1, expression=col2)
         return _pass_rate(cond)
 
 
@@ -179,15 +197,20 @@ class ColumnComparisonAnalyzer:
 class MembershipAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         values = [exp.convert(v) for v in rule.value]
-
+        
+        cond: exp.Expression = None
         if rule.check_type in ["is_contained_in", "is_in"]:
             # col IN (1, 2, 3)
-            cond = exp.In(this=col, expressions=values)
+            cond  = exp.In(this=col, expressions=values)
         else:
             # col NOT IN (1, 2, 3)
             cond = exp.Not(this=exp.In(this=col, expressions=values))
+
 
         return _pass_rate(cond)
 
@@ -200,7 +223,10 @@ class MembershipAnalyzer:
 class PatternAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         pattern = exp.Literal.string(rule.value)
 
         # SQLGlot RegexpLike transpiles to:
@@ -215,13 +241,16 @@ class LegitAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
         # Check if NOT NULL and NOT Empty String
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
 
         is_not_null = exp.Not(this=exp.Is(this=col, kind=exp.Null()))
         is_not_empty = exp.NEQ(this=col, expression=exp.Literal.string(""))
 
         # Some SQL dialects use LENGTH(TRIM(col)) > 0 logic, but let's stick to standard
-        cond = exp.And(this=is_not_null, expression=is_not_empty)
+        cond: exp.Expression = exp.And(this=is_not_null, expression=is_not_empty)
 
         return _pass_rate(cond)
 
@@ -234,11 +263,16 @@ class LegitAnalyzer:
 class DateAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         check_type = rule.check_type
 
         # Current Date (Generic)
         now = exp.CurrentDate()
+
+        cond: exp.Expression
 
         if check_type == "is_today":
             cond = exp.EQ(
@@ -292,7 +326,10 @@ class DateAnalyzer:
 class DateBetweenAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         # Assuming values are strings 'YYYY-MM-DD'
         start = exp.Cast(
             this=exp.Literal.string(rule.value[0]), to=exp.DataType.build("date")
@@ -301,17 +338,22 @@ class DateBetweenAnalyzer:
             this=exp.Literal.string(rule.value[1]), to=exp.DataType.build("date")
         )
 
-        cond = exp.Between(this=col, low=start, high=end)
+        cond: exp.Expression = exp.Between(this=col, low=start, high=end)
         return _pass_rate(cond)
 
 
 class DateComparisonAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         target = exp.Cast(
             this=exp.Literal.string(rule.value), to=exp.DataType.build("date")
         )
+
+        cond: exp.Expression = None
 
         if rule.check_type == "is_date_after":
             cond = exp.GT(this=col, expression=target)
@@ -329,7 +371,10 @@ class DateComparisonAnalyzer:
 class AggregationAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        col = _to_col(rule.field)
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
         check_type = rule.check_type
 
         if check_type == "has_min":

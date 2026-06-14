@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field as dataclass_field
-from typing import Any, List
+from typing import Any, List, Union
 
 
 @dataclass
@@ -23,7 +23,7 @@ class MetricResult:
     """
 
     metric_type: str  # "completeness", "mean", "pattern", "cardinality"
-    field: str  # "email", "salary", "age"
+    field: Union[str, List[str]]  # "email", "salary", "age"
     value: Any  # Primary metric value (float, int, list, etc)
 
     # Row tracking
