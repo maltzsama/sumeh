@@ -120,7 +120,7 @@ def validate(
 
     return ValidationReport(
         results=results,
-        total_rows=len(df),
+        total_rows=len(df) if hasattr(df, "__len__") else 0 ,
         execution_time_ms=execution_time_ms,
         engine="polars",
         df_validated=ValidatedPolarsDataFrame(df),

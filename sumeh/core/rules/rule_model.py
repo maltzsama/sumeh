@@ -134,9 +134,9 @@ class RuleDefinition:
         if not check_type:
             raise ValueError("Missing required field: check_type")
 
-        category = data.get("category")
+        category = data.get("category", "unknown")
 
-        level = data.get("level")
+        level = data.get("level", "ROW")
 
         return cls(
             field=field,

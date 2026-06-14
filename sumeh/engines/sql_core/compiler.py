@@ -15,7 +15,7 @@ from sumeh.engines.sql_core.registry import get_analyzer
 def compile_rules_to_sql(
     rules: List,
     table_name: str,
-    dialect: str = None,
+    dialect: Optional[str] = None,
     global_filter: Optional[str] = None,
 ) -> Tuple[str, List[str]]:
     """

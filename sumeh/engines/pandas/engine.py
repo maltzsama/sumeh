@@ -7,7 +7,7 @@ Optimized to avoid row-by-row iteration using bulk aggregation.
 
 import time
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 import numpy as np
 import pandas as pd
