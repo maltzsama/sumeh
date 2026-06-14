@@ -19,16 +19,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install uv (faster installer)
-        uses: astral-sh/setup-uv@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          enable-cache: true
+
+      - name: Install hatch
+        run: pip install hatch
 
       - name: Install dependencies
-        run: |
-          uv pip install hatch
-          hatch run pip install -e '.[polars,duckdb,dask,ray,pyflink,bigquery,snowflake,redshift,athena,trino,doris,dev]'
+        run: hatch run pip install -e '.[polars,duckdb,dask,ray,pyflink,bigquery,snowflake,redshift,athena,trino,doris,dev]'
 
       - name: Run linter (ruff)
         run: hatch run ruff check .
