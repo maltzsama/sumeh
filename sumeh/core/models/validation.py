@@ -2,7 +2,7 @@ import uuid
 from dataclasses import dataclass, field as dataclass_field
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Union
 
 
 class ValidationLevel(Enum):
@@ -47,7 +47,7 @@ class ValidationResult:
     level: ValidationLevel = ValidationLevel.ROW
     category: str = "unknown"
     check_type: str = ""
-    field: str = ""
+    field: Union[str, List[str]] = ""
 
     # Validation result
     status: ValidationStatus = ValidationStatus.ERROR
@@ -106,6 +106,8 @@ class ValidationReport:
 
     timestamp: datetime = dataclass_field(default_factory=datetime.utcnow)
     df_validated: Any = None
+
+    generated_sql: Optional[str] = None
 
     @property
     def passed(self) -> List[ValidationResult]:

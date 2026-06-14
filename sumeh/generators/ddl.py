@@ -4,7 +4,7 @@ SQL DDL generator using SQLGlot for cross-dialect support.
 Generates CREATE TABLE statements for Sumeh config tables.
 """
 
-from typing import List
+from typing import List, Optional
 
 import sqlglot
 
@@ -70,7 +70,9 @@ class SQLGenerator:
     ]
 
     @classmethod
-    def generate(cls, table: str, dialect: str, schema: str = None, **kwargs) -> str:
+    def generate(
+        cls, table: str, dialect: str, schema: Optional[str] = None, **kwargs
+    ) -> str:
         """
         Generate DDL for a specific table and dialect.
 
@@ -106,7 +108,7 @@ class SQLGenerator:
     def _generate_table_ddl(
         cls,
         table_name: str,
-        schema_name: str = None,
+        schema_name: Optional[str] = None,
         dialect: str = "postgres",
         **kwargs,
     ) -> str:
@@ -129,7 +131,12 @@ class SQLGenerator:
 
     @classmethod
     def _apply_dialect_customizations(
-        cls, ddl: str, dialect: str, table_name: str, schema_name: str = None, **kwargs
+        cls,
+        ddl: str,
+        dialect: str,
+        table_name: str,
+        schema_name: Optional[str] = None,
+        **kwargs,
     ) -> str:
         """Apply dialect-specific customizations."""
         options = []

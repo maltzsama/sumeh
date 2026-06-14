@@ -6,7 +6,11 @@ Converts SQL result rows (tuples) into Sumeh ValidationResults.
 
 from typing import List, Tuple, Any, Dict
 
-from sumeh.core.models.validation import ValidationResult
+from sumeh.core.models.validation import (
+    ValidationLevel,
+    ValidationResult,
+    ValidationStatus,
+)
 from sumeh.core.models.metrics import MetricResult
 from sumeh.core.rules.rule_model import RuleDefinition
 from sumeh.engines.sql_core.registry import get_constraint
@@ -44,8 +48,8 @@ def validate_results(
 
         # Estimate failure count based on pass rate (if it's a rate check)
         # Note: SQLCore analyzers usually return Pass Rate (0.0 to 1.0)
-        metadata = {}
-        affected_ids = []
+        metadata: Dict[str, Any] = {}
+        affected_ids: List[int] = []
 
         try:
             val_float = float(raw_val) if raw_val is not None else 0.0
@@ -87,10 +91,10 @@ def validate_results(
             results.append(
                 ValidationResult(
                     rule_id=r_id,
-                    level="ROW",  # Default assumption
+                    level=ValidationLevel.ROW,  # Default assumption
                     check_type=rule.check_type,
                     field=str(rule.field),
-                    status="ERROR",
+                    status=ValidationStatus.ERROR,
                     message=f"Validation error: {str(e)}",
                 )
             )

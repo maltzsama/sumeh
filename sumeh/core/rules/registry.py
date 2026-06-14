@@ -12,7 +12,7 @@ from typing import Optional, List
 class RuleRegistry:
     """Registry of all validation rules from manifest.json"""
 
-    _manifest = None
+    _manifest: Optional[dict[str, dict]] = None
 
     @classmethod
     def _ensure_loaded(cls):
@@ -37,12 +37,18 @@ class RuleRegistry:
             Rule dict or None if not found
         """
         cls._ensure_loaded()
+
+        assert cls._manifest is not None
+
         return cls._manifest.get(check_type)
 
     @classmethod
     def list_rules(cls) -> List[str]:
         """List all available rule check_types."""
         cls._ensure_loaded()
+
+        assert cls._manifest is not None
+
         return list(cls._manifest.keys())
 
     @classmethod

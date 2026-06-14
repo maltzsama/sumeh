@@ -9,6 +9,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, date
 from typing import Any, List, Union, Optional
+from dataclasses import dataclass, field as dataclass_field
 
 from dateutil import parser
 
@@ -49,7 +50,7 @@ class RuleDefinition:
     category: str = "unknown"
     execute: bool = True
     updated_at: Optional[Any] = None
-    metadata: dict = None  # ✅ Extra fields from source (PRESERVED!)
+    metadata: dict[str, Any] = dataclass_field(default_factory=dict)
 
     def __post_init__(self):
         """Validates rule and enriches with metadata from RuleRegistry."""
@@ -129,14 +130,22 @@ class RuleDefinition:
             if key not in known_fields:
                 metadata[key] = val
 
+        check_type = data.get("check_type")
+        if not check_type:
+            raise ValueError("Missing required field: check_type")
+
+        category = data.get("category")
+
+        level = data.get("level")
+
         return cls(
             field=field,
-            check_type=data.get("check_type"),
+            check_type=check_type,
             value=value,
             threshold=threshold,
             execute=execute,
-            category=data.get("category"),
-            level=data.get("level"),
+            category=category,
+            level=level,
             updated_at=updated_at,
             metadata=metadata,  # ✅ Preserved!
         )
@@ -247,7 +256,7 @@ class RuleDefinition:
         if not items:
             return []
 
-        parsed = []
+        parsed: List[Union[int, float, str]] = []
         for item in items:
             if isinstance(item, str):
                 item = item.strip(" \"'")
