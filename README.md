@@ -17,6 +17,33 @@
 [Documentation](https://maltzsama.github.io/sumeh/) · [PyPI](https://pypi.org/project/sumeh/) · [Changelog](CHANGELOG.md)
 
 ---
+## Why Sumeh?
+
+Every data quality framework eventually forces you to make a choice:
+
+- Great Expectations gives you a rich ecosystem, but with suites, checkpoints, and a data context to manage — it's a platform, not a library.
+- Soda pushes you toward SodaCL and SodaCloud; the open-source layer is progressively thinner.
+- pandera is excellent for schema and type validation, but stops there — no aggregation rules, no SQL engines, no row tagging.
+- cuallee introduced the clean API that inspired Sumeh, but covers fewer engines and has no SQL generation, no profiler, and no OpenMetadata integration.
+
+Sumeh's position is different: it is a **library**, not a platform. It does one thing — run validation rules against data — and it does it across every major engine with the same API and the same return type.
+
+| | **Sumeh** | Great Expectations | Soda Core | pandera | cuallee |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| Unified API across engines | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Engines | 14 | ~8 | ~6 | 2 | ~7 |
+| SQL AST generation (no string concat) | ✅ | ❌ | ❌ | N/A | ❌ |
+| Row-level bifurcation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Open SQL mode (generate without executing) | ✅ | ❌ | ❌ | N/A | ❌ |
+| Data profiler built-in | ✅ | ✅ | ✅ | ❌ | ❌ |
+| OpenMetadata export (no SDK) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| PySpark without `.collect()` | ✅ | ❌ | ❌ | N/A | ❌ |
+| Zero mandatory config files | ✅ | ❌ | ✅ | ✅ | ✅ |
+| `pip install sumeh` and go | ✅ | ❌ | ✅ | ✅ | ✅ |
+
+> Comparison reflects public documentation as of mid-2025. Corrections welcome.
+
+---
 
 ## What is Sumeh?
 
@@ -75,6 +102,7 @@ v2.0 is a complete rewrite. The architecture is different, the API is different,
 ## Table of Contents
 
 - [ Sumeh DQ ](#-sumeh-dq-)
+  - [Why Sumeh?](#why-sumeh)
   - [What is Sumeh?](#what-is-sumeh)
   - [What Changed in v2.0](#what-changed-in-v20)
   - [Table of Contents](#table-of-contents)
@@ -107,7 +135,6 @@ v2.0 is a complete rewrite. The architecture is different, the API is different,
   - [SQL DDL Generator](#sql-ddl-generator)
   - [CLI](#cli)
   - [Architecture](#architecture)
-    - [Directories Tree](#directories-tree)
     - [Design Decisions](#design-decisions)
   - [Migrating from v1.x](#migrating-from-v1x)
     - [Import pattern](#import-pattern)
@@ -233,99 +260,121 @@ All SQL engines share the `sql_core` compiler. Queries are built as SQLGlot AST 
 
 ## Validation Rules
 
-Sumeh ships **50+ rules** in 7 categories. Every rule is defined in `sumeh/core/rules/manifest.json` and runs on every engine.
+Sumeh ships **54 rules** across 9 categories. The single source of truth is
+`sumeh/core/rules/manifest.json`; the tables below are generated from it via
+`scripts/generate_rule_docs.py`.
+
+**Engine coverage:**
+
+| Group | Engines | Row rules | Table rules |
+| --- | --- | :---: | :---: |
+| **Core** | Pandas · PySpark · Polars · DuckDB · Dask · BigQuery | ✅ | ✅ |
+| **SQL** | Snowflake · Redshift · Athena · Trino · Doris | ✅ | ✅ |
+| **Streaming** | PyFlink · Ray Data | ✅ row-level only | ❌ |
+
+> Table-level aggregation rules (`has_mean`, `has_cardinality`, etc.) require a
+> complete dataset scan and cannot run on unbounded streaming sources.
 
 ### Completeness
 
-| Rule | Description |
-|------|-------------|
-| `is_complete` | No null values in column |
-| `are_complete` | All specified columns are non-null |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `is_complete` | Checks that field has no null values | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `are_complete` | Checks that multiple fields have no null values | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Uniqueness
 
-| Rule | Description |
-|------|-------------|
-| `is_unique` | All values in column are distinct |
-| `are_unique` | Combination of columns is globally unique |
-| `is_primary_key` | Alias for `is_unique` |
-| `is_composite_key` | Alias for `are_unique` |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `is_unique` | Checks that field values are unique | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `are_unique` | Checks that combination of fields is unique | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_primary_key` | Alias for is_unique *(alias: `is_unique`)* | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_composite_key` | Alias for are_unique *(alias: `are_unique`)* | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Numeric & Comparison
 
-| Rule | Description |
-|------|-------------|
-| `is_positive` | Value > 0 |
-| `is_negative` | Value < 0 |
-| `is_equal` | Value == `value` |
-| `is_equal_than` | Value == another column |
-| `is_greater_than` | Value > `value` |
-| `is_less_than` | Value < `value` |
-| `is_greater_or_equal_than` | Value >= `value` |
-| `is_less_or_equal_than` | Value <= `value` |
-| `is_between` | `min_value` <= value <= `max_value` |
-| `is_in_millions` | Value >= 1,000,000 |
-| `is_in_billions` | Value >= 1,000,000,000 |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `is_equal` | Checks if value equals specified threshold | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_equal_than` | Checks if value equals another column | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_between` | Checks if value is within range | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_greater_than` | Checks if value > threshold | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_less_than` | Checks if value < threshold | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_greater_or_equal_than` | Checks if value >= threshold | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_less_or_equal_than` | Checks if value <= threshold | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_positive` | Checks if value > 0 | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_negative` | Checks if value < 0 | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_in_millions` | Checks if value >= 1,000,000 | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_in_billions` | Checks if value >= 1,000,000,000 | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Membership
 
-| Rule | Description |
-|------|-------------|
-| `is_contained_in` / `is_in` | Value is in an allowed set |
-| `not_contained_in` / `not_in` | Value is not in a forbidden set |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `is_contained_in` | Checks if value in allowed list | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `not_contained_in` | Checks if value not in disallowed list | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_in` | Alias for is_contained_in *(alias: `is_contained_in`)* | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `not_in` | Alias for not_contained_in *(alias: `not_contained_in`)* | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Pattern
 
-| Rule | Description |
-|------|-------------|
-| `has_pattern` | Value matches a regex |
-| `is_legit` | Value is non-null and non-whitespace |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `has_pattern` | Checks if value matches regex pattern | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_legit` | Checks if value is non-null and non-whitespace | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Date
 
-| Rule | Description |
-|------|-------------|
-| `is_today` | Date equals today |
-| `is_yesterday` / `is_t_minus_1` | Date equals T-1 |
-| `is_t_minus_2` | Date equals T-2 |
-| `is_t_minus_3` | Date equals T-3 |
-| `is_past_date` | Date is before today |
-| `is_future_date` | Date is after today |
-| `is_date_between` | Date within a range |
-| `is_date_after` | Date after a reference |
-| `is_date_before` | Date before a reference |
-| `is_on_weekday` | Date falls on Mon–Fri |
-| `is_on_weekend` | Date falls on Sat–Sun |
-| `is_on_monday` … `is_on_sunday` | Date falls on a specific day of the week |
-| `validate_date_format` | Date string matches expected format |
-| `all_date_checks` | Runs the full date validation suite |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `is_today` | Checks if date equals today | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_t_minus_1` | Checks if date equals yesterday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_t_minus_2` | Checks if date equals 2 days ago | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_t_minus_3` | Checks if date equals 3 days ago | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_yesterday` | Alias for is_t_minus_1 *(alias: `is_t_minus_1`)* | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_past_date` | Checks if date is before today | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_future_date` | Checks if date is after today | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_date_between` | Checks if date is within range | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_date_after` | Checks if date is after specified date | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_date_before` | Checks if date is before specified date | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_weekday` | Checks if date falls on Monday-Friday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_weekend` | Checks if date falls on Saturday-Sunday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_monday` | Checks if date is Monday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_tuesday` | Checks if date is Tuesday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_wednesday` | Checks if date is Wednesday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_thursday` | Checks if date is Thursday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_friday` | Checks if date is Friday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_saturday` | Checks if date is Saturday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `is_on_sunday` | Checks if date is Sunday | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `validate_date_format` | Checks if date string matches expected format | ROW | core ✅ · SQL ✅ · stream ✅ |
+| `all_date_checks` | Runs comprehensive date validation suite | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Custom SQL
 
-| Rule | Description |
-|------|-------------|
-| `satisfies` | Arbitrary SQL condition, e.g. `"age >= 18 AND status != 'banned'"` |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `satisfies` | Validates custom SQL condition | ROW | core ✅ · SQL ✅ · stream ✅ |
 
 ### Aggregations *(Table-level)*
 
-These check a single metric across the full column. A rule passes when the measured value is within `threshold` percent of `value`.
+> These check a single metric across the full column. A rule passes when the measured value is within `threshold` percent of `value`. **Not compatible with unbounded streaming sources** (PyFlink, Ray Data).
 
-| Rule | Metric |
-|------|--------|
-| `has_min` | Column minimum |
-| `has_max` | Column maximum |
-| `has_mean` | Column mean |
-| `has_sum` | Column sum |
-| `has_std` | Standard deviation |
-| `has_cardinality` | Count of distinct values |
-| `has_entropy` | Shannon entropy |
-| `has_infogain` | Information gain |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `has_min` | Validates column minimum value | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_max` | Validates column maximum value | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_sum` | Validates column sum | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_mean` | Validates column average/mean | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_std` | Validates column standard deviation | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_cardinality` | Validates number of distinct values | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_entropy` | Validates column entropy | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
+| `has_infogain` | Validates information gain metric | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
 
 ### Schema
 
-| Rule | Description |
-|------|-------------|
-| `validate_schema` | Validates DataFrame structure against a registered schema |
+| Rule | Description | Level | Engine coverage |
+| --- | --- | --- | --- |
+| `validate_schema` | Validates DataFrame schema structure | TABLE | core ✅ · SQL ⚠️ table-level · stream — |
 
 ---
 
@@ -698,68 +747,7 @@ sumeh info
 ---
 
 ## Architecture
-```mermaid
-graph TD
-    %% ========== ESTILOS GLOBAIS ==========
-    classDef client fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-weight:bold
-    classDef core fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#0d47a1,font-weight:bold
-    classDef engine fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#bf360c,font-weight:bold
-    classDef output fill:#d1c4e9,stroke:#512da8,stroke-width:2px,color:#311b92,font-weight:bold
-    classDef report fill:#ffb74d,stroke:#bf360c,stroke-width:3px,color:#4a2512,font-weight:bold,font-size:16px
 
-    %% ========== CLIENT LAYER ==========
-    subgraph Client_Layer [📦 CLIENT LAYER]
-        direction TB
-        A["🚀 CLI / Python Code"] --> B["📋 RuleDefinition List"]
-    end
-    class A,B client
-
-    %% ========== CORE LAYER ==========
-    subgraph Core_Layer [⚙️ CORE ORCHESTRATION]
-        direction TB
-        B --> C{"🔄 Orchestrator"}
-        C --> D["📄 Rules Manifest"]
-        C --> E["🔍 Validation Models"]
-    end
-    class C core
-    class D,E core
-
-    %% ========== ENGINE LAYER ==========
-    subgraph Engine_Layer [⚡ EXECUTION ENGINES]
-        direction TB
-        C --> F["🐼 Pandas / Polars"]
-        C --> G["🗄️ SQL Core"]
-        C --> H["🌐 Distributed"]
-        
-        G --> G1["🦆 DuckDB"]
-        G --> G2["🔷 BigQuery"]
-        G --> G3["❄️ Snowflake/Redshift"]
-        
-        H --> H1["🔥 PySpark"]
-        H --> H2["⚡ Dask / Ray"]
-    end
-    class F,G,H engine
-    class G1,G2,G3,H1,H2 engine
-
-    %% ========== OUTPUT LAYER ==========
-    subgraph Output_Layer [📊 OUTPUT & REPORTING]
-        direction TB
-        F & G1 & G2 & G3 & H1 & H2 --> I("📋 ValidationReport")
-        I --> J["✅ Good Data / ❌ Bad Data"]
-        I --> K["📤 OpenMetadata Export"]
-        I --> L["📦 JSON/Dict Summary"]
-    end
-    class I report
-    class J,K,L output
-
-    %% ========== CONEXÕES COM ESTILO ==========
-    linkStyle 0 stroke:#2e7d32,stroke-width:2px
-    linkStyle 1,2,3 stroke:#1565c0,stroke-width:2px
-    linkStyle 4,5,6,7,8,9,10,11,12 stroke:#e65100,stroke-width:2px
-    linkStyle 13,14,15,16 stroke:#512da8,stroke-width:2px
-```
-### Directories Tree
-    
 ```
 sumeh/
 │
@@ -815,7 +803,11 @@ sumeh/
 
 **Analyzer / Constraint separation.** An `Analyzer` knows how to measure a metric (compute the null rate as a SQLGlot expression, or as a vectorized Pandas operation). A `Constraint` knows how to decide whether that metric satisfies the rule. Both are small, independently testable, and replaceable. Adding a new check type means writing one of each.
 
-**SQLGlot AST for all SQL.** No SQL string concatenation anywhere in the codebase. Every expression is a typed SQLGlot AST node compiled to the target dialect at call time. This eliminates SQL injection, escape sequence bugs, and the silent drift that comes from dialect-specific string templates.
+**SQLGlot AST for all SQL.** No SQL string concatenation in the compiler or engine layers.
+Every expression is a typed SQLGlot AST node compiled to the target dialect at call time.
+This eliminates escape sequence bugs and the silent drift that comes from dialect-specific
+string templates. Note: the `satisfies` rule accepts arbitrary SQL from the caller — input
+sanitization is the caller's responsibility, as with any parameterized query layer.
 
 **Fail-condition pattern for PySpark.** Analyzers return `Column` expressions applied lazily across the cluster. `.collect()` is never called — not even for sampling. Calling `.collect()` on a dataset of any real scale is a driver OOM waiting to happen. The full validation result is computed in a single distributed aggregation pass.
 
