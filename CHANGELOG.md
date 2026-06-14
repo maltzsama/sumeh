@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v2.1.0 (2026-06-14)
+
+### Documentation
+
+- Expand README with comprehensive rule documentation and Why Sumeh section
+  ([`cb91074`](https://github.com/maltzsama/sumeh/commit/cb9107464ef4f0719f27ec66d320fe4858e0a280))
+
+### Features
+
+- Add PEP 561 typing marker
+  ([`3ea5333`](https://github.com/maltzsama/sumeh/commit/3ea5333ce8fd0b6b694d9ade1cf8890c54b5fa58))
+
+- Improve type safety across DDL, rules, and SQL engines
+  ([`981cfb8`](https://github.com/maltzsama/sumeh/commit/981cfb8923283ad0ce83edbb5af2378a238a25ff))
+
+- Type safety improvements and SQL execution tracking
+  ([`a85a7e0`](https://github.com/maltzsama/sumeh/commit/a85a7e008cf54dfe9d6ad20207bd98ebbbab7bbf))
+
+
 ## v2.0.1 (2026-03-10)
 
 ### Bug Fixes
