@@ -105,7 +105,7 @@ def has_capability(engine_name: str, capability: str) -> bool:
         elif engine_name == "pyflink":
             from sumeh.engines.pyflink import CAPABILITIES
         elif engine_name == "ray":
-            from sumeh.engines.ray_data import CAPABILITIES
+            from sumeh.engines.ray import CAPABILITIES
         elif engine_name == "duckdb":
             from sumeh.engines.duckdb import CAPABILITIES
         elif engine_name == "bigquery":
@@ -145,7 +145,7 @@ def get_capabilities(engine_name: str) -> Dict[str, bool]:
         elif engine_name == "pyflink":
             from sumeh.engines.pyflink import CAPABILITIES
         elif engine_name == "ray":
-            from sumeh.engines.ray_data import CAPABILITIES
+            from sumeh.engines.ray import CAPABILITIES
         elif engine_name == "duckdb":
             from sumeh.engines.duckdb import CAPABILITIES
         elif engine_name == "bigquery":

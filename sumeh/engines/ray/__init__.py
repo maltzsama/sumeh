@@ -11,7 +11,7 @@ Like PyFlink, we support row-level validations only.
 
 """
 
-from sumeh.engines.ray_data.engine import validate
+from sumeh.engines.ray.engine import validate
 
 CAPABILITIES = {
     "schema_validation": True,

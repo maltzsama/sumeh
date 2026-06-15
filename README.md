@@ -252,7 +252,7 @@ All SQL engines share the `sql_core` compiler. Queries are built as SQLGlot AST 
 | Engine | Import | Notes |
 |--------|--------|-------|
 | **PyFlink** | `from sumeh import pyflink` | Unbounded streams; row-level rules only |
-| **Ray Data** | `from sumeh import ray_data` | ML/AI pipelines; GPU acceleration |
+| **Ray Data** | `from sumeh import ray`    | ML/AI pipelines; GPU acceleration |
 
 > **Streaming note:** Table-level aggregation rules (`has_mean`, `has_cardinality`, etc.) require a full dataset. They are not compatible with unbounded streaming sources.
 
@@ -785,7 +785,7 @@ sumeh/
 │   ├── trino/                  # sql_core + Trino
 │   ├── doris/                  # sql_core + Apache Doris
 │   ├── pyflink/                # PyFlink streaming UDF engine
-│   └── ray_data/               # Ray Data ML engine
+│   └── ray/                    # Ray Data ML engine
 │
 ├── config/                     # Rule loading backends
 ├── exporters/

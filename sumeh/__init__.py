@@ -31,7 +31,7 @@ Engines:
         - dask: Out-of-core parallel computing
 
     Streaming & ML:
-        - ray_data: ML/AI pipelines with GPU support
+        - ray: ML/AI pipelines with GPU support
         - pyflink: Stream processing with Apache Flink
 
     SQL Engines:
@@ -95,9 +95,9 @@ except ImportError:
 
 # Streaming & ML
 try:
-    from sumeh.engines import ray_data
+    from sumeh.engines import ray
 except ImportError:
-    ray_data = None
+    ray = None
 
 try:
     from sumeh.engines import pyflink
@@ -156,7 +156,7 @@ _available_engines = [
         "polars",
         "pyspark",
         "dask",
-        "ray_data",
+        "ray",
         "pyflink",
         "duckdb",
         "bigquery",
@@ -202,7 +202,7 @@ __all__ = [
     "polars",
     "pyspark",
     "dask",
-    "ray_data",
+    "ray",
     "pyflink",
     "duckdb",
     "bigquery",
