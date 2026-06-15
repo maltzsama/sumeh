@@ -53,7 +53,10 @@ class MultiFieldCompletenessAnalyzer:
                 raise KeyError(f"Field '{field}' not found")
 
         # Row has incomplete data if ANY field is null
-        any_null_condition = F.coalesce(*[F.col(f).isNull() for f in fields])
+        conditions = [F.col(f).isNull() for f in fields]
+        any_null_condition = conditions[0]
+        for c in conditions[1:]:
+            any_null_condition = any_null_condition | c
 
         result = df.agg(
             F.count(F.lit(1)).alias("total"),
