@@ -1,8 +1,11 @@
 name: CI
 
 on:
+  workflow_call:
+
   pull_request:
     branches: [main, develop, 'release/*']
+
   push:
     branches: [main, develop, 'release/*']
 
@@ -10,10 +13,11 @@ jobs:
   test:
     name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,12 +32,11 @@ jobs:
         run: pip install hatch
 
       - name: Install dependencies
-        run: hatch run pip install -e '.[polars,duckdb,dask,ray,bigquery,snowflake,redshift,athena,trino,doris,dev]'
-        
+        run: |
+          hatch run pip install -e '.[polars,duckdb,dask,ray,bigquery,snowflake,redshift,athena,trino,doris,dev]'
 
       - name: Run linter (ruff)
         run: hatch run ruff check . --exit-zero
-
 
       - name: Run type checker (mypy)
         run: hatch run mypy sumeh/ --ignore-missing-imports --no-error-summary || true
