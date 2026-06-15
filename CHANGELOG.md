@@ -2,6 +2,66 @@
 
 <!-- version list -->
 
+## v3.0.0 (2026-06-15)
+
+### Bug Fixes
+
+- Pyspark replace coalesce with OR for multi-field completeness
+  ([`5695591`](https://github.com/maltzsama/sumeh/commit/5695591b6a857c8e8bcc2eeb839fc0e3ee2ed64a))
+
+### Chores
+
+- Expand mypy ignore list and fix polars type annotation
+  ([`1e16ded`](https://github.com/maltzsama/sumeh/commit/1e16ded5578b1442a554046b7b71a7f84183e068))
+
+### Code Style
+
+- Format code with ruff and fix blank lines
+  ([`ad495f1`](https://github.com/maltzsama/sumeh/commit/ad495f18d3de3a2cc11c3bfdad1033e076274cac))
+
+- Reorganize imports and fix module order
+  ([`e29fc37`](https://github.com/maltzsama/sumeh/commit/e29fc376a703514b703677cb6ddf116579bd55b0))
+
+### Continuous Integration
+
+- Add CI workflow with Codecov integration
+  ([`e6beaaa`](https://github.com/maltzsama/sumeh/commit/e6beaaa58bf13ecb39566338d76c2b156e2c4ec6))
+
+- Add test gate before PyPI publish
+  ([`beca5eb`](https://github.com/maltzsama/sumeh/commit/beca5ebcd33a3687fa11ab1a35229eaf222a2431))
+
+- Add workflow_call to ci.yml and rename yaml → yml
+  ([`4479834`](https://github.com/maltzsama/sumeh/commit/44798343a37af02bc81c7dd42115c5fdac0a1e2c))
+
+- Remove pyflink from CI to fix build error
+  ([`a19553a`](https://github.com/maltzsama/sumeh/commit/a19553ae8f7ae8b44a2936ae81c894fc574b0d8e))
+
+- Replace uv with pip to fix CI cache errors
+  ([`747a0aa`](https://github.com/maltzsama/sumeh/commit/747a0aa7091f39fbecc3e48ea6252ff289bc3130))
+
+### Features
+
+- Add PyFlink stream validator protocol
+  ([`580e8da`](https://github.com/maltzsama/sumeh/commit/580e8da6aa0776ff37b2c855a84d4641b4dff091))
+
+- Expand SQL engine coverage and fix manifest engine support
+  ([`71b2ded`](https://github.com/maltzsama/sumeh/commit/71b2dedd31bf95ca26684f5bcb58192e076d8aa9))
+
+### Refactoring
+
+- Rename ray_data module to ray for consistency
+  ([`7aecf16`](https://github.com/maltzsama/sumeh/commit/7aecf163c66d14f2ef19d1ba892532bf558dee2d))
+
+### Testing
+
+- Add comprehensive sql_core unit tests
+  ([`7090acb`](https://github.com/maltzsama/sumeh/commit/7090acbbcde07dd77029d1bb2ec512f338da1b32))
+
+### Breaking Changes
+
+- Ray engine now imported as 'from sumeh import ray' instead of 'ray_data'
+
+
 ## v2.1.0 (2026-06-14)
 
 ### Documentation

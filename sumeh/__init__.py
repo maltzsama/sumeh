@@ -54,7 +54,7 @@ Coverage:
 
 __author__ = "Demetrius Albuquerque"
 __email__ = "demetrius.albuquerque@yahoo.com.br"
-__version__ = "2.1.0"
+__version__ = "3.0.0"
 
 from sumeh.core.models.metrics import MetricResult
 
