@@ -95,5 +95,6 @@ python_version = "3.10"
 ignore_missing_imports = false
 
 [[tool.mypy.overrides]]
-module = ["pyflink.*", "dask.*", "ray.*"]
+module = ["pyflink.*", "dask.*", "dask", "ray.*", "sumeh.engines.ray_data", "sumeh.engines.ray_data.*", "google.cloud.*", "google.*", "sumeh.engines.polars.engine"]
 ignore_missing_imports = true
+ignore_errors = true

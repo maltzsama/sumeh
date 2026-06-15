@@ -21,7 +21,7 @@ from sumeh.engines.polars.dataframe import ValidatedPolarsDataFrame
 from sumeh.engines.polars.registry import get_analyzer, get_constraint
 
 # Centralized Schema Definition to avoid drift
-ERROR_SCHEMA = {
+ERROR_SCHEMA: dict[str, type[pl.DataType]] = {
     "rule_id": pl.Utf8,
     "check_type": pl.Utf8,
     "field": pl.Utf8,
