@@ -3,9 +3,11 @@ Shared fixtures for Sumeh test suite.
 Covers all rule categories from manifest.json.
 """
 
-import pytest
+from datetime import date, timedelta
+
 import pandas as pd
-from datetime import date, datetime, timedelta
+import pytest
+
 from sumeh.core.rules.rule_model import RuleDefinition
 
 # DataFrames

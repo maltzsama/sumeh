@@ -5,7 +5,7 @@ Maps business rules to SQLGlot Abstract Syntax Trees (AST).
 Achieves parity with Pandas engine features (Dates, Patterns, Multi-field).
 """
 
-from typing import List
+import sqlglot
 import sqlglot.expressions as exp
 
 from sumeh.core.rules.rule_model import RuleDefinition
@@ -25,7 +25,6 @@ def _pass_rate(condition: exp.Expression) -> exp.Expression:
     Generates: AVG(CASE WHEN <condition> THEN 1.0 ELSE 0.0 END)
     This calculates the Pass Rate logic used in row-level checks.
     """
-    # CASE WHEN condition THEN 1.0 ELSE 0.0 END
     case_expr = exp.Case(
         ifs=[exp.If(this=condition, true=exp.Literal.number(1.0))],
         default=exp.Literal.number(0.0),
@@ -46,36 +45,26 @@ def _count_all() -> exp.Expression:
 class CompletenessAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        # Metric: COUNT(field) / COUNT(*)
-        # Note: SQL COUNT(col) automatically ignores NULLs
         field = rule.field
         if isinstance(field, list):
             field = field[0]
         col = _to_col(field)
-
         count_val = exp.Count(this=col)
         count_all = _count_all()
-
-        # Cast to double for safety
         return exp.Cast(this=count_val, to=exp.DataType.build("double")) / count_all
 
 
 class MultiFieldCompletenessAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        # Metric: Pass Rate where ALL fields are NOT NULL
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
-
-        # Condition: col1 IS NOT NULL AND col2 IS NOT NULL ...
+        # FIX: expression=exp.Null() — not kind=
         conditions = [
-            exp.Not(this=exp.Is(this=_to_col(f), kind=exp.Null())) for f in fields
+            exp.Not(this=exp.Is(this=_to_col(f), expression=exp.Null())) for f in fields
         ]
-
-        # Combine with AND
         final_condition: exp.Expression = conditions[0]
         for c in conditions[1:]:
             final_condition = exp.And(this=final_condition, expression=c)
-
         return _pass_rate(final_condition)
 
 
@@ -87,15 +76,12 @@ class MultiFieldCompletenessAnalyzer:
 class UniquenessAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        # Metric: COUNT(DISTINCT field) / COUNT(*)
         field = rule.field
         if isinstance(field, list):
             field = field[0]
         col = _to_col(field)
-
         count_distinct: exp.Expression = exp.Count(this=exp.Distinct(expressions=[col]))
         count_all = _count_all()
-
         return (
             exp.Cast(this=count_distinct, to=exp.DataType.build("double")) / count_all
         )
@@ -104,15 +90,10 @@ class UniquenessAnalyzer:
 class MultiFieldUniquenessAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        # Metric: COUNT(DISTINCT col1, col2) / COUNT(*)
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
         cols = [_to_col(f) for f in fields]
-
-        # Some DBs don't support COUNT(DISTINCT a, b), may need concatenation in dialect transpilation
-        # SQLGlot handles generic COUNT(DISTINCT struct) or dialect specifics usually.
         count_distinct: exp.Expression = exp.Count(this=exp.Distinct(expressions=cols))
         count_all = _count_all()
-
         return (
             exp.Cast(this=count_distinct, to=exp.DataType.build("double")) / count_all
         )
@@ -151,12 +132,12 @@ class ComparisonAnalyzer:
             cond = exp.LT(this=col, expression=exp.Literal.number(0))
         elif check_type == "is_in_millions":
             cond = exp.GTE(this=col, expression=exp.Literal.number(1_000_000))
-            # Or strict logic: col >= 1M AND col < 1B ? Keeping simple
         elif check_type == "is_in_billions":
             cond = exp.GTE(this=col, expression=exp.Literal.number(1_000_000_000))
         else:
-            # Fallback to avoid breaking
-            return exp.Literal.number(0.0)
+            raise NotImplementedError(
+                f"ComparisonAnalyzer: check_type '{check_type}' not implemented"
+            )
 
         return _pass_rate(cond)
 
@@ -170,8 +151,6 @@ class BetweenAnalyzer:
         col = _to_col(field)
         min_val = exp.convert(rule.value[0])
         max_val = exp.convert(rule.value[1])
-
-        # col BETWEEN min AND max
         cond: exp.Expression = exp.Between(this=col, low=min_val, high=max_val)
         return _pass_rate(cond)
 
@@ -183,8 +162,7 @@ class ColumnComparisonAnalyzer:
         if isinstance(field, list):
             field = field[0]
         col1 = _to_col(field)
-        col2 = _to_col(rule.value)  # value is the other column name
-
+        col2 = _to_col(str(rule.value))
         cond: exp.Expression = exp.EQ(this=col1, expression=col2)
         return _pass_rate(cond)
 
@@ -202,15 +180,11 @@ class MembershipAnalyzer:
             field = field[0]
         col = _to_col(field)
         values = [exp.convert(v) for v in rule.value]
-        
-        cond: exp.Expression = None
-        if rule.check_type in ["is_contained_in", "is_in"]:
-            # col IN (1, 2, 3)
-            cond  = exp.In(this=col, expressions=values)
-        else:
-            # col NOT IN (1, 2, 3)
-            cond = exp.Not(this=exp.In(this=col, expressions=values))
 
+        if rule.check_type in ("is_contained_in", "is_in"):
+            cond: exp.Expression = exp.In(this=col, expressions=values)
+        else:
+            cond = exp.Not(this=exp.In(this=col, expressions=values))
 
         return _pass_rate(cond)
 
@@ -227,31 +201,38 @@ class PatternAnalyzer:
         if isinstance(field, list):
             field = field[0]
         col = _to_col(field)
-        pattern = exp.Literal.string(rule.value)
-
-        # SQLGlot RegexpLike transpiles to:
-        # Postgres: col ~ pattern
-        # Spark: output REGEXP pattern
+        pattern = exp.Literal.string(str(rule.value))
         cond = exp.RegexpLike(this=col, expression=pattern)
-
         return _pass_rate(cond)
 
 
 class LegitAnalyzer:
     @staticmethod
     def analyze(rule: RuleDefinition) -> exp.Expression:
-        # Check if NOT NULL and NOT Empty String
         field = rule.field
         if isinstance(field, list):
             field = field[0]
         col = _to_col(field)
-
-        is_not_null = exp.Not(this=exp.Is(this=col, kind=exp.Null()))
+        # FIX: expression=exp.Null() — not kind=
+        is_not_null = exp.Not(this=exp.Is(this=col, expression=exp.Null()))
         is_not_empty = exp.NEQ(this=col, expression=exp.Literal.string(""))
-
-        # Some SQL dialects use LENGTH(TRIM(col)) > 0 logic, but let's stick to standard
         cond: exp.Expression = exp.And(this=is_not_null, expression=is_not_empty)
+        return _pass_rate(cond)
 
+
+# ============================================================================
+# CUSTOM SQL ANALYZER
+# ============================================================================
+
+
+class SatisfiesAnalyzer:
+    @staticmethod
+    def analyze(rule: RuleDefinition) -> exp.Expression:
+        """
+        Parses rule.value as a raw SQL condition via SQLGlot.
+        Input sanitization is the caller's responsibility.
+        """
+        cond = sqlglot.condition(str(rule.value))
         return _pass_rate(cond)
 
 
@@ -268,8 +249,6 @@ class DateAnalyzer:
             field = field[0]
         col = _to_col(field)
         check_type = rule.check_type
-
-        # Current Date (Generic)
         now = exp.CurrentDate()
 
         cond: exp.Expression
@@ -279,10 +258,22 @@ class DateAnalyzer:
                 this=exp.DateTrunc(unit=exp.var("DAY"), this=col), expression=now
             )
 
-        elif check_type in ["is_t_minus_1", "is_yesterday"]:
-            yesterday = exp.DateSub(this=now, expression=exp.Literal.number(1))
+        elif check_type in ("is_t_minus_1", "is_yesterday"):
+            target = exp.DateSub(this=now, expression=exp.Literal.number(1))
             cond = exp.EQ(
-                this=exp.DateTrunc(unit=exp.var("DAY"), this=col), expression=yesterday
+                this=exp.DateTrunc(unit=exp.var("DAY"), this=col), expression=target
+            )
+
+        elif check_type == "is_t_minus_2":
+            target = exp.DateSub(this=now, expression=exp.Literal.number(2))
+            cond = exp.EQ(
+                this=exp.DateTrunc(unit=exp.var("DAY"), this=col), expression=target
+            )
+
+        elif check_type == "is_t_minus_3":
+            target = exp.DateSub(this=now, expression=exp.Literal.number(3))
+            cond = exp.EQ(
+                this=exp.DateTrunc(unit=exp.var("DAY"), this=col), expression=target
             )
 
         elif check_type == "is_past_date":
@@ -295,14 +286,7 @@ class DateAnalyzer:
                 this=exp.DateTrunc(unit=exp.var("DAY"), this=col), expression=now
             )
 
-        # NOTE: DayOfWeek in SQL is messy (1=Sunday vs 0=Monday).
-        # Ideally, we construct a platform-agnostic check or assume ISO standard (1=Monday, 7=Sunday)
-        # SQLGlot tries to handle this, but it's risky without dialect context.
-        # Implementation using generic logic:
-
-        # Placeholder for Weekday logic - relying on SQLGlot best effort
         elif check_type == "is_on_weekend":
-            # DayOfWeek: usually 1=Sun, 7=Sat in ODBC standard
             dow = exp.DayOfWeek(this=col)
             cond = exp.In(
                 this=dow, expressions=[exp.Literal.number(1), exp.Literal.number(7)]
@@ -312,15 +296,76 @@ class DateAnalyzer:
             dow = exp.DayOfWeek(this=col)
             cond = exp.Not(
                 this=exp.In(
-                    this=dow, expressions=[exp.Literal.number(1), exp.Literal.number(7)]
+                    this=dow,
+                    expressions=[exp.Literal.number(1), exp.Literal.number(7)],
                 )
             )
 
         else:
-            # Fallback for t-minus-N specific logic
-            return exp.Literal.number(0.0)
+            raise NotImplementedError(
+                f"DateAnalyzer: check_type '{check_type}' not implemented"
+            )
 
         return _pass_rate(cond)
+
+
+class WeekdayAnalyzer:
+    """
+    Handles is_on_monday … is_on_sunday.
+
+    DOW convention: Sunday=1, Monday=2 … Saturday=7
+    (BigQuery / Spark / Trino native convention).
+
+    DuckDB and Snowflake use Sunday=0 — on those engines the result will be
+    off-by-one. Use `satisfies` with engine-specific SQL for exact checks on
+    those dialects.
+    """
+
+    _DOW = {
+        "is_on_sunday": 1,
+        "is_on_monday": 2,
+        "is_on_tuesday": 3,
+        "is_on_wednesday": 4,
+        "is_on_thursday": 5,
+        "is_on_friday": 6,
+        "is_on_saturday": 7,
+    }
+
+    @staticmethod
+    def analyze(rule: RuleDefinition) -> exp.Expression:
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
+        day_num = WeekdayAnalyzer._DOW.get(rule.check_type)
+        if day_num is None:
+            raise NotImplementedError(
+                f"WeekdayAnalyzer: unknown check_type '{rule.check_type}'"
+            )
+        dow = exp.DayOfWeek(this=col)
+        cond: exp.Expression = exp.EQ(this=dow, expression=exp.Literal.number(day_num))
+        return _pass_rate(cond)
+
+
+class ValidateDateFormatAnalyzer:
+    """
+    Checks that a column can be safely parsed as DATE.
+    Transpiles to:
+        BigQuery  → NOT SAFE_CAST(col AS DATE) IS NULL
+        DuckDB    → NOT TRY_CAST(col AS DATE) IS NULL
+        Snowflake → NOT CAST(col AS DATE) IS NULL   (raises on bad input)
+        Trino     → NOT TRY_CAST(col AS DATE) IS NULL
+    """
+
+    @staticmethod
+    def analyze(rule: RuleDefinition) -> exp.Expression:
+        field = rule.field
+        if isinstance(field, list):
+            field = field[0]
+        col = _to_col(field)
+        try_cast = exp.TryCast(this=col, to=exp.DataType.build("date"))
+        is_null = exp.Is(this=try_cast, expression=exp.Null())
+        return _pass_rate(exp.Not(this=is_null))
 
 
 class DateBetweenAnalyzer:
@@ -330,14 +375,12 @@ class DateBetweenAnalyzer:
         if isinstance(field, list):
             field = field[0]
         col = _to_col(field)
-        # Assuming values are strings 'YYYY-MM-DD'
         start = exp.Cast(
-            this=exp.Literal.string(rule.value[0]), to=exp.DataType.build("date")
+            this=exp.Literal.string(str(rule.value[0])), to=exp.DataType.build("date")
         )
         end = exp.Cast(
-            this=exp.Literal.string(rule.value[1]), to=exp.DataType.build("date")
+            this=exp.Literal.string(str(rule.value[1])), to=exp.DataType.build("date")
         )
-
         cond: exp.Expression = exp.Between(this=col, low=start, high=end)
         return _pass_rate(cond)
 
@@ -350,16 +393,12 @@ class DateComparisonAnalyzer:
             field = field[0]
         col = _to_col(field)
         target = exp.Cast(
-            this=exp.Literal.string(rule.value), to=exp.DataType.build("date")
+            this=exp.Literal.string(str(rule.value)), to=exp.DataType.build("date")
         )
-
-        cond: exp.Expression = None
-
         if rule.check_type == "is_date_after":
-            cond = exp.GT(this=col, expression=target)
+            cond: exp.Expression = exp.GT(this=col, expression=target)
         else:
             cond = exp.LT(this=col, expression=target)
-
         return _pass_rate(cond)
 
 
@@ -390,4 +429,6 @@ class AggregationAnalyzer:
         elif check_type == "has_cardinality":
             return exp.Count(this=exp.Distinct(expressions=[col]))
         else:
-            return exp.Literal.number(0.0)
+            raise NotImplementedError(
+                f"AggregationAnalyzer: check_type '{check_type}' not implemented"
+            )

@@ -2,6 +2,7 @@
 """SQL DDL generator using SQLGlot for cross-dialect support."""
 
 from typing import List, Optional
+
 import sqlglot
 
 
@@ -66,7 +67,9 @@ class SQLGenerator:
     ]
 
     @classmethod
-    def generate(cls, table: str, dialect: str, schema: Optional[str] = None, **kwargs) -> str:
+    def generate(
+        cls, table: str, dialect: str, schema: Optional[str] = None, **kwargs
+    ) -> str:
         """
         Generate DDL for a specific table and dialect using SQLGlot.
 
@@ -162,7 +165,12 @@ class SQLGenerator:
 
     @classmethod
     def _apply_dialect_customizations(
-        cls, ddl: str, dialect: str, table_name: str, schema_name: Optional[str] = None, **kwargs
+        cls,
+        ddl: str,
+        dialect: str,
+        table_name: str,
+        schema_name: Optional[str] = None,
+        **kwargs,
     ) -> str:
         """Apply dialect-specific customizations."""
 

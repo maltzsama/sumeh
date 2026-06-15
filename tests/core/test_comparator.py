@@ -10,6 +10,7 @@ Covers:
 """
 
 import pytest
+
 from sumeh.core.logic.comparators import (
     CompletenessConstraint,
     MultiFieldCompletenessConstraint,

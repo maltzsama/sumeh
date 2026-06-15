@@ -6,16 +6,15 @@ Orchestrates validation using Ray's distributed processing.
 import time
 from typing import List
 
-from sumeh.engines.ray_data.registry import get_analyzer, get_constraint
+from sumeh.engines.ray.registry import get_analyzer, get_constraint
 
+from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import (
     ValidationReport,
     ValidationResult,
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.models.metrics import MetricResult
-
 from sumeh.core.rules.rule_model import RuleDefinition
 
 
@@ -144,5 +143,5 @@ def validate(
         results=validation_results,
         total_rows=total_rows,
         execution_time_ms=(time.time() - start_time) * 1000,
-        engine="ray_data",
+        engine="ray",
     )

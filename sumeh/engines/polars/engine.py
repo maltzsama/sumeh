@@ -21,7 +21,7 @@ from sumeh.engines.polars.dataframe import ValidatedPolarsDataFrame
 from sumeh.engines.polars.registry import get_analyzer, get_constraint
 
 # Centralized Schema Definition to avoid drift
-ERROR_SCHEMA = {
+ERROR_SCHEMA: dict[str, type[pl.DataType]] = {
     "rule_id": pl.Utf8,
     "check_type": pl.Utf8,
     "field": pl.Utf8,
@@ -120,7 +120,7 @@ def validate(
 
     return ValidationReport(
         results=results,
-        total_rows=len(df) if hasattr(df, "__len__") else 0 ,
+        total_rows=len(df) if hasattr(df, "__len__") else 0,
         execution_time_ms=execution_time_ms,
         engine="polars",
         df_validated=ValidatedPolarsDataFrame(df),

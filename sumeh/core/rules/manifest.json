@@ -45,7 +45,7 @@
     {"check_type": "is_on_saturday", "level": "ROW", "category": "date", "description": "Checks if date is Saturday", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
     {"check_type": "is_on_sunday", "level": "ROW", "category": "date", "description": "Checks if date is Sunday", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
     {"check_type": "validate_date_format", "level": "ROW", "category": "date", "description": "Checks if date string matches expected format", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
-    {"check_type": "all_date_checks", "level": "ROW", "category": "date", "description": "Runs comprehensive date validation suite", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
+    {"check_type": "all_date_checks", "level": "ROW", "category": "date", "description": "Runs comprehensive date validation suite", "engines": ["pandas", "pyspark", "polars", "dask"]},
     {"check_type": "satisfies", "level": "ROW", "category": "sql", "description": "Validates custom SQL condition", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
     {"check_type": "has_min", "level": "TABLE", "category": "aggregation", "description": "Validates column minimum value", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
     {"check_type": "has_max", "level": "TABLE", "category": "aggregation", "description": "Validates column maximum value", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
@@ -53,8 +53,8 @@
     {"check_type": "has_mean", "level": "TABLE", "category": "aggregation", "description": "Validates column average/mean", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
     {"check_type": "has_std", "level": "TABLE", "category": "aggregation", "description": "Validates column standard deviation", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
     {"check_type": "has_cardinality", "level": "TABLE", "category": "aggregation", "description": "Validates number of distinct values", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
-    {"check_type": "has_entropy", "level": "TABLE", "category": "aggregation", "description": "Validates column entropy", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
-    {"check_type": "has_infogain", "level": "TABLE", "category": "aggregation", "description": "Validates information gain metric", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]},
-    {"check_type": "validate_schema", "level": "TABLE", "category": "schema", "description": "Validates DataFrame schema structure", "engines": ["pandas", "pyspark", "polars", "duckdb", "dask", "bigquery"]}
+    {"check_type": "has_entropy", "level": "TABLE", "category": "aggregation", "description": "Validates column entropy", "engines": ["pandas", "pyspark", "polars", "dask"]},
+    {"check_type": "has_infogain", "level": "TABLE", "category": "aggregation", "description": "Validates information gain metric", "engines": ["pandas", "pyspark", "polars", "dask"]},
+    {"check_type": "validate_schema", "level": "TABLE", "category": "schema", "description": "Validates DataFrame schema structure", "engines": ["pandas", "pyspark", "polars", "dask"]}
   ]
 }

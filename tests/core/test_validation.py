@@ -7,9 +7,10 @@ Covers:
 - ValidationReport: properties, summary, split, df, dunder methods
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import MagicMock
+
+import pytest
 
 from sumeh.core.models.validation import (
     ValidationLevel,

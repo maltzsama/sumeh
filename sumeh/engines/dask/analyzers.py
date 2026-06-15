@@ -8,7 +8,6 @@ Strategy:
 """
 
 import dask.dataframe as dd
-import numpy as np
 import pandas as pd
 
 from sumeh.core.rules.rule_model import RuleDefinition

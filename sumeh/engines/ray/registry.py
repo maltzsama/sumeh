@@ -3,7 +3,7 @@ Ray Data Registry - EXPANDED.
 Maps check_types to Ray Data Analyzers and Constraints.
 """
 
-from sumeh.engines.ray_data.analyzers import (
+from sumeh.engines.ray.analyzers import (
     CompletenessAnalyzer,
     MultiFieldCompletenessAnalyzer,
     ComparisonAnalyzer,

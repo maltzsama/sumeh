@@ -7,9 +7,8 @@ Optimized to avoid row-by-row iteration using bulk aggregation.
 
 import time
 from datetime import datetime
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any
 
-import numpy as np
 import pandas as pd
 
 from sumeh.core.models.validation import (

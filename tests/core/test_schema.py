@@ -7,8 +7,9 @@ Covers:
 """
 
 import json
-import pytest
+
 import pandas as pd
+import pytest
 
 from sumeh.core.services.schema.models import ColumnDef, SchemaDef, SchemaReport
 from sumeh.core.services.schema.validator import (
