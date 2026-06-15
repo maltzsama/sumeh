@@ -22,7 +22,6 @@ from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import ValidationStatus, ValidationLevel
 from sumeh.core.rules.rule_model import RuleDefinition
 
-
 # Helpers
 
 

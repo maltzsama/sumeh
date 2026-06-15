@@ -33,7 +33,6 @@ from sumeh.engines.sql_core.analyzers import (
 from sumeh.engines.sql_core.compiler import compile_rules_to_sql
 from sumeh.engines.sql_core.validator import validate_results
 
-
 # Helpers
 
 

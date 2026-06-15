@@ -13,7 +13,6 @@ import pytest
 from sumeh.core.rules.registry import RuleRegistry
 from sumeh.core.rules.rule_model import RuleDefinition
 
-
 # RuleRegistry
 
 

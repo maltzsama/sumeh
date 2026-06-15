@@ -28,7 +28,6 @@ from sumeh.engines.pandas.analyzers import (
     AggregationAnalyzer,
 )
 
-
 # Fixtures
 
 

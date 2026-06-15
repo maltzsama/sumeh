@@ -57,6 +57,7 @@ __email__ = "demetrius.albuquerque@yahoo.com.br"
 __version__ = "2.0.1"
 
 from sumeh.core.models.metrics import MetricResult
+
 # ============================================================================
 # Core Models
 # ============================================================================

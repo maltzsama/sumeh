@@ -19,7 +19,6 @@ from sumeh.core.services.schema.validator import (
     extract_schema,
 )
 
-
 # ColumnDef
 
 

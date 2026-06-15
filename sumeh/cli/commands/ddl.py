@@ -30,9 +30,8 @@ def ddl(
         console.print(f"🔨 Generating DDL for [cyan]{table}[/cyan] ({dialect})...")
 
         schema_value: str = schema if schema is not None else "public"
-        
-        ddl_sql = SQLGenerator.generate(table, dialect, schema_value)
 
+        ddl_sql = SQLGenerator.generate(table, dialect, schema_value)
 
         if output:
             output.write_text(ddl_sql)

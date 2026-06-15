@@ -13,7 +13,6 @@ import pytest
 from sumeh.config.csv import load_rules_csv, save_rules_csv
 from sumeh.core.rules.rule_model import RuleDefinition
 
-
 # Helpers
 
 

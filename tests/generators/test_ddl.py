@@ -13,7 +13,6 @@ import pytest
 
 from sumeh.generators.ddl import SQLGenerator
 
-
 # list_dialects / list_tables
 
 

@@ -19,7 +19,6 @@ from sumeh.core.models.validation import (
     ValidationReport,
 )
 
-
 # Helpers
 
 

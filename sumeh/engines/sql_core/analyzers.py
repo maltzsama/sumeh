@@ -10,7 +10,6 @@ import sqlglot.expressions as exp
 
 from sumeh.core.rules.rule_model import RuleDefinition
 
-
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
@@ -61,8 +60,7 @@ class MultiFieldCompletenessAnalyzer:
         fields = rule.field if isinstance(rule.field, list) else [rule.field]
         # FIX: expression=exp.Null() — not kind=
         conditions = [
-            exp.Not(this=exp.Is(this=_to_col(f), expression=exp.Null()))
-            for f in fields
+            exp.Not(this=exp.Is(this=_to_col(f), expression=exp.Null())) for f in fields
         ]
         final_condition: exp.Expression = conditions[0]
         for c in conditions[1:]:
@@ -324,13 +322,13 @@ class WeekdayAnalyzer:
     """
 
     _DOW = {
-        "is_on_sunday":    1,
-        "is_on_monday":    2,
-        "is_on_tuesday":   3,
+        "is_on_sunday": 1,
+        "is_on_monday": 2,
+        "is_on_tuesday": 3,
         "is_on_wednesday": 4,
-        "is_on_thursday":  5,
-        "is_on_friday":    6,
-        "is_on_saturday":  7,
+        "is_on_thursday": 5,
+        "is_on_friday": 6,
+        "is_on_saturday": 7,
     }
 
     @staticmethod
@@ -345,9 +343,7 @@ class WeekdayAnalyzer:
                 f"WeekdayAnalyzer: unknown check_type '{rule.check_type}'"
             )
         dow = exp.DayOfWeek(this=col)
-        cond: exp.Expression = exp.EQ(
-            this=dow, expression=exp.Literal.number(day_num)
-        )
+        cond: exp.Expression = exp.EQ(this=dow, expression=exp.Literal.number(day_num))
         return _pass_rate(cond)
 
 

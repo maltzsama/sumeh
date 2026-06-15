@@ -10,7 +10,6 @@ import pytest
 
 from sumeh.core.rules.rule_model import RuleDefinition
 
-
 # DataFrames
 
 

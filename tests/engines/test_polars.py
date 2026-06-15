@@ -30,7 +30,6 @@ from sumeh.engines.polars.analyzers import (
     AggregationAnalyzer,
 )
 
-
 # Fixtures
 
 
