@@ -53,15 +53,15 @@ Sumeh provides a single, consistent interface that compiles to whatever engine i
 
 ```python
 from sumeh import pandas, polars, duckdb, bigquery
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 rules = [
-    RuleDefinition(field="user_id",  check_type="is_unique",      threshold=1.0),
-    RuleDefinition(field="email",    check_type="is_complete",     threshold=1.0),
-    RuleDefinition(field="email",    check_type="has_pattern",     value=r"^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$"),
-    RuleDefinition(field="age",      check_type="is_between",      min_value=18, max_value=120),
-    RuleDefinition(field="status",   check_type="is_contained_in", allowed_values=["active","inactive","pending"]),
-    RuleDefinition(field="revenue",  check_type="has_mean",        value=50_000.0, threshold=0.1),
+  RuleDefinition(field="user_id", check_type="is_unique", threshold=1.0),
+  RuleDefinition(field="email", check_type="is_complete", threshold=1.0),
+  RuleDefinition(field="email", check_type="has_pattern", value=r"^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$"),
+  RuleDefinition(field="age", check_type="is_between", min_value=18, max_value=120),
+  RuleDefinition(field="status", check_type="is_contained_in", allowed_values=["active", "inactive", "pending"]),
+  RuleDefinition(field="revenue", check_type="has_mean", value=50_000.0, threshold=0.1),
 ]
 
 # These are interchangeable — same rules, same report, different engine underneath
@@ -189,17 +189,17 @@ pip install sumeh[polars,duckdb,bigquery]
 
 ```python
 from sumeh import pandas as sumeh_pandas
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 import pandas as pd
 
 df = pd.read_csv("customers.csv")
 
 rules = [
-    RuleDefinition(field="customer_id", check_type="is_unique",      threshold=1.0),
-    RuleDefinition(field="email",       check_type="is_complete",     threshold=1.0),
-    RuleDefinition(field="age",         check_type="is_positive",     threshold=0.99),
-    RuleDefinition(field="country",     check_type="is_contained_in", allowed_values=["BR","US","DE","FR"]),
-    RuleDefinition(field="revenue",     check_type="has_mean",        value=3_500.0, threshold=0.15),
+  RuleDefinition(field="customer_id", check_type="is_unique", threshold=1.0),
+  RuleDefinition(field="email", check_type="is_complete", threshold=1.0),
+  RuleDefinition(field="age", check_type="is_positive", threshold=0.99),
+  RuleDefinition(field="country", check_type="is_contained_in", allowed_values=["BR", "US", "DE", "FR"]),
+  RuleDefinition(field="revenue", check_type="has_mean", value=3_500.0, threshold=0.15),
 ]
 
 report = sumeh_pandas.validate(df, rules)
@@ -207,7 +207,7 @@ report = sumeh_pandas.validate(df, rules)
 # Summary
 print(f"Pass rate: {report.pass_rate:.2%}")
 for r in report.failed:
-    print(f"  ✗ [{r.check_type}] {r.field} — {r.message}")
+  print(f"  ✗ [{r.check_type}] {r.field} — {r.message}")
 
 # Annotated DataFrame (_dq_errors column added per row)
 annotated = report.df
@@ -393,25 +393,25 @@ Rules are `RuleDefinition` dataclasses.
 | `execute` | `bool` | `False` to skip without removing the rule |
 
 ```python
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # Row-level: threshold = minimum pass rate across all rows
-RuleDefinition(field="email",        check_type="is_complete",     threshold=1.0)
-RuleDefinition(field=["name","dob"], check_type="are_complete",    threshold=0.95)
-RuleDefinition(field="user_id",      check_type="is_unique",       threshold=1.0)
-RuleDefinition(field=["id","date"],  check_type="are_unique",      threshold=1.0)
-RuleDefinition(field="age",          check_type="is_positive",     threshold=0.99)
-RuleDefinition(field="score",        check_type="is_between",      min_value=0, max_value=100)
-RuleDefinition(field="status",       check_type="is_contained_in", allowed_values=["A","B","C"])
-RuleDefinition(field="email",        check_type="has_pattern",     value=r"^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$")
-RuleDefinition(field="created_at",   check_type="is_past_date",    threshold=1.0)
-RuleDefinition(field="*",            check_type="satisfies",       value="age >= 18 AND status != 'banned'")
+RuleDefinition(field="email", check_type="is_complete", threshold=1.0)
+RuleDefinition(field=["name", "dob"], check_type="are_complete", threshold=0.95)
+RuleDefinition(field="user_id", check_type="is_unique", threshold=1.0)
+RuleDefinition(field=["id", "date"], check_type="are_unique", threshold=1.0)
+RuleDefinition(field="age", check_type="is_positive", threshold=0.99)
+RuleDefinition(field="score", check_type="is_between", min_value=0, max_value=100)
+RuleDefinition(field="status", check_type="is_contained_in", allowed_values=["A", "B", "C"])
+RuleDefinition(field="email", check_type="has_pattern", value=r"^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$")
+RuleDefinition(field="created_at", check_type="is_past_date", threshold=1.0)
+RuleDefinition(field="*", check_type="satisfies", value="age >= 18 AND status != 'banned'")
 
 # Table-level: threshold = allowed relative deviation from expected value
 # threshold=0.1 → actual metric must be within ±10% of value
-RuleDefinition(field="age",          check_type="has_mean",        value=35.0,    threshold=0.10)
-RuleDefinition(field="salary",       check_type="has_min",         value=1_000.0, threshold=0.05)
-RuleDefinition(field="category",     check_type="has_cardinality", value=5,       threshold=0.0)
+RuleDefinition(field="age", check_type="has_mean", value=35.0, threshold=0.10)
+RuleDefinition(field="salary", check_type="has_min", value=1_000.0, threshold=0.05)
+RuleDefinition(field="category", check_type="has_cardinality", value=5, threshold=0.0)
 ```
 
 ### Loading from CSV
@@ -514,18 +514,18 @@ Generate the full validation SQL for any dialect without executing it. Useful fo
 
 ```python
 from sumeh import sql_core
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 rules = [
-    RuleDefinition(field="user_id", check_type="is_unique",   threshold=1.0),
-    RuleDefinition(field="email",   check_type="is_complete", threshold=1.0),
-    RuleDefinition(field="age",     check_type="has_mean",    value=35.0, threshold=0.1),
+  RuleDefinition(field="user_id", check_type="is_unique", threshold=1.0),
+  RuleDefinition(field="email", check_type="is_complete", threshold=1.0),
+  RuleDefinition(field="age", check_type="has_mean", value=35.0, threshold=0.1),
 ]
 
 sql = sql_core.get_validation_sql(
-    table="bronze.stg_transactions",
-    rules=rules,
-    dialect="bigquery",  # "snowflake", "duckdb", "trino", "spark", "postgres", ...
+  table="bronze.stg_transactions",
+  rules=rules,
+  dialect="bigquery",  # "snowflake", "duckdb", "trino", "spark", "postgres", ...
 )
 
 print(sql)
@@ -834,10 +834,12 @@ report = pandas.validate(df, rules)
 ```python
 # v1.x
 from sumeh.core.rules import RuleDef
+
 rule = RuleDef(field="email", check_type="is_complete", threshold=0.99)
 
 # v2.0
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
+
 rule = RuleDefinition(field="email", check_type="is_complete", threshold=0.99)
 ```
 
@@ -852,7 +854,7 @@ You now load rule configurations using standard Python data libraries (like Pand
 ```python
 import pandas as pd
 from sqlalchemy import create_engine
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # 1. Connect and query your rules table
 engine = create_engine("postgresql://user:secret@localhost:5432/mydb")
@@ -868,7 +870,7 @@ rules = [RuleDefinition(**row) for row in df_rules.to_dict(orient="records")]
 
 ```python
 from google.cloud import bigquery
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 client = bigquery.Client(project="my-project")
 query = "SELECT * FROM `my-project.my_dataset.dq_rules` WHERE execute = TRUE"
@@ -883,7 +885,7 @@ rules = [RuleDefinition(**dict(row)) for row in records]
 
 ```python
 import duckdb
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 conn = duckdb.connect("warehouse.db")
 

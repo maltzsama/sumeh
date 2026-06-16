@@ -8,7 +8,7 @@ from datetime import date, timedelta
 import pandas as pd
 import pytest
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # DataFrames
 

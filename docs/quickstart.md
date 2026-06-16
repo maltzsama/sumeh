@@ -21,7 +21,7 @@ pip install sumeh[pyspark]
 Rules in v2.0 are simply lists of `RuleDefinition` dataclasses. You can define them directly in code, or load them from any source (CSV, databases) using your standard tools like Pandas or DuckDB.
 
 ```python
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 import pandas as pd
 
 # Define directly
@@ -34,8 +34,8 @@ rules = [
 # OR load from a CSV using standard Pandas
 df_rules = pd.read_csv("rules.csv")
 rules_from_csv = [
-    RuleDefinition(**row) 
-    for row in df_rules.to_dict(orient="records") 
+    RuleDefinition(**row)
+    for row in df_rules.to_dict(orient="records")
     if row.get("execute", True)
 ]
 

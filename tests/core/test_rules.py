@@ -1,5 +1,5 @@
 """
-Tests for sumeh/core/rules/registry.py and rule_model.py
+Tests for sumeh/core/rules/registry.py and rule_definition.py
 
 Covers:
 - RuleRegistry: loading, get_rule, list_rules, is_rule_supported
@@ -11,7 +11,7 @@ from datetime import date
 import pytest
 
 from sumeh.core.rules.registry import RuleRegistry
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # RuleRegistry
 

@@ -9,7 +9,7 @@ without requiring separate or redundant data scans.
 import time
 from typing import Any, Dict, Optional
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.core.services.schema.validator import extract_schema
 
 

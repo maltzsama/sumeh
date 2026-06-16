@@ -8,7 +8,7 @@ import csv
 from pathlib import Path
 from typing import List, Union
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 
 def load_rules_csv(filepath: Union[str, Path]) -> List[RuleDefinition]:

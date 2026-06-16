@@ -12,7 +12,7 @@ from sumeh.core.models.validation import (
     ValidationResult,
     ValidationStatus,
 )
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.sql_core.registry import get_constraint
 
 

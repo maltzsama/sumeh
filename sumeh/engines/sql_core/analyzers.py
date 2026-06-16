@@ -8,7 +8,7 @@ Achieves parity with Pandas engine features (Dates, Patterns, Multi-field).
 import sqlglot
 import sqlglot.expressions as exp
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # ============================================================================
 # HELPER FUNCTIONS

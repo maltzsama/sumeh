@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import polars as pl
 
 from sumeh.core.models.metrics import MetricResult
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # ============================================================================
 # COMPLETENESS ANALYZERS

@@ -12,7 +12,7 @@ In v2.0, Sumeh uses a **namespace-first API**. You explicitly import the engine 
 
 ```python
 from sumeh import pandas, polars, duckdb
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 import pandas as pd
 
 # Load rules (from CSV, DB, etc.)

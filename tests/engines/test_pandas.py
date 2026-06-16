@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 
 from sumeh.core.models.validation import ValidationStatus
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.pandas import validate
 from sumeh.engines.pandas.analyzers import (
     CompletenessAnalyzer,

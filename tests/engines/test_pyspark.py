@@ -13,7 +13,7 @@ pyspark = pytest.importorskip("pyspark", reason="pyspark not installed")
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.core.models.validation import ValidationStatus
 from sumeh.engines.pyspark import validate
 

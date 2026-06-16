@@ -21,7 +21,7 @@ from pathlib import Path
 
 import sqlglot.expressions as exp
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.sql_core.analyzers import (
     WeekdayAnalyzer,
     SatisfiesAnalyzer,

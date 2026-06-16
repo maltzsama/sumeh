@@ -12,7 +12,7 @@ Run with: pytest tests/engines/test_ray.py -v
 import pandas as pd
 import pytest
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.core.models.validation import ValidationStatus
 from sumeh.engines.ray.analyzers import (
     CompletenessAnalyzer,

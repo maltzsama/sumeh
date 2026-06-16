@@ -11,7 +11,7 @@ Strategy:
 
 import pandas as pd
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # ============================================================================
 # COMPLETENESS

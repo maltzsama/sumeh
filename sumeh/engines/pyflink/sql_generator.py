@@ -6,7 +6,7 @@ Generates Flink SQL with UDF calls based on validation rules.
 
 from typing import List
 
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 
 def generate_validation_sql(rules: List[RuleDefinition], table_name: str) -> str:

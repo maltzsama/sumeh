@@ -9,7 +9,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
 from sumeh.core.models.metrics import MetricResult
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 
 # COMPLETENESS ANALYZERS

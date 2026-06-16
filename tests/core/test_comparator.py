@@ -20,7 +20,7 @@ from sumeh.core.logic.comparators import (
 )
 from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import ValidationStatus, ValidationLevel
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 
 # Helpers
 

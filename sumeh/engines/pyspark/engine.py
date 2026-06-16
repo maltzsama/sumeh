@@ -18,7 +18,7 @@ from sumeh.core.models.validation import (
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.pyspark.dataframe import ValidatedSparkDataFrame
 from sumeh.engines.pyspark.registry import get_analyzer, get_constraint
 

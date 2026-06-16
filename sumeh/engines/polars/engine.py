@@ -16,7 +16,7 @@ from sumeh.core.models.validation import (
     ValidationLevel,
     ValidationStatus,
 )
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.polars.dataframe import ValidatedPolarsDataFrame
 from sumeh.engines.polars.registry import get_analyzer, get_constraint
 

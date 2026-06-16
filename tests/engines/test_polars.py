@@ -12,7 +12,7 @@ import polars as pl
 import pytest
 
 from sumeh.core.models.validation import ValidationStatus
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.polars import validate
 from sumeh.engines.polars.analyzers import (
     CompletenessAnalyzer,

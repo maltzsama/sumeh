@@ -14,7 +14,7 @@ import pytest
 import sqlglot.expressions as exp
 
 from sumeh.core.models.validation import ValidationStatus
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.duckdb.engine import validate
 from sumeh.engines.sql_core.analyzers import (
     CompletenessAnalyzer,

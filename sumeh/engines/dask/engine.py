@@ -12,7 +12,7 @@ import dask.dataframe as dd
 
 from sumeh.core.models.metrics import MetricResult
 from sumeh.core.models.validation import ValidationReport
-from sumeh.core.rules.rule_model import RuleDefinition
+from sumeh.core.rules.rule_definition import RuleDefinition
 from sumeh.engines.dask.registry import get_analyzer, get_constraint
 
 # Configure logger
